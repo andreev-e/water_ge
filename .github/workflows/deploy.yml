@@ -23,7 +23,7 @@ jobs:
             && git pull
             && rm composer.lock
             && cp deploy/queue-worker.conf /etc/supervisor/conf.d/${{ secrets.USER_NAME }}.d
-            && supervisord -c /etc/supervisor/conf_${{ secrets.USER_NAME }}.d
+            && supervisord -c /etc/supervisor/conf.d/conf_${{ secrets.USER_NAME }}.d
             && supervisorctl reread
             && service supervisor restart
             && chown ${{ secrets.USER_NAME }}:${{ secrets.USER_NAME }} . -R
