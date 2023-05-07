@@ -20,7 +20,8 @@ jobs:
             && git init
             && git remote add origin git@github.com:andreev-e/water_ge.git
             && su water_andreev
-            && git checkout master
+            && git branch main
+            && git checkout main
             && git reset --hard
             && git pull
             && rm composer.lock
