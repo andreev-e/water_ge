@@ -62,11 +62,12 @@ class LoadSchedule extends Command
                         }
                     }
 
-                    dump($serviceCenter, $from, $to, $addresses);
+                    dump($serviceCenter, $from, $to);
 
                     $serviceCenter = ServiceCenter::query()->firstOrCreate(['name' => $serviceCenter]);
 
-                    $event = $serviceCenter->events()->firstOrCreate([
+                    $event = Event::query()->firstOrCreate([
+                        'service_center_id' => $serviceCenter->id,
                         'start' => Carbon::createFromFormat('d/m/Y H:i:s', $from),
                         'finish' => Carbon::createFromFormat('d/m/Y H:i:s', $to),
                     ]);

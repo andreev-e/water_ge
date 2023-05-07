@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Event extends Model
 {
     protected $fillable = [
+        'service_center_id',
         'start',
         'finish',
     ];
