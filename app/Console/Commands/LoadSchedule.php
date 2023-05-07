@@ -28,7 +28,7 @@ class LoadSchedule extends Command
     public function handle(Client $client, Dom $dom): void
     {
 
-        for ($i = 0; $i < 198; $i++) {
+        for ($i = 0; $i < 1; $i++) {
             $url = 'http://water.gov.ge/page/full/107' . ($i * 10 === 0 ? '' : '/' . $i * 10);
             echo $url . PHP_EOL;
             $response = $client->get($url);
