@@ -18,7 +18,6 @@ jobs:
           port: 22
           script: cd ${{ vars.PROD_PATH }}
             && su ${{ secrets.USER_NAME }}
-            && git checkout main
             && git reset --hard
             && git pull
             && rm composer.lock
