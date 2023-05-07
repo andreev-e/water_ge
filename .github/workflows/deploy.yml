@@ -1,0 +1,47 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+    - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: executing remote ssh commands using password
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST }}
+          username: root
+          password: ${{ secrets.ROOT_PASSWORD }}
+          port: 22
+          script: cd ${{ vars.PROD_PATH }}
+            && su altertravel.ru
+            && git checkout master
+            && git reset --hard
+            && git pull
+            && rm composer.lock
+            && cp deploy/queue-worker.conf /etc/supervisor/conf.d
+            && supervisorctl reread
+            && service supervisor restart
+      - name: executing remote ssh commands using password
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER_NAME }}
+          password: ${{ secrets.USER_PASSWORD }}
+          port: 22
+          script: cd ${{ vars.PROD_PATH }}
+            && php -v
+            && /opt/php81/bin/php /usr/local/bin/composer install --ignore-platform-req=ext-http --ignore-platform-req=ext-dom
+            && /opt/php81/bin/php artisan key:generate
+            && /opt/php81/bin/php artisan migrate
+            && /opt/php81/bin/php artisan optimize
+            && /opt/php81/bin/php artisan cache:clear
+            && /opt/php81/bin/php artisan telegram:delete-webhook
+            && /opt/php81/bin/php artisan telegram:set-webhook
+
+
+
+
