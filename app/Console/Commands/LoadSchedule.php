@@ -29,7 +29,7 @@ class LoadSchedule extends Command
     {
 
         for ($i = 0; $i < 100; $i++) {
-            $response = $client->get('http://water.gov.ge/page/full/107/' . ($i * 10 ?? ''));
+            $response = $client->get('http://water.gov.ge/page/full/107' . ($i * 10 === 0 ? '' : '/' . $i * 10));
 
             try {
                 $dom->loadStr($response->getBody()->getContents());
