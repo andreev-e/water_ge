@@ -22,9 +22,6 @@ jobs:
             && git reset --hard
             && git pull
             && rm composer.lock
-            && cp deploy/queue-worker.conf /etc/supervisor/conf.d
-            && supervisorctl reread
-            && service supervisor restart
       - name: executing remote ssh commands using password
         uses: appleboy/ssh-action@v0.1.7
         with:
