@@ -26,9 +26,9 @@ class Translate extends Command
             ->limit(100)->cursor();
         $this->translateCollection($elements, $translator);
 
-        $elements = Address::query()->whereNull('name_en')
-            ->limit(100)->cursor();
-        $this->translateCollection($elements, $translator);
+//        $elements = Address::query()->whereNull('name_en')
+//            ->limit(100)->cursor();
+//        $this->translateCollection($elements, $translator);
     }
 
     private function translateCollection(LazyCollection $cursor, TranslationInterface $translator): void
