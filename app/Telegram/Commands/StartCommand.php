@@ -5,8 +5,8 @@ namespace App\Telegram\Commands;
 
 
 use Longman\TelegramBot\Commands\UserCommand;
+use Longman\TelegramBot\Entities\Keyboard;
 use Longman\TelegramBot\Entities\ServerResponse;
-use Longman\TelegramBot\Exception\TelegramException;
 
 class StartCommand extends UserCommand
 {
@@ -24,19 +24,20 @@ class StartCommand extends UserCommand
     {
         $languageCode = $this->getMessage()->getFrom()->getLanguageCode();
 
-        $data = [
-            'buttons' => [
-//                [
+        $keyboard = new Keyboard([]);
+//            ->inline()
+//            ->row(
+//                Keyboard::inlineButton([
 //                    'text' => __('telegram.buttons.search', locale: $languageCode),
-//                    'callback_data' => 'search'
-//                ],
-//                [
+//                    'callback_data' => 'search',
+//                ]),
+//                Keyboard::inlineButton([
 //                    'text' => __('telegram.buttons.list', locale: $languageCode),
-//                    'callback_data' => 'list'
-//                ],
-            ]
-        ];
+//                    'callback_data' => 'list',
+//                ])
+//            );
 
-        return $this->replyToChat(__('telegram.start', locale: $languageCode), $data);
+
+        return $this->replyToChat(__('telegram.start', locale: $languageCode), ['reply_markup' => $keyboard]);
     }
 }
