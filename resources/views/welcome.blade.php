@@ -785,14 +785,14 @@
     <table style="padding: 10px">
         @foreach($currentEvents as $event)
             <tr>
-                <td>{{ $event->serviceCenter->name_ru }}({{ $event->serviceCenter->name }})</td>
+                <td>{{ $event->serviceCenter->name_ru }} ({{ $event->serviceCenter->name }})</td>
                 <td>{{ $event->start }} - {{ $event->finish }}</td>
             </tr>
             <tr>
                 <td></td>
                 <td>
                     @foreach($event->addresses as $address)
-                        <p>{{ $address->name_ru }}({{ $address->name }})</p>
+                        <p>{{ $address->name_ru }} ({{ $address->name }})</p>
                     @endforeach
                 </td>
             </tr>
