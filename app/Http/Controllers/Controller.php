@@ -16,7 +16,6 @@ class Controller extends BaseController
     {
         $currentEvents = Event::query()
             ->where('finish', '>=', Carbon::now())
-            ->where('start', '<=', Carbon::now())
             ->get();
         return view('welcome', compact('currentEvents'));
     }
