@@ -32,7 +32,12 @@ class StartCommand extends UserCommand
         $anotherButton = new KeyboardButton(
             [
                 'text' => __('telegram.buttons.search', locale: $languageCode),
-                'switch_inline_query' => '/search',
+                'switch_inline_query' => [
+                    'query' => '/search',
+                ],
+                'callback_data' => [
+                    'query' => '/search',
+                ],
             ]
         );
 

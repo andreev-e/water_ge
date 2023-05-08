@@ -24,6 +24,20 @@ class GenericmessageCommand extends SystemCommand
 
         $text = $this->getMessage()->getText();
 
+        $callbackQuery = $this->getCallbackQuery();
+
+
+        if ($callbackQuery) {
+            $data = $callbackQuery->getData();
+
+            return $this->replyToChat($data[0],
+                [
+                    'parse_mode' => 'markdown',
+                    'reply_markup' => Keyboard::remove(['selective' => true]),
+                ]);
+        }
+
+
         return $this->replyToChat(__('telegram.default_answer', locale: $languageCode),
             [
                 'parse_mode' => 'markdown',
