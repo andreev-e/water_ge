@@ -4,14 +4,16 @@
     "description": "The Laravel Framework.",
     "keywords": [
         "framework",
-        "laravel"
+        "laravel",
+        "telegram"
     ],
     "license": "MIT",
     "require": {
         "guzzlehttp/guzzle": "^7.5.1",
         "laravel/framework": "^10.9",
         "laravel/tinker": "^2.8.1",
-        "paquettg/php-html-parser": "^2.1"
+        "paquettg/php-html-parser": "^2.1",
+        "php-telegram-bot/laravel": "^2.0"
     },
     "require-dev": {
         "roave/security-advisories": "dev-latest",
