@@ -48,7 +48,8 @@ class StartCommand extends UserCommand
             __('telegram.start', locale: $languageCode),
             [
                 'parse_mode' => 'markdown',
-                'reply_markup' => $keyboardInline,
+                'reply_markup' => $keyboardInline->getRawData(),
+                'one_time_keyboard' => true,
             ]);
     }
 }
