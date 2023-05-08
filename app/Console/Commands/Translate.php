@@ -56,6 +56,10 @@ class Translate extends Command
 
     private function translateWord(string $word, $toLang): ?string
     {
+        if (is_numeric($word)) {
+            return $word;
+        }
+
         $dictionary = Dictionary::query()->firstOrCreate(['name' => $word]);
 
         if ($dictionary->name_en === null) {
