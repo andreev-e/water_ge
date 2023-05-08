@@ -37,24 +37,15 @@ class StartCommand extends UserCommand
             ]
         );
 
-        $inlineButton = new InlineQuery(
-            [
-                'text' => __('telegram.buttons.search', locale: $languageCode),
-                'callback_data' => '/search',
-            ]
-        );
-
         $keyboard = new Keyboard(
             [
                 'keyboard' => [
                     [
-                        '/search',
                         $anotherButton->getRawData(),
-                        $inlineButton->getRawData(),
                     ],
                 ],
                 'resize_keyboard' => true,
-                'one_time_keyboard' => true,
+                'one_time_keyboard' => false,
                 'selective' => true,
             ]
         );
@@ -62,7 +53,7 @@ class StartCommand extends UserCommand
         return $this->replyToChat(
             __('telegram.start', locale: $languageCode),
             [
-                'parse_mode' => 'markdown',
+                'parse_mode' => 'html',
                 'reply_markup' => $keyboard,
             ]);
     }
