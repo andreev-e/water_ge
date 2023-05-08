@@ -33,10 +33,10 @@ class StartCommand extends UserCommand
             [
                 'keyboard' => [
                     [
-                        [
-                            'text' => __('telegram.buttons.search', locale: $languageCode),
-                            'callback' => 'search',
-                        ],
+//                        [
+//                            'text' => __('telegram.buttons.search', locale: $languageCode),
+//                            'callback' => 'search',
+//                        ],
                         __('telegram.buttons.list', locale: $languageCode),
                     ],
                 ],
@@ -45,8 +45,9 @@ class StartCommand extends UserCommand
             ]
         );
 
-        $keyboard->setOneTimeKeyboard(false);
-        $keyboard->addRow(['/search']);
+        $keyboard->setResizeKeyboard(true);
+        $keyboard->setOneTimeKeyboard(true);
+//        $keyboard->addRow(['/search']);
 
         return $this->replyToChat(
             __('telegram.start', locale: $languageCode),
