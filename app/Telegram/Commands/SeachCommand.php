@@ -29,6 +29,10 @@ class SeachCommand extends UserCommand
         $languageCode = $this->getMessage()->getFrom()->getLanguageCode();
         $mess = $this->getMessage()->getText(true);
 
-        return $this->replyToChat('Search command: ' . $mess);
+        return $this->replyToChat('Search command: ' . $mess,
+            [
+                'parse_mode' => 'markdown',
+                'reply_markup' => Keyboard::remove(['selective' => true]),
+            ]);
     }
 }
