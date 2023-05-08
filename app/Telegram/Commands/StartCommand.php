@@ -29,26 +29,30 @@ class StartCommand extends UserCommand
     {
         $languageCode = $this->getMessage()->getFrom()->getLanguageCode();
 
+        $keyboard = new Keyboard(
+            [
+                'keyboard' => [
+                    [
+                        [
+                            'text' => __('telegram.buttons.search', locale: $languageCode),
+                            'callback' => 'search',
+                        ],
+                        __('telegram.buttons.list', locale: $languageCode),
+                    ],
+                ],
+                'resize_keyboard' => true,
+                'selective' => true,
+            ]
+        );
+
+        $keyboard->setOneTimeKeyboard(false);
+        $keyboard->addRow(['/search']);
+
         return $this->replyToChat(
             __('telegram.start', locale: $languageCode),
             [
                 'parse_mode' => 'markdown',
-                'reply_markup' => new InlineKeyboard(
-                    [
-                        'keyboard' => [
-                            [
-                                [
-                                    'text' => __('telegram.buttons.search', locale: $languageCode),
-                                    'callback' => 'search',
-                                ],
-                                __('telegram.buttons.list', locale: $languageCode),
-                            ],
-                        ],
-                        'resize_keyboard' => true,
-                        'one_time_keyboard' => true,
-                        'selective' => true,
-                    ]
-                ),
+                'reply_markup' => $keyboard,
             ]);
     }
 }
