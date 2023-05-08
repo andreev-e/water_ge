@@ -5,6 +5,8 @@ namespace App\Telegram\Commands;
 
 
 use Longman\TelegramBot\Commands\UserCommand;
+use Longman\TelegramBot\Entities\InlineKeyboard;
+use Longman\TelegramBot\Entities\InlineKeyboardButton;
 use Longman\TelegramBot\Entities\Keyboard;
 use Longman\TelegramBot\Entities\ServerResponse;
 
@@ -20,24 +22,28 @@ class StartCommand extends UserCommand
     /** @var string Version */
     protected $version = '1.0.0';
 
+    /**
+     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @throws \JsonException
+     */
     public function execute(): ServerResponse
     {
         $languageCode = $this->getMessage()->getFrom()->getLanguageCode();
 
-        $keyboard = new Keyboard([]);
-//            ->inline()
-//            ->row(
-//                Keyboard::inlineButton([
-//                    'text' => __('telegram.buttons.search', locale: $languageCode),
-//                    'callback_data' => 'search',
-//                ]),
-//                Keyboard::inlineButton([
-//                    'text' => __('telegram.buttons.list', locale: $languageCode),
-//                    'callback_data' => 'list',
-//                ])
-//            );
+        $keyboardInline = new InlineKeyboard([]);
+        $keyboardInline->addRow(
+            (new InlineKeyboardButton(__('telegram.buttons.search', locale: $languageCode)))
+                ->setCallbackData(json_encode([
+                    'name' => 'search',
+                    'show' => true,
+                ], JSON_THROW_ON_ERROR)),
+            (new InlineKeyboardButton(__('telegram.buttons.list', locale: $languageCode)))
+                ->setCallbackData(json_encode([
+                    'name' => 'list',
+                    'show' => true,
+                ], JSON_THROW_ON_ERROR))
+        );
 
-
-        return $this->replyToChat(__('telegram.start', locale: $languageCode), ['reply_markup' => $keyboard]);
+        return $this->replyToChat(__('telegram.start', locale: $languageCode), ['reply_markup' => $keyboardInline]);
     }
 }
