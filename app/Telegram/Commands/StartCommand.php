@@ -30,10 +30,10 @@ class StartCommand extends UserCommand
     {
         $languageCode = $this->getMessage()->getFrom()->getLanguageCode();
 
-        $inlineButton = new InlineKeyboardButton(
+        $searchButton = new InlineKeyboardButton(
             [
-                'text' => __('telegram.buttons.random', locale: $languageCode),
-                'callback_data' => '/random',
+                'text' => __('telegram.buttons.search', locale: $languageCode),
+                'callback_data' => '/search',
             ]
         );
 
@@ -41,11 +41,7 @@ class StartCommand extends UserCommand
             [
                 'keyboard' => [
                     [
-                        [
-                            'text' => __('telegram.buttons.search', locale: $languageCode),
-                            'callback' => '/search',
-                        ],
-                        $inlineButton->getRawData(),
+                        $searchButton->getRawData(),
                     ],
                 ],
                 'resize_keyboard' => true,
