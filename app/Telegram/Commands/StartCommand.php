@@ -8,6 +8,7 @@ use Longman\TelegramBot\Commands\UserCommand;
 use Longman\TelegramBot\Entities\InlineKeyboard;
 use Longman\TelegramBot\Entities\InlineKeyboardButton;
 use Longman\TelegramBot\Entities\Keyboard;
+use Longman\TelegramBot\Entities\KeyboardButton;
 use Longman\TelegramBot\Entities\ServerResponse;
 
 class StartCommand extends UserCommand
@@ -37,12 +38,20 @@ class StartCommand extends UserCommand
             ]
         );
 
+        $anotherButton = new InlineKeyboardButton(
+            [
+                'text' => __('telegram.buttons.search', locale: $languageCode),
+                'url' => 'https://mail.ru/search',
+            ]
+        );
+
         $keyboard = new Keyboard(
             [
                 'keyboard' => [
                     [
                         'Yes',
                         $searchButton->getRawData(),
+                        $anotherButton->getRawData(),
                     ],
                 ],
                 'resize_keyboard' => true,
