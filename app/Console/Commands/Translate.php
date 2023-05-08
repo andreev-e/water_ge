@@ -7,7 +7,7 @@ use App\Models\Dictionary;
 use App\Models\ServiceCenter;
 use App\Services\Translation\TranslationInterface;
 use Illuminate\Console\Command;
-use Illuminate\Support\LazyCollection;
+use Illuminate\Support\Collection;
 
 class Translate extends Command
 {
@@ -28,15 +28,15 @@ class Translate extends Command
     public function handle()
     {
         $elements = ServiceCenter::query()->whereNull('name_en')
-            ->limit(10000)->cursor();
+            ->limit(1000)->get();
         $this->translateCollection($elements);
 
         $elements = Address::query()->whereNull('name_en')
-            ->limit(10000)->cursor();
+            ->limit(1000)->get();
         $this->translateCollection($elements);
     }
 
-    private function translateCollection(LazyCollection $cursor): void
+    private function translateCollection(Collection $cursor): void
     {
         foreach ($cursor as $element) {
             $element->name_en = $this->translatePhrase($element->name, 'en');
