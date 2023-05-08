@@ -30,7 +30,7 @@ class StartCommand extends UserCommand
     {
         $languageCode = $this->getMessage()->getFrom()->getLanguageCode();
 
-        $keyboardInline = new InlineKeyboard([]);
+        $keyboardInline = new InlineKeyboard();
         $keyboardInline->addRow(
             (new InlineKeyboardButton(__('telegram.buttons.search', locale: $languageCode)))
                 ->setCallbackData(json_encode([
@@ -44,6 +44,11 @@ class StartCommand extends UserCommand
                 ], JSON_THROW_ON_ERROR))
         );
 
-        return $this->replyToChat(__('telegram.start', locale: $languageCode), ['reply_markup' => $keyboardInline]);
+        return $this->replyToChat(
+            __('telegram.start', locale: $languageCode),
+            [
+                'parse_mode' => 'markdown',
+                'reply_markup' => $keyboardInline,
+            ]);
     }
 }
