@@ -40,6 +40,7 @@ class StartCommand extends UserCommand
                                     'text' => __('telegram.buttons.search', locale: $languageCode),
                                     'callback' => 'search',
                                 ],
+                                'Yes', 'No',
                                 __('telegram.buttons.list', locale: $languageCode),
                             ],
                         ],
