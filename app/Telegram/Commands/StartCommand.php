@@ -41,7 +41,8 @@ class StartCommand extends UserCommand
             [
                 'inline_keyboard' => [
                     [
-                        $searchButton->getRawData(),
+                        'Yes',
+//                        $searchButton->getRawData(),
                     ],
                 ],
                 'resize_keyboard' => true,
