@@ -24,6 +24,19 @@ class StartCommand extends UserCommand
     {
         $languageCode = $this->getMessage()->getFrom()->getLanguageCode();
 
-        return $this->replyToChat(__('telegram.start', locale: $languageCode));
+        $data = [
+            'buttons' => [
+                [
+                    'text' => __('telegram.buttons.search', locale: $languageCode),
+                    'callback_data' => 'search'
+                ],
+                [
+                    'text' => __('telegram.buttons.list', locale: $languageCode),
+                    'callback_data' => 'list'
+                ],
+            ]
+        ];
+
+        return $this->replyToChat(__('telegram.start', locale: $languageCode), $data);
     }
 }
