@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Event extends Model
@@ -17,5 +17,10 @@ class Event extends Model
     public function addresses(): BelongsToMany
     {
         return $this->belongsToMany(Address::class);
+    }
+
+    public function serviceCenter(): BelongsTo
+    {
+        return $this->belongsTo(ServiceCenter::class);
     }
 }
