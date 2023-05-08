@@ -40,14 +40,13 @@ class StartCommand extends UserCommand
                         __('telegram.buttons.list', locale: $languageCode),
                     ],
                 ],
-                'selective' => true,
             ]
         );
 
         $keyboard->setResizeKeyboard(true);
         $keyboard->setOneTimeKeyboard(true);
+        $keyboard->setSelective(true);
         $keyboard->addRow(['/search']);
-        $keyboard->addRow(['text' => __('telegram.buttons.list', locale: $languageCode)]);
 
         return $this->replyToChat(
             __('telegram.start', locale: $languageCode),
