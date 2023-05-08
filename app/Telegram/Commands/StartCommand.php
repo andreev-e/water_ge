@@ -30,18 +30,10 @@ class StartCommand extends UserCommand
     {
         $languageCode = $this->getMessage()->getFrom()->getLanguageCode();
 
-        $searchButton = (new \PhpTelegramBot\Laravel\Factories\CallbackButton)->make(
-            __('telegram.buttons.search', locale: $languageCode),
-            [
-                'command' => 'search',
-                'text' => 'Search',
-            ]
-        );
-
         $anotherButton = new InlineKeyboardButton(
             [
                 'text' => __('telegram.buttons.search', locale: $languageCode),
-                'url' => 'https://mail.ru/search',
+                'switch_inline_query' => '/search',
             ]
         );
 
@@ -49,8 +41,7 @@ class StartCommand extends UserCommand
             [
                 'keyboard' => [
                     [
-                        'Yes',
-                        $searchButton->getRawData(),
+                        'NO',
                         $anotherButton->getRawData(),
                     ],
                 ],
