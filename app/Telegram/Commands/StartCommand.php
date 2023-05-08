@@ -30,7 +30,7 @@ class StartCommand extends UserCommand
     {
         $languageCode = $this->getMessage()->getFrom()->getLanguageCode();
 
-        $keyboardInline = new InlineKeyboard();
+        $keyboardInline = new InlineKeyboard([]);
         $keyboardInline->addRow(
             (new InlineKeyboardButton(__('telegram.buttons.search', locale: $languageCode)))
                 ->setCallbackData(json_encode([
