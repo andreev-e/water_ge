@@ -5,6 +5,7 @@ namespace App\Telegram\Commands;
 
 
 use Longman\TelegramBot\Commands\UserCommand;
+use Longman\TelegramBot\Entities\InlineKeyboard;
 use Longman\TelegramBot\Entities\Keyboard;
 use Longman\TelegramBot\Entities\ServerResponse;
 
@@ -32,7 +33,7 @@ class StartCommand extends UserCommand
             __('telegram.start', locale: $languageCode),
             [
                 'parse_mode' => 'markdown',
-                'reply_markup' => new Keyboard(
+                'reply_markup' => new InlineKeyboard(
                     [
                         'keyboard' => [
                             [
@@ -43,7 +44,7 @@ class StartCommand extends UserCommand
                                 __('telegram.buttons.list', locale: $languageCode),
                             ],
                         ],
-                        'resize_keyboard' => false,
+                        'resize_keyboard' => true,
                         'one_time_keyboard' => true,
                         'selective' => true,
                     ]
