@@ -6,6 +6,7 @@ namespace App\Telegram\Commands;
 
 use Longman\TelegramBot\Commands\UserCommand;
 use Longman\TelegramBot\Entities\InlineKeyboard;
+use Longman\TelegramBot\Entities\InlineKeyboardButton;
 use Longman\TelegramBot\Entities\Keyboard;
 use Longman\TelegramBot\Entities\ServerResponse;
 
@@ -29,6 +30,13 @@ class StartCommand extends UserCommand
     {
         $languageCode = $this->getMessage()->getFrom()->getLanguageCode();
 
+        $inlineButton = new InlineKeyboardButton(
+            [
+                'text' => __('telegram.buttons.random', locale: $languageCode),
+                'callback_data' => '/random',
+            ]
+        );
+
         $keyboard = new Keyboard(
             [
                 'keyboard' => [
@@ -37,15 +45,12 @@ class StartCommand extends UserCommand
                             'text' => __('telegram.buttons.search', locale: $languageCode),
                             'callback' => '/search',
                         ],
-                        __('telegram.buttons.list', locale: $languageCode),
+                        $inlineButton->getRawData(),
                     ],
                 ],
                 'resize_keyboard' => true,
                 'one_time_keyboard' => true,
                 'selective' => true,
-                'remove_keyboard' => true,
-                'force_reply' => true,
-                'input_field_placeholder' => 'Search',
             ]
         );
 
