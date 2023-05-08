@@ -5,10 +5,9 @@ namespace App\Telegram\Commands;
 
 
 use Longman\TelegramBot\Commands\UserCommand;
-use Longman\TelegramBot\Entities\InlineKeyboardButton;
 use Longman\TelegramBot\Entities\Keyboard;
+use Longman\TelegramBot\Entities\KeyboardButton;
 use Longman\TelegramBot\Entities\ServerResponse;
-use PhpTelegramBot\Laravel\Factories\CallbackButton;
 
 class StartCommand extends UserCommand
 {
@@ -30,7 +29,7 @@ class StartCommand extends UserCommand
     {
         $languageCode = $this->getMessage()->getFrom()->getLanguageCode();
 
-        $anotherButton = new InlineKeyboardButton(
+        $anotherButton = new KeyboardButton(
             [
                 'text' => __('telegram.buttons.search', locale: $languageCode),
                 'switch_inline_query' => '/search',
