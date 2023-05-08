@@ -21,7 +21,6 @@ jobs:
             && git checkout master
             && git reset --hard
             && git pull
-            && rm composer.lock
             && cp deploy/queue-worker.conf /etc/supervisor/conf.d/${{ secrets.USER_NAME }}.conf
             && supervisorctl reread
             && service supervisor restart
