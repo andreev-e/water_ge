@@ -9,18 +9,13 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
 class Kernel extends ConsoleKernel
 {
-    /**
-     * Define the application's command schedule.
-     */
     protected function schedule(Schedule $schedule): void
     {
+        define('ARTISAN_BINARY', '/var/www/water_andreev/data/www/water.andreev-e.ru/artisan');
         $schedule->command(LoadSchedule::class)->everyFiveMinutes();
         $schedule->command(Translate::class)->hourly();
     }
 
-    /**
-     * Register the commands for the application.
-     */
     protected function commands(): void
     {
         $this->load(__DIR__ . '/Commands');
