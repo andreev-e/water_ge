@@ -51,7 +51,7 @@ class StartCommand extends UserCommand
         );
 
         return $this->replyToChat(
-            __('telegram.start', locale: $languageCode) . '<button>test</button>',
+            __('telegram.start', locale: $languageCode),
             [
                 'parse_mode' => 'html',
                 'reply_markup' => $keyboard,
