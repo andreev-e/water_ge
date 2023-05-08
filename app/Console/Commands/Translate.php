@@ -28,11 +28,11 @@ class Translate extends Command
     public function handle()
     {
         $elements = ServiceCenter::query()->whereNull('name_en')
-            ->limit(100)->cursor();
+            ->limit(10000)->cursor();
         $this->translateCollection($elements);
 
         $elements = Address::query()->whereNull('name_en')
-            ->limit(100)->cursor();
+            ->limit(10000)->cursor();
         $this->translateCollection($elements);
     }
 
