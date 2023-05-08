@@ -14,8 +14,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-         $schedule->command(LoadSchedule::class)->everyFiveMinutes();
-         $schedule->command(Translate::class)->hourly();
+         $schedule->command('load-schedule')->everyFiveMinutes();
+//         $schedule->command(LoadSchedule::class)->everyFiveMinutes();
+//         $schedule->command(Translate::class)->hourly();
     }
 
     /**
