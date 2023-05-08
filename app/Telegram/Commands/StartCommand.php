@@ -1,12 +1,16 @@
 <?php
 
+
 namespace App\Telegram\Commands;
+
 
 use Longman\TelegramBot\Commands\UserCommand;
 use Longman\TelegramBot\Entities\ServerResponse;
+use Longman\TelegramBot\Exception\TelegramException;
 
 class StartCommand extends UserCommand
 {
+
     /** @var string Command name */
     protected $name = 'start';
     /** @var string Command description */
@@ -18,6 +22,8 @@ class StartCommand extends UserCommand
 
     public function execute(): ServerResponse
     {
-        return $this->replyToChat('Привет!👋 Это бот Альтернативного путеводителя. Для того чтобы получить список ближайших достопримечательностей, пришли мне свое местоположение');
+        $languageCode = $this->getMessage()->getFrom()->getLanguageCode();
+
+        return $this->replyToChat(__('telegram.start', locale: $languageCode));
     }
 }
