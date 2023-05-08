@@ -13,7 +13,6 @@ use PHPHtmlParser\Exceptions\ChildNotFoundException;
 use PHPHtmlParser\Exceptions\CircularException;
 use PHPHtmlParser\Exceptions\NotLoadedException;
 use PHPHtmlParser\Exceptions\StrictException;
-use function PHPUnit\Framework\exactly;
 
 class LoadSchedule extends Command
 {
