@@ -11,7 +11,7 @@ class Kernel extends ConsoleKernel
 {
     protected function schedule(Schedule $schedule): void
     {
-        define('ARTISAN_BINARY', '/var/www/water_andreev/data/www/water.andreev-e.ru/artisan');
+        echo ARTISAN_BINARY;
         $schedule->command(LoadSchedule::class)->everyFiveMinutes();
         $schedule->command(Translate::class)->hourly();
     }
