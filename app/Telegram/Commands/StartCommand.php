@@ -32,12 +32,11 @@ class StartCommand extends UserCommand
         $anotherButton = new KeyboardButton(
             [
                 'text' => __('telegram.buttons.search', locale: $languageCode),
-                'switch_inline_query' => [
-                    'query' => '/search',
-                ],
-                'callback_data' => [
-                    'query' => '/search',
-                ],
+                'callback_data' => '/search',
+                'request_location' => true,
+                'request_contact' => false,
+                'hide' => false,
+                'switch_inline_query_current_chat' => null,
             ]
         );
 
@@ -45,7 +44,7 @@ class StartCommand extends UserCommand
             [
                 'keyboard' => [
                     [
-                        'NO',
+                        '/search',
                         $anotherButton->getRawData(),
                     ],
                 ],
