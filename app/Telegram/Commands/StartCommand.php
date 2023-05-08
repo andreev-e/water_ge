@@ -31,7 +31,7 @@ class StartCommand extends UserCommand
 
         $keyboard = new Keyboard(
             [
-                'keyboard' => [
+                'inline_keyboard' => [
                     [
                         [
                             'text' => __('telegram.buttons.search', locale: $languageCode),
@@ -46,7 +46,6 @@ class StartCommand extends UserCommand
         $keyboard->setResizeKeyboard(true);
         $keyboard->setOneTimeKeyboard(true);
         $keyboard->setSelective(true);
-        $keyboard->addRow(['/search']);
 
         return $this->replyToChat(
             __('telegram.start', locale: $languageCode),
