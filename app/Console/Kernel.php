@@ -9,8 +9,6 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
 class Kernel extends ConsoleKernel
 {
-    const  ARTISAN_BINARY = '/var/www/water_andreev/data/www/water.andreev-e.ru/artisan';
-
     /**
      * Define the application's command schedule.
      */
