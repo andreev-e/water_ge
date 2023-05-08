@@ -5,6 +5,7 @@ namespace App\Telegram\Commands;
 
 
 use Longman\TelegramBot\Commands\UserCommand;
+use Longman\TelegramBot\Entities\InlineQuery;
 use Longman\TelegramBot\Entities\Keyboard;
 use Longman\TelegramBot\Entities\KeyboardButton;
 use Longman\TelegramBot\Entities\ServerResponse;
@@ -33,10 +34,13 @@ class StartCommand extends UserCommand
             [
                 'text' => __('telegram.buttons.search', locale: $languageCode),
                 'callback_data' => '/search',
-                'request_location' => true,
-                'request_contact' => false,
-                'hide' => false,
-                'switch_inline_query_current_chat' => null,
+            ]
+        );
+
+        $inlineButton = new InlineQuery(
+            [
+                'text' => __('telegram.buttons.search', locale: $languageCode),
+                'callback_data' => '/search',
             ]
         );
 
@@ -46,6 +50,7 @@ class StartCommand extends UserCommand
                     [
                         '/search',
                         $anotherButton->getRawData(),
+                        $inlineButton->getRawData(),
                     ],
                 ],
                 'resize_keyboard' => true,
