@@ -46,7 +46,8 @@ class StartCommand extends UserCommand
 
         $keyboard->setResizeKeyboard(true);
         $keyboard->setOneTimeKeyboard(true);
-//        $keyboard->addRow(['/search']);
+        $keyboard->addRow(['/search']);
+        $keyboard->addRow(['text' => __('telegram.buttons.list', locale: $languageCode)]);
 
         return $this->replyToChat(
             __('telegram.start', locale: $languageCode),
