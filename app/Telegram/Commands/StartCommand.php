@@ -40,11 +40,10 @@ class StartCommand extends UserCommand
                                     'text' => __('telegram.buttons.search', locale: $languageCode),
                                     'callback' => 'search',
                                 ],
-                                'Yes', 'No',
                                 __('telegram.buttons.list', locale: $languageCode),
                             ],
                         ],
-                        'resize_keyboard' => true,
+                        'resize_keyboard' => false,
                         'one_time_keyboard' => true,
                         'selective' => true,
                     ]
