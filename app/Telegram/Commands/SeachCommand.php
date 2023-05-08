@@ -27,7 +27,8 @@ class SeachCommand extends UserCommand
     public function execute(): ServerResponse
     {
         $languageCode = $this->getMessage()->getFrom()->getLanguageCode();
+        $mess = $this->getMessage()->getText(true);
 
-        return $this->replyToChat('Search command');
+        return $this->replyToChat('Search command: ' . $mess);
     }
 }

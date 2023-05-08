@@ -31,7 +31,7 @@ class StartCommand extends UserCommand
 
         $keyboard = new Keyboard(
             [
-                'inline_keyboard' => [
+                'keyboard' => [
                     [
                         [
                             'text' => __('telegram.buttons.search', locale: $languageCode),
