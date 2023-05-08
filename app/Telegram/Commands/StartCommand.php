@@ -39,7 +39,7 @@ class StartCommand extends UserCommand
 
         $keyboard = new Keyboard(
             [
-                'keyboard' => [
+                'inline_keyboard' => [
                     [
                         $searchButton->getRawData(),
                     ],
