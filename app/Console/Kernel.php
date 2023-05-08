@@ -11,7 +11,6 @@ class Kernel extends ConsoleKernel
 {
     protected function schedule(Schedule $schedule): void
     {
-        echo ARTISAN_BINARY;
         $schedule->command(LoadSchedule::class)->everyFiveMinutes();
         $schedule->command(Translate::class)->hourly();
     }
