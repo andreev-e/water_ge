@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Address;
 use App\Models\Event;
 use Carbon\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -17,6 +18,14 @@ class Controller extends BaseController
         $currentEvents = Event::query()
             ->where('finish', '>=', Carbon::now())
             ->get();
-        return view('welcome', compact('currentEvents'));
+
+        $addresses = Address::query()
+            ->where('service_center_id', 3)
+            ->withCount('events')
+            ->orderBy('events_count', 'DESC')
+            ->limit(10)
+            ->get();
+
+        return view('welcome', compact('currentEvents', 'addresses'));
     }
 }
