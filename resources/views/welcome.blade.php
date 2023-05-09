@@ -35,7 +35,10 @@
         <tbody>
             @foreach($currentEvents as $event)
                 <tr>
-                    <td>{{ $event->serviceCenter->name_ru }} ({{ $event->serviceCenter->name }})</td>
+                    <td>{{ $event->serviceCenter->name_ru }}
+                        ({{ $event->serviceCenter->name }})
+                        <b>{{ round($event->addresses->count() / $event->serviceCenter->total_addresses * 100) }}% адресов</b>
+                    </td>
                     <td>{{ $event->start }} - {{ $event->finish }}</td>
                     <td class="text-left">
                         @foreach($event->addresses as $address)
@@ -47,12 +50,36 @@
         </tbody>
     </table>
     <h2 class="text-3xl text-center">Статистика</h2>
-    @foreach($addresses as $addresse)
-        <tr>
-            <td>{{ $address->name_ru }} ({{ $address->name }})</td>
-            <td>{{ $address->events_count }}</td>
-        </tr>
-    @endforeach
+    <h2 class="text-2xl text-center">По сервисным центрам</h2>
+    <table class="table-auto w-full text-center">
+        <thead>
+            <tr>
+                <th>Город</th>
+                <th>Число отключений</th>
+            </tr>
+        </thead>
+        @foreach($serviceCenters as $serviceCenter)
+            <tr>
+                <td>{{ $serviceCenter->name_ru }} ({{ $serviceCenter->name }})</td>
+                <td>{{ $serviceCenter->total_events }}</td>
+            </tr>
+        @endforeach
+    </table>
+    <h2 class="text-2xl text-center">По адресам</h2>
+    <table class="table-auto w-full text-center">
+        <thead>
+            <tr>
+                <th>Адрес</th>
+                <th>Число отключений</th>
+            </tr>
+        </thead>
+        @foreach($addresses as $address)
+            <tr>
+                <td>{{ $address->name_ru }} ({{ $address->name }}) - {{ $address->serviceCenter->name_ru }}</td>
+                <td>{{ $address->total_events }}</td>
+            </tr>
+        @endforeach
+    </table>
 </div>
 </body>
 </html>

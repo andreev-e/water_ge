@@ -4,8 +4,6 @@ namespace App\Notifications;
 
 use App\Models\Event;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use NotificationChannels\Telegram\TelegramMessage;
 
@@ -29,7 +27,7 @@ class EventNotification extends Notification
     public function toTelegram($notifiable): TelegramMessage
     {
         return TelegramMessage::create()
-            ->content("Новое событие")
+            ->content("Новое событие: ")
             ->line($this->event->serviceCenter->name_ru)
             ->line($this->event->start . ' - ' . $this->event->finish);
 
