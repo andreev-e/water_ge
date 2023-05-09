@@ -12,7 +12,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         $schedule->command(LoadSchedule::class)->everyFiveMinutes();
-        $schedule->command(Translate::class)->hourly();
+        $schedule->command(Translate::class)->everyMinute();
     }
 
     protected function commands(): void
