@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Console\Commands\CountStats;
 use App\Console\Commands\LoadSchedule;
 use App\Console\Commands\Translate;
 use Illuminate\Console\Scheduling\Schedule;
@@ -13,6 +14,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command(LoadSchedule::class)->everyFiveMinutes();
         $schedule->command(Translate::class)->everyMinute();
+        $schedule->command(CountStats::class)->daily();
     }
 
     protected function commands(): void

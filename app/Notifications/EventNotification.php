@@ -26,13 +26,14 @@ class EventNotification extends Notification
      */
     public function toTelegram($notifiable): TelegramMessage
     {
+        $url = url('https://water.andreev-e.ru/');
+
         return TelegramMessage::create()
             ->content("Новое событие: ")
             ->line($this->event->serviceCenter->name_ru)
-            ->line($this->event->start . ' - ' . $this->event->finish);
+            ->line($this->event->start . ' - ' . $this->event->finish)
+            ->button('Смотреть все', $url);
 
-//        $url = url('/invoice/');
-//            ->button('View Invoice', $url)
 //            ->button('Download Invoice', $url)
 //            ->buttonWithCallback('Confirm', 'confirm_invoice');
     }
