@@ -4,9 +4,11 @@ namespace App\Console\Commands;
 
 use App\Models\Event;
 use App\Models\ServiceCenter;
+use App\Notifications\EventNotification;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Notification;
 use PHPHtmlParser\Dom;
 use PHPHtmlParser\Dom\HtmlNode;
 use PHPHtmlParser\Exceptions\ChildNotFoundException;
@@ -62,8 +64,6 @@ class LoadSchedule extends Command
                             }
                         }
                     }
-
-//                    dump($serviceCenter, $from, $to);
 
                     $serviceCenter = ServiceCenter::query()->firstOrCreate(['name' => $serviceCenter]);
 

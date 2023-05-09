@@ -10,6 +10,7 @@
     "license": "MIT",
     "require": {
         "guzzlehttp/guzzle": "^7.5.1",
+        "laravel-notification-channels/telegram": "dev-master",
         "laravel/framework": "^10.9",
         "laravel/tinker": "^2.8.1",
         "paquettg/php-html-parser": "^2.1",

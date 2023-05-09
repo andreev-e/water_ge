@@ -8,6 +8,7 @@ use App\Models\ServiceCenter;
 use App\Services\Translation\TranslationInterface;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
+use NotificationChannels\Telegram\TelegramUpdates;
 
 class Translate extends Command
 {
