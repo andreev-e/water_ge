@@ -8,7 +8,7 @@
 </head>
 <body>
 <div
-    class="p-10 w-full">
+    class="px-10 w-full">
     <table class="table-auto w-full text-center">
         <tr>
             <td>
@@ -17,41 +17,40 @@
             <td>Адресов в базе: <?= \App\Models\Address::query()->count() ?></td>
             <td>Событий в базе: <?= \App\Models\Event::query()->count() ?></td>
         </tr>
-        <tr>
-            <td colspan="3">
-
-            </td>
-        </tr>
     </table>
     <h2 class="text-3xl text-center">Актуальные отключения</h2>
     <table class="table-auto w-full text-center">
         <thead>
-            <tr>
-                <th>Город</th>
-                <th>Период</th>
+            <tr class="border">
+                <th class="align-top">Город</th>
+                <th class="align-top">Период</th>
                 <th>Адреса</th>
             </tr>
         </thead>
         <tbody>
             @foreach($currentEvents as $event)
-                <tr>
+                <tr class="border">
                     <td>{{ $event->serviceCenter->name_ru }}
                         ({{ $event->serviceCenter->name }})
-                        <b>{{ round($event->addresses->count() / $event->serviceCenter->total_addresses * 100) }}% адресов</b>
+                        <b>{{ round($event->addresses->count() / $event->serviceCenter->total_addresses * 100) }}%
+                            адресов</b>
                     </td>
                     <td>{{ $event->start }} - {{ $event->finish }}</td>
-                    <td class="text-left">
-                        @foreach($event->addresses as $address)
-                            <p>{{ $address->name_ru }} ({{ $address->name }})</p>
-                        @endforeach
-                    </td>
                 </tr>
+                @foreach($event->addresses as $address)
+                    <tr class="border">
+                        <td colspan="2"></td>
+                        <td class="text-left">
+                            <p>{{ $address->name_ru }} ({{ $address->name }})</p>
+                        </td>
+                    </tr>
+                @endforeach
             @endforeach
         </tbody>
     </table>
     <h2 class="text-3xl text-center">Статистика</h2>
     <h2 class="text-2xl text-center">По сервисным центрам</h2>
-    <table class="table-auto w-full text-center">
+    <table class="table-auto w-full text-left">
         <thead>
             <tr>
                 <th>Город</th>
@@ -59,14 +58,14 @@
             </tr>
         </thead>
         @foreach($serviceCenters as $serviceCenter)
-            <tr>
+            <tr class="border">
                 <td>{{ $serviceCenter->name_ru }} ({{ $serviceCenter->name }})</td>
                 <td>{{ $serviceCenter->total_events }}</td>
             </tr>
         @endforeach
     </table>
     <h2 class="text-2xl text-center">По адресам</h2>
-    <table class="table-auto w-full text-center">
+    <table class="table-auto w-full text-left">
         <thead>
             <tr>
                 <th>Адрес</th>
@@ -74,7 +73,7 @@
             </tr>
         </thead>
         @foreach($addresses as $address)
-            <tr>
+            <tr class="border">
                 <td>{{ $address->name_ru }} ({{ $address->name }}) - {{ $address->serviceCenter->name_ru }}</td>
                 <td>{{ $address->total_events }}</td>
             </tr>

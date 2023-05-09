@@ -32,6 +32,7 @@ class EventNotification extends Notification
             ->content("Новое событие: ")
             ->line($this->event->serviceCenter->name_ru)
             ->line($this->event->start . ' - ' . $this->event->finish)
+            ->line(round($this->event->addresses->count() / $this->event->serviceCenter->total_addresses * 100) . '%')
             ->button('Смотреть все', $url);
 
 //            ->button('Download Invoice', $url)

@@ -42,7 +42,6 @@ jobs:
             && /opt/php81/bin/php artisan cache:clear
             && /opt/php81/bin/php artisan telegram:delete-webhook
             && /opt/php81/bin/php artisan telegram:set-webhook
-            && /opt/php81/bin/php artisan app:count-stats
 
 
 

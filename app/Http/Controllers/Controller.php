@@ -35,7 +35,7 @@ class Controller extends BaseController
         $addresses = Address::query()
             ->with('serviceCenter')
             ->orderBy('total_events', 'DESC')
-            ->limit(50)
+            ->limit(100)
             ->get();
 
         return view('welcome', compact('currentEvents', 'serviceCenters', 'addresses'));
