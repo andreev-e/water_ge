@@ -16,15 +16,6 @@ class Event extends Model
         'finish',
     ];
 
-    protected static function boot(): void
-    {
-        self::created(static function(Event $event) {
-            Notification::route('telegram', 411174495)
-                ->notify(new EventNotification($event));
-        });
-        parent::boot();
-    }
-
     public function addresses(): BelongsToMany
     {
         return $this->belongsToMany(Address::class);

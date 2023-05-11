@@ -4,9 +4,11 @@ namespace App\Console\Commands;
 
 use App\Models\Event;
 use App\Models\ServiceCenter;
+use App\Notifications\EventNotification;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Notification;
 use PHPHtmlParser\Dom;
 use PHPHtmlParser\Dom\HtmlNode;
 use PHPHtmlParser\Exceptions\ChildNotFoundException;
@@ -65,6 +67,7 @@ class LoadSchedule extends Command
 
                     $serviceCenter = ServiceCenter::query()->firstOrCreate(['name' => $serviceCenter]);
 
+                    /* @var $event Event */
                     $event = Event::query()->firstOrCreate([
                         'service_center_id' => $serviceCenter->id,
                         'start' => Carbon::createFromFormat('d/m/Y H:i:s', $from),
@@ -76,6 +79,9 @@ class LoadSchedule extends Command
                         $addressObject = $serviceCenter->addresses()->firstOrCreate(['name' => $address]);
                         $addressObject->events()->syncWithoutDetaching($event);
                     }
+
+                    Notification::route('telegram', 411174495)
+                        ->notify(new EventNotification($event));
                 }
             } catch (ChildNotFoundException|CircularException|StrictException|NotLoadedException $e) {
             }
