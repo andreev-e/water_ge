@@ -67,21 +67,29 @@ class LoadSchedule extends Command
 
                     $serviceCenter = ServiceCenter::query()->firstOrCreate(['name' => $serviceCenter]);
 
-                    /* @var $event Event */
-                    $event = Event::query()->firstOrCreate([
-                        'service_center_id' => $serviceCenter->id,
-                        'start' => Carbon::createFromFormat('d/m/Y H:i:s', $from),
-                        'finish' => Carbon::createFromFormat('d/m/Y H:i:s', $to),
-                    ]);
+                    $event = Event::query()
+                        ->where('service_center_id', $serviceCenter->id)
+                        ->where('start', Carbon::createFromFormat('d/m/Y H:i:s', $from),)
+                        ->where('finish', Carbon::createFromFormat('d/m/Y H:i:s', $to),)
+                        ->first();
 
-                    foreach ($addresses as $address) {
-                        /* @var $addressObject \App\Models\Address */
-                        $addressObject = $serviceCenter->addresses()->firstOrCreate(['name' => $address]);
-                        $addressObject->events()->syncWithoutDetaching($event);
+                    if (!$event) {
+                        /* @var $event Event */
+                        $event = Event::query()->create([
+                            'service_center_id' => $serviceCenter->id,
+                            'start' => Carbon::createFromFormat('d/m/Y H:i:s', $from),
+                            'finish' => Carbon::createFromFormat('d/m/Y H:i:s', $to),
+                        ]);
+
+                        foreach ($addresses as $address) {
+                            /* @var $addressObject \App\Models\Address */
+                            $addressObject = $serviceCenter->addresses()->firstOrCreate(['name' => $address]);
+                            $addressObject->events()->syncWithoutDetaching($event);
+                        }
+
+                        Notification::route('telegram', 411174495)
+                            ->notify(new EventNotification($event));
                     }
-
-                    Notification::route('telegram', 411174495)
-                        ->notify(new EventNotification($event));
                 }
             } catch (ChildNotFoundException|CircularException|StrictException|NotLoadedException $e) {
             }
