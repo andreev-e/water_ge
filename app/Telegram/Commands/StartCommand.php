@@ -53,7 +53,9 @@ class StartCommand extends UserCommand
         return $this->replyToChat(
             __('telegram.start', locale: $languageCode),
             [
-                'reply_markup' => $keyboard,
-            ]);
+//                'reply_markup' => $keyboard,
+                'reply_markup' => Keyboard::remove(['selective' => true]),
+            ]
+        );
     }
 }
