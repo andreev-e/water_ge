@@ -35,7 +35,7 @@ class EventNotification extends Notification
             ->line(round($this->event->addresses->count() / $this->event->serviceCenter->total_addresses * 100) . '% адресов отключено:');
 
         foreach ($this->event->addresses as $address) {
-            $message->line($address->name_ru);
+            $message->line($address->name_ru . ' (' . $address->name . ')');
         }
 
         $message->button('Смотреть все', $url);
