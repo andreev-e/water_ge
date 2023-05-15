@@ -28,12 +28,19 @@ class EventNotification extends Notification
     {
         $url = url('https://water.andreev-e.ru/');
 
-        return TelegramMessage::create()
+        $message = TelegramMessage::create()
             ->content("Новое событие: ")
             ->line($this->event->serviceCenter->name_ru)
             ->line($this->event->start . ' - ' . $this->event->finish)
-            ->line(round($this->event->addresses->count() / $this->event->serviceCenter->total_addresses * 100) . '%')
-            ->button('Смотреть все', $url);
+            ->line(round($this->event->addresses->count() / $this->event->serviceCenter->total_addresses * 100) . '%');
+
+        foreach ($this->event->addresses as $address) {
+            $message->line($address->name_ru);
+        }
+
+        $message->button('Смотреть все', $url);
+
+        return $message;
 
 //            ->buttonWithCallback('Confirm', 'confirm_invoice');
     }
