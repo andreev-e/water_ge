@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\BotUser;
 use App\Models\Event;
 use App\Models\ServiceCenter;
 use App\Notifications\EventNotification;
@@ -15,6 +16,7 @@ use PHPHtmlParser\Exceptions\ChildNotFoundException;
 use PHPHtmlParser\Exceptions\CircularException;
 use PHPHtmlParser\Exceptions\NotLoadedException;
 use PHPHtmlParser\Exceptions\StrictException;
+use PhpTelegramBot\Laravel\Facades\Telegram;
 
 class LoadSchedule extends Command
 {
@@ -26,9 +28,8 @@ class LoadSchedule extends Command
      * Execute the console command.
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function handle(Client $client, Dom $dom): void
+    public function handle(Client $client, Dom $dom, Telegram $telegram): void
     {
-
         for ($i = 0; $i < 1; $i++) {
             $url = 'http://water.gov.ge/page/full/107' . ($i * 10 === 0 ? '' : '/' . $i * 10);
             echo $url . PHP_EOL;
@@ -87,8 +88,11 @@ class LoadSchedule extends Command
                             $addressObject->events()->syncWithoutDetaching($event);
                         }
 
-                        Notification::route('telegram', 411174495)
-                            ->notify(new EventNotification($event));
+                        BotUser::query()->where('is_bot', false)
+                            ->each(function(BotUser $botUser) use ($event) {
+                                Notification::route('telegram', $botUser->id)
+                                    ->notify(new EventNotification($event));
+                            });
                     }
                 }
             } catch (ChildNotFoundException|CircularException|StrictException|NotLoadedException $e) {

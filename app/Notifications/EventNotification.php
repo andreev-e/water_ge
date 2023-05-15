@@ -32,7 +32,7 @@ class EventNotification extends Notification
             ->content("Новое событие: ")
             ->line($this->event->serviceCenter->name_ru)
             ->line($this->event->start . ' - ' . $this->event->finish)
-            ->line(round($this->event->addresses->count() / $this->event->serviceCenter->total_addresses * 100) . '%');
+            ->line(round($this->event->addresses->count() / $this->event->serviceCenter->total_addresses * 100) . '% адресов отключено:');
 
         foreach ($this->event->addresses as $address) {
             $message->line($address->name_ru);
