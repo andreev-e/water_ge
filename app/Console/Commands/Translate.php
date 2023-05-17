@@ -8,7 +8,6 @@ use App\Models\ServiceCenter;
 use App\Services\Translation\TranslationInterface;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
-use NotificationChannels\Telegram\TelegramUpdates;
 
 class Translate extends Command
 {
@@ -33,13 +32,13 @@ class Translate extends Command
         $this->translateCollection($elements);
 
         $elements = Address::query()->whereNull('name_en')
-            ->limit(100)->get();
+            ->limit(1000)->get();
         $this->translateCollection($elements);
     }
 
-    private function translateCollection(Collection $cursor): void
+    private function translateCollection(Collection $collection): void
     {
-        foreach ($cursor as $element) {
+        foreach ($collection as $element) {
             $element->name_en = $this->translatePhrase($element->name, 'en');
             $element->name_ru = $this->translatePhrase($element->name, 'ru');
             $element->timestamps = false;
