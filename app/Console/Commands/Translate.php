@@ -69,6 +69,8 @@ class Translate extends Command
         if ($dictionary->name_ru === null) {
             $dictionary->name_ru = $this->translator->translate($word, 'ka_GE', 'ru');
         }
+
+        $dictionary->used += 1;
         $dictionary->save();
 
         return $dictionary->getAttribute('name_' . $toLang);

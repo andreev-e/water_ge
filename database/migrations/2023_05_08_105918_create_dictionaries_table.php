@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('name_en')->nullable();
             $table->string('name_ru')->nullable();
+            $table->integer('used')->default(0);
         });
     }
 

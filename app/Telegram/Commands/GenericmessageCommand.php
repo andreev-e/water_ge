@@ -37,7 +37,6 @@ class GenericmessageCommand extends SystemCommand
                 ]);
         }
 
-
         return $this->replyToChat(__('telegram.default_answer', locale: $languageCode),
             [
                 'parse_mode' => 'markdown',
