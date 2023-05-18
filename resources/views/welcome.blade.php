@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Отключения воды в Грузии</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body>
 <div
@@ -29,22 +30,31 @@
         </thead>
         <tbody>
             @foreach($currentEvents as $event)
-                <tr class="border">
+                <tr class="border" x-data="{ open: false }">
                     <td>{{ $event->serviceCenter->name_ru }}
                         ({{ $event->serviceCenter->name }})
                         <b>{{ round($event->addresses->count() / $event->serviceCenter->total_addresses * 100) }}%
                             адресов</b>
                     </td>
-                    <td>{{ $event->start }} - {{ $event->finish }}</td>
+                    <td>{{ $event->start->format('d.m.Y H:i') }} - {{ $event->finish->format('d.m.Y H:i') }}</td>
+                    <td>
+                        <button
+                            class="btn bg-slate-200 p-2"
+                            x-on:click="open = ! open"
+                        >
+                            Показать
+                        </button>
+                        <div
+                            x-show="open"
+                            @click.outside="open = false"
+                            class="absolute bg-white shadow-2xl p-8 border-1 right-1 text-left"
+                        >
+                            @foreach($event->addresses as $address)
+                                <p>{{ $address->name_ru }} ({{ $address->name }})</p>
+                            @endforeach
+                        </div>
+                    </td>
                 </tr>
-                @foreach($event->addresses as $address)
-                    <tr class="border">
-                        <td colspan="2"></td>
-                        <td class="text-left">
-                            <p>{{ $address->name_ru }} ({{ $address->name }})</p>
-                        </td>
-                    </tr>
-                @endforeach
             @endforeach
         </tbody>
     </table>
