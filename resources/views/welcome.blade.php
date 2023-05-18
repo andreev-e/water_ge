@@ -6,6 +6,7 @@
     <title>Отключения воды в Грузии</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <div
@@ -60,6 +61,46 @@
         </tbody>
     </table>
     <h2 class="text-3xl text-center my-5">Статистика</h2>
+    <canvas id="eventsChart"></canvas>
+    <script>
+        const ctx = document.getElementById('eventsChart');
+        const DATA_COUNT = 7;
+        const NUMBER_CFG = { count: DATA_COUNT, min: 0, max: 50 };
+        const labels = {!! json_encode($graphData['labels']) !!};
+        const datasets = {!! json_encode($graphData['datasets']) !!};
+
+        const data = {
+            labels,
+            datasets
+        };
+
+        new Chart(ctx, {
+            type: 'line',
+            data: data,
+            options: {
+                plugins: {
+                    title: {
+                        text: 'Отключения по городам',
+                        display: true,
+                    },
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Даты',
+                        },
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Число отключенных адресов',
+                        },
+                    },
+                },
+            },
+        });
+    </script>
     <h3 class="text-2xl text-center">По сервисным центрам</h3>
     <table class="table-auto w-full text-left" x-data="{ showAll: false }">
         <thead>
@@ -93,7 +134,7 @@
                         @click.outside="open = false"
                         class="absolute bg-white shadow-2xl p-8 border-1 right-1 text-left"
                     >
-                        @foreach($serviceCenter->addresses()->orderBy('total_events', 'DESC')->limit(100)->get() as $address)
+                        @foreach($serviceCenter->addresses()->orderBy('total_events', 'DESC')->limit(50)->get() as $address)
                             @include('address', ['address' => $address])
                         @endforeach
                     </div>

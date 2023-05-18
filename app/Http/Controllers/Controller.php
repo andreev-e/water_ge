@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Address;
 use App\Models\Event;
 use App\Models\ServiceCenter;
-use Carbon\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
@@ -17,20 +15,47 @@ class Controller extends BaseController
     public function index()
     {
         $currentEvents = Event::getCurrent();
-//
-//        $addresses = Address::query()
-//            ->where('service_center_id', 3)
-//            ->withCount('events')
-//            ->orderBy('events_count', 'DESC')
-//            ->limit(10)
-//            ->get();
 
         $serviceCenters = ServiceCenter::query()
-            ->with('addresses')
-            ->where('total_events', '>', 10)
+            ->limit(10)
             ->orderBy('total_events', 'DESC')
             ->get();
 
-        return view('welcome', compact('currentEvents', 'serviceCenters'));
+        $events = Event::query()
+            ->with('serviceCenter')
+            ->limit(100)
+            ->latest('start')
+            ->orderBy('start')
+            ->get();
+
+        $graphData = [];
+        $graphData['labels'] = [];
+        $graphData['datasets'] = [];
+
+        foreach ($serviceCenters as $serviceCenter) {
+            $color = $this->rand_color();
+            $graphData['datasets'][$serviceCenter->id]['label'] = $serviceCenter->name_ru;
+            $graphData['datasets'][$serviceCenter->id]['backgroundColor'] = $color;
+            $graphData['datasets'][$serviceCenter->id]['borderColor'] = $color;
+            $graphData['datasets'][$serviceCenter->id]['fill'] = false;
+        }
+
+        /** @var Event $event */
+        foreach ($events as $event) {
+            $graphData['labels'][] = $event->start->format('d.m.Y');
+
+            foreach ($serviceCenters as $serviceCenter) {
+                $graphData['datasets'][$serviceCenter->id]['data'][] = $serviceCenter->id === $event->serviceCenter->id ? $event->addresses()->count() : 0;
+            }
+        }
+
+        $graphData['datasets'] = array_values($graphData['datasets']);
+
+        return view('welcome', compact('currentEvents', 'serviceCenters', 'graphData'));
+    }
+
+    function rand_color()
+    {
+        return '#' . str_pad(dechex(mt_rand(0, 0xFFFFFF)), 6, '0', STR_PAD_LEFT);
     }
 }
