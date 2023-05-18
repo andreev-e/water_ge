@@ -7,7 +7,6 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Support\Facades\Notification;
 
 class Event extends Model
 {
@@ -15,6 +14,11 @@ class Event extends Model
         'service_center_id',
         'start',
         'finish',
+    ];
+
+    protected $casts = [
+        'start' => 'datetime',
+        'finish' => 'datetime',
     ];
 
     public function addresses(): BelongsToMany
