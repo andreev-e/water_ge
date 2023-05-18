@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Notifications\EventNotification;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -24,5 +25,13 @@ class Event extends Model
     public function serviceCenter(): BelongsTo
     {
         return $this->belongsTo(ServiceCenter::class);
+    }
+
+
+    public static function getCurrent()
+    {
+        return self::query()
+            ->where('finish', '>=', Carbon::now())
+            ->get();
     }
 }
