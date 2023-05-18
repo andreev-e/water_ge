@@ -26,16 +26,11 @@ class Controller extends BaseController
 //            ->get();
 
         $serviceCenters = ServiceCenter::query()
+            ->with('addresses')
             ->where('total_events', '>', 10)
             ->orderBy('total_events', 'DESC')
             ->get();
 
-        $addresses = Address::query()
-            ->with('serviceCenter')
-            ->orderBy('total_events', 'DESC')
-            ->limit(100)
-            ->get();
-
-        return view('welcome', compact('currentEvents', 'serviceCenters', 'addresses'));
+        return view('welcome', compact('currentEvents', 'serviceCenters'));
     }
 }

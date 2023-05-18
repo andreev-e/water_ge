@@ -9,7 +9,7 @@
 </head>
 <body>
 <div
-    class="px-10 w-full">
+    class="px-10 py-6 w-full">
     <table class="table-auto w-full text-center">
         <tr>
             <td>
@@ -19,25 +19,26 @@
             <td>Событий в базе: <?= \App\Models\Event::query()->count() ?></td>
         </tr>
     </table>
-    <h2 class="text-3xl text-center">Актуальные отключения</h2>
-    <table class="table-auto w-full text-center">
+    <h2 class="text-3xl text-center my-5">Актуальные отключения</h2>
+    <table class="table-auto w-full text-left">
         <thead>
             <tr class="border">
                 <th class="align-top">Город</th>
                 <th class="align-top">Период</th>
-                <th>Адреса</th>
+                <th>Отключенные адреса</th>
             </tr>
         </thead>
         <tbody>
             @foreach($currentEvents as $event)
-                <tr class="border" x-data="{ open: false }">
-                    <td>{{ $event->serviceCenter->name_ru }}
+                <tr class="border text-left">
+                    <td class="p-1"><b>{{ $event->serviceCenter->name_ru }}</b>
                         ({{ $event->serviceCenter->name }})
-                        <b>{{ round($event->addresses->count() / $event->serviceCenter->total_addresses * 100) }}%
+                        <b>~{{ round($event->addresses->count() / $event->serviceCenter->total_addresses * 100) }}%
                             адресов</b>
+                        ({{ count($event->addresses) }} адрес)
                     </td>
                     <td>{{ $event->start->format('d.m.Y H:i') }} - {{ $event->finish->format('d.m.Y H:i') }}</td>
-                    <td>
+                    <td x-data="{ open: false }">
                         <button
                             class="btn bg-slate-200 p-2"
                             x-on:click="open = ! open"
@@ -50,7 +51,7 @@
                             class="absolute bg-white shadow-2xl p-8 border-1 right-1 text-left"
                         >
                             @foreach($event->addresses as $address)
-                                <p>{{ $address->name_ru }} ({{ $address->name }})</p>
+                                @include('address', ['address' => $address])
                             @endforeach
                         </div>
                     </td>
@@ -58,36 +59,57 @@
             @endforeach
         </tbody>
     </table>
-    <h2 class="text-3xl text-center">Статистика</h2>
-    <h2 class="text-2xl text-center">По сервисным центрам</h2>
-    <table class="table-auto w-full text-left">
+    <h2 class="text-3xl text-center my-5">Статистика</h2>
+    <h3 class="text-2xl text-center">По сервисным центрам</h3>
+    <table class="table-auto w-full text-left" x-data="{ showAll: false }">
         <thead>
             <tr>
+                <th></th>
                 <th>Город</th>
                 <th>Число отключений</th>
+                <th>Часто отключаемые адреса</th>
             </tr>
         </thead>
+        @php $i = 0; @endphp
         @foreach($serviceCenters as $serviceCenter)
-            <tr class="border">
+            <tr
+                @if($i > 9)
+                    x-show="showAll"
+                @endif
+                class="border"
+            >
+                <td>{{++$i}}</td>
                 <td>{{ $serviceCenter->name_ru }} ({{ $serviceCenter->name }})</td>
                 <td>{{ $serviceCenter->total_events }}</td>
+                <td x-data="{ open: false }">
+                    <button
+                        class="btn bg-slate-200 p-2"
+                        x-on:click="open = ! open"
+                    >
+                        Показать
+                    </button>
+                    <div
+                        x-show="open"
+                        @click.outside="open = false"
+                        class="absolute bg-white shadow-2xl p-8 border-1 right-1 text-left"
+                    >
+                        @foreach($serviceCenter->addresses()->orderBy('total_events', 'DESC')->limit(100)->get() as $address)
+                            @include('address', ['address' => $address])
+                        @endforeach
+                    </div>
+                </td>
             </tr>
         @endforeach
-    </table>
-    <h2 class="text-2xl text-center">По адресам</h2>
-    <table class="table-auto w-full text-left">
-        <thead>
-            <tr>
-                <th>Адрес</th>
-                <th>Число отключений</th>
-            </tr>
-        </thead>
-        @foreach($addresses as $address)
-            <tr class="border">
-                <td>{{ $address->name_ru }} ({{ $address->name }}) - {{ $address->serviceCenter->name_ru }}</td>
-                <td>{{ $address->total_events }}</td>
-            </tr>
-        @endforeach
+        <tr>
+            <td colspan="4" class="text-center">
+                <button
+                    class="btn bg-slate-200 p-2 w-full"
+                    x-on:click="showAll = ! showAll"
+                >
+                    Показать все
+                </button>
+            </td>
+        </tr>
     </table>
 </div>
 </body>
