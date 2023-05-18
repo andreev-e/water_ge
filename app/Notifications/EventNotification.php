@@ -12,7 +12,8 @@ class EventNotification extends Notification
     use Queueable;
 
     public function __construct(
-        public Event $event
+        public Event $event,
+        public ?string $languageCode,
     ) {
     }
 
@@ -29,7 +30,7 @@ class EventNotification extends Notification
         $url = url('https://water.andreev-e.ru/');
 
         $message = TelegramMessage::create()
-            ->content("Новое событие: ")
+            ->content(__('telegram.new_shutdown', locale: $this->languageCode) . ': ')
             ->line($this->event->serviceCenter->name_ru)
             ->line($this->event->start . ' - ' . $this->event->finish)
             ->line(round($this->event->addresses->count() / $this->event->serviceCenter->total_addresses * 100) . '% адресов отключено:');

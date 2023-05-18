@@ -91,7 +91,7 @@ class LoadSchedule extends Command
                         BotUser::query()->where('is_bot', false)
                             ->each(function(BotUser $botUser) use ($event) {
                                 Notification::route('telegram', $botUser->id)
-                                    ->notify(new EventNotification($event));
+                                    ->notify(new EventNotification($event, $botUser->language_code));
                             });
                     }
                 }

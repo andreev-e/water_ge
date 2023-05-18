@@ -16,9 +16,7 @@ class Controller extends BaseController
 
     public function index()
     {
-        $currentEvents = Event::query()
-            ->where('finish', '>=', Carbon::now())
-            ->get();
+        $currentEvents = Event::getCurrent();
 //
 //        $addresses = Address::query()
 //            ->where('service_center_id', 3)
