@@ -2,6 +2,8 @@
 
 namespace App\Telegram\Commands;
 
+use App\Notifications\EventNotification;
+use Illuminate\Support\Facades\Notification;
 use Longman\TelegramBot\Commands\SystemCommand;
 use Longman\TelegramBot\Entities\Keyboard;
 use Longman\TelegramBot\Entities\ServerResponse;
@@ -24,6 +26,8 @@ class GenericmessageCommand extends SystemCommand
 
         $text = $this->getMessage()->getText();
 
+        $chatId = $this->getMessage()->getChat()->getId();
+
         $callbackQuery = $this->getCallbackQuery();
 
 
@@ -37,7 +41,11 @@ class GenericmessageCommand extends SystemCommand
                 ]);
         }
 
-        return $this->replyToChat(__('telegram.default_answer', locale: $languageCode),
+//        Notification::route('telegram', $botUser->id)
+//            ->notify(new EventNotification($event, $botUser->language_code));
+
+        return $this->replyToChat(
+            __('telegram.default_answer', locale: $languageCode) . ' #' . $chatId ,
             [
                 'parse_mode' => 'markdown',
                 'reply_markup' => Keyboard::remove(['selective' => true]),
