@@ -49,7 +49,7 @@ class GenericmessageCommand extends SystemCommand
         }
 
         return $this->replyToChat(
-            __('telegram.actual_shutdowns', locale: $languageCode) . ' #' . $chatId,
+            __('telegram.actual_shutdowns', locale: $languageCode) . '^^^',
             [
                 'parse_mode' => 'markdown',
                 'reply_markup' => Keyboard::remove(['selective' => true]),
