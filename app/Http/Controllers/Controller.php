@@ -17,7 +17,6 @@ class Controller extends BaseController
         $currentEvents = Event::getCurrent();
 
         $serviceCenters = ServiceCenter::query()
-            ->limit(10)
             ->orderBy('total_events', 'DESC')
             ->get();
 
@@ -38,7 +37,7 @@ class Controller extends BaseController
             }
         }
 
-        foreach ($serviceCenters as $serviceCenter) {
+        foreach ($serviceCenters->slice(0, 10) as $serviceCenter) {
             $color = $this->rand_color();
             $graphData['datasets'][$serviceCenter->id]['label'] = $serviceCenter->name_ru;
             $graphData['datasets'][$serviceCenter->id]['backgroundColor'] = $color;
