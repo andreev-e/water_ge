@@ -48,11 +48,8 @@ class GenericmessageCommand extends SystemCommand
 
         if (count($events)) {
             foreach ($events as $event) {
-                try {
-                    Notification::route('telegram', $chatId)
-                        ->notify(new EventNotification($event, $languageCode));
-                } catch (Exception $e) {
-                }
+                Notification::route('telegram', $chatId)
+                    ->notify(new EventNotification($event, $languageCode));
             }
 
             return $this->replyToChat(
