@@ -64,8 +64,6 @@
     <canvas id="eventsChart"></canvas>
     <script>
         const ctx = document.getElementById('eventsChart');
-        const DATA_COUNT = 7;
-        const NUMBER_CFG = { count: DATA_COUNT, min: 0, max: 50 };
         const labels = {!! json_encode($graphData['labels']) !!};
         const datasets = {!! json_encode($graphData['datasets']) !!};
 

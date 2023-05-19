@@ -17,13 +17,13 @@ class Controller extends BaseController
         $currentEvents = Event::getCurrent();
 
         $serviceCenters = ServiceCenter::query()
-            ->limit(10)
+            ->limit(5)
             ->orderBy('total_events', 'DESC')
             ->get();
 
         $events = Event::query()
             ->with('serviceCenter')
-            ->where('start', '>=', now()->subDays(180))
+            ->where('start', '>=', now()->subDays(90))
             ->orderBy('start')
             ->get();
 
