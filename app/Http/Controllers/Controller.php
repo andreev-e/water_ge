@@ -7,6 +7,7 @@ use App\Models\ServiceCenter;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
+use Illuminate\Support\Facades\Cache;
 
 class Controller extends BaseController
 {
@@ -16,10 +17,12 @@ class Controller extends BaseController
     {
         $currentEvents = Event::getCurrent();
 
-        $serviceCenters = ServiceCenter::query()
-            ->with('addresses')
-            ->orderBy('total_events', 'DESC')
-            ->get();
+        $serviceCenters =  Cache::remember('serviceCenters', 60 * 60, static function () {
+            return ServiceCenter::query()
+                ->with('addresses')
+                ->orderBy('total_events', 'DESC')
+                ->get();
+        });
 
         $events = Event::query()
             ->with('serviceCenter', 'addresses')
