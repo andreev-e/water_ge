@@ -37,7 +37,8 @@ class Controller extends BaseController
             }
         }
 
-        foreach ($serviceCenters->slice(0, 10) as $serviceCenter) {
+        $serviceCentersToDraw = 1;
+        foreach ($serviceCenters->slice(0, $serviceCentersToDraw) as $serviceCenter) {
             $color = $this->rand_color();
             $graphData['datasets'][$serviceCenter->id]['label'] = $serviceCenter->name_ru;
             $graphData['datasets'][$serviceCenter->id]['backgroundColor'] = $color;
@@ -48,7 +49,7 @@ class Controller extends BaseController
         foreach ($graphData['labels'] as $date) {
             foreach ($events as $event) {
                 if ($date === $event->start->format('d.m.Y')) {
-                    foreach ($serviceCenters as $serviceCenter) {
+                    foreach ($serviceCenters->slice(0, $serviceCentersToDraw) as $serviceCenter) {
                         $graphData['datasets'][$serviceCenter->id]['data'][] = $serviceCenter->id === $event->serviceCenter->id ? $event->addresses->count() : 0;
                     }
                 }
