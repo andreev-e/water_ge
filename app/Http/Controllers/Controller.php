@@ -17,7 +17,7 @@ class Controller extends BaseController
         $currentEvents = Event::getCurrent();
 
         $serviceCenters = ServiceCenter::query()
-            ->limit(5)
+            ->limit(10)
             ->orderBy('total_events', 'DESC')
             ->get();
 
@@ -31,6 +31,13 @@ class Controller extends BaseController
         $graphData['labels'] = [];
         $graphData['datasets'] = [];
 
+        foreach ($events as $event) {
+            $date = $event->start->format('d.m.Y');
+            if (!in_array($date, $graphData['labels'], true)) {
+                $graphData['labels'][] = $date;
+            }
+        }
+
         foreach ($serviceCenters as $serviceCenter) {
             $color = $this->rand_color();
             $graphData['datasets'][$serviceCenter->id]['label'] = $serviceCenter->name_ru;
@@ -39,12 +46,13 @@ class Controller extends BaseController
             $graphData['datasets'][$serviceCenter->id]['fill'] = false;
         }
 
-        /** @var Event $event */
-        foreach ($events as $event) {
-            $graphData['labels'][] = $event->start->format('d.m.Y');
-
-            foreach ($serviceCenters as $serviceCenter) {
-                $graphData['datasets'][$serviceCenter->id]['data'][] = $serviceCenter->id === $event->serviceCenter->id ? $event->addresses()->count() : 0;
+        foreach ($graphData['labels'] as $date) {
+            foreach ($events as $event) {
+                if ($date === $event->start->format('d.m.Y')) {
+                    foreach ($serviceCenters as $serviceCenter) {
+                        $graphData['datasets'][$serviceCenter->id]['data'][] = $serviceCenter->id === $event->serviceCenter->id ? $event->addresses()->count() : 0;
+                    }
+                }
             }
         }
 
