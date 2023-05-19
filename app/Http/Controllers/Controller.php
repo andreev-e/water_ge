@@ -48,8 +48,8 @@ class Controller extends BaseController
 
         foreach ($graphData['labels'] as $date) {
             foreach ($events as $event) {
-                if ($date === $event->start->format('d.m.Y')) {
-                    foreach ($serviceCenters as $serviceCenter) {
+                foreach ($serviceCenters as $serviceCenter) {
+                    if ($date === $event->start->format('d.m.Y')) {
                         $graphData['datasets'][$serviceCenter->id]['data'][] = $serviceCenter->id === $event->serviceCenter->id ? $event->addresses()->count() : 0;
                     }
                 }
