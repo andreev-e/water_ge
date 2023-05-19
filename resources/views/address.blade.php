@@ -1,1 +1,4 @@
-<p>{{ $address->name_ru }} ({{ $address->name }}) - было {{ $address->total_events }} отключений</p>
+<p>
+    {{ $address->name_ru }} ({{ $address->name }})
+    {{ $address->total_events ? '- было ' . $address->total_events . 'отключений' : ''}}
+</p>

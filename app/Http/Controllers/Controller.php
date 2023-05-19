@@ -47,11 +47,18 @@ class Controller extends BaseController
         }
 
         foreach ($graphData['labels'] as $date) {
-            foreach ($events as $event) {
-                if ($date === $event->start->format('d.m.Y')) {
-                    foreach ($serviceCenters->slice(0, $serviceCentersToDraw) as $serviceCenter) {
-                        $graphData['datasets'][$serviceCenter->id]['data'][] = $serviceCenter->id === $event->serviceCenter->id ? $event->addresses->count() : 0;
+            foreach ($serviceCenters->slice(0, $serviceCentersToDraw) as $serviceCenter) {
+                $found = false;
+                foreach ($events as $event) {
+                    if ($date === $event->start->format('d.m.Y') && $serviceCenter->id === $event->serviceCenter->id) {
+                        $found = true;
+                        $number = $serviceCenter->total_addresses - $event->addresses->count();
+                        $graphData['datasets'][$serviceCenter->id]['data'][] = $number;
+                        break;
                     }
+                }
+                if (!$found) {
+                    $graphData['datasets'][$serviceCenter->id]['data'][] = $serviceCenter->total_addresses;
                 }
             }
         }
