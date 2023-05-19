@@ -23,9 +23,8 @@ class Controller extends BaseController
 
         $events = Event::query()
             ->with('serviceCenter')
-            ->limit(100)
+            ->limit(500)
             ->latest('start')
-            ->orderBy('start')
             ->get();
 
         $graphData = [];
