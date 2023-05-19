@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\EventTypes;
 use App\Models\Event;
 use App\Models\ServiceCenter;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -73,7 +74,11 @@ class Controller extends BaseController
 
         $graphData['datasets'] = array_values($graphData['datasets']);
 
-        return view('welcome', compact('currentEvents', 'serviceCenters', 'graphData'));
+        return view('welcome', compact([
+            'currentEvents',
+            'serviceCenters',
+            'graphData',
+        ]));
     }
 
     function rand_color()

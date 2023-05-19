@@ -14,6 +14,8 @@ return new class extends Migration
             $table->foreignIdFor(ServiceCenter::class);
             $table->dateTime('start');
             $table->dateTime('finish');
+            $table->integer('effected_customers');
+            $table->string('type');
             $table->timestamps();
         });
     }

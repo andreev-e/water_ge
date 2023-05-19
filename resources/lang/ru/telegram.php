@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'water_shutdown' => 'Отключение воды',
+    'shutdown' => 'Отключение',
     'no_shutdowns' => 'Нет актуальных отключений',
     'default_answer' => 'Не могу помочь.',
     'actual_shutdowns' => 'Актуальные отключения',

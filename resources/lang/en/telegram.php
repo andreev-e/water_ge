@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'water_shutdown' => 'Water shutdown',
+    'shutdown' => 'Shutdown',
     'no_shutdowns' => 'No actual shutdowns',
     'default_answer' => 'Can\'t help you.',
     'actual_shutdowns' => 'Actual shutdowns',

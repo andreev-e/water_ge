@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\EventTypes;
 use App\Models\BotUser;
 use App\Models\Event;
 use App\Models\ServiceCenter;
@@ -70,8 +71,9 @@ class LoadWater extends Command
 
                     $event = Event::query()
                         ->where('service_center_id', $serviceCenter->id)
-                        ->where('start', Carbon::createFromFormat('d/m/Y H:i:s', $from),)
-                        ->where('finish', Carbon::createFromFormat('d/m/Y H:i:s', $to),)
+                        ->where('start', Carbon::createFromFormat('d/m/Y H:i:s', $from))
+                        ->where('finish', Carbon::createFromFormat('d/m/Y H:i:s', $to))
+                        ->where('type', EventTypes::water)
                         ->first();
 
                     if (!$event) {
@@ -81,6 +83,7 @@ class LoadWater extends Command
                             'start' => Carbon::createFromFormat('d/m/Y H:i:s', $from),
                             'finish' => Carbon::createFromFormat('d/m/Y H:i:s', $to),
                             'total_addresses' => count($addresses),
+                            'type' => EventTypes::water,
                         ]);
 
                         foreach ($addresses as $address) {
