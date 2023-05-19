@@ -37,7 +37,7 @@ class Controller extends BaseController
             }
         }
 
-        $serviceCentersToDraw = 1;
+        $serviceCentersToDraw = 10;
         foreach ($serviceCenters->slice(0, $serviceCentersToDraw) as $serviceCenter) {
             $color = $this->rand_color();
             $graphData['datasets'][$serviceCenter->id]['label'] = $serviceCenter->name_ru;
