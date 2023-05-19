@@ -80,6 +80,7 @@ class LoadSchedule extends Command
                             'service_center_id' => $serviceCenter->id,
                             'start' => Carbon::createFromFormat('d/m/Y H:i:s', $from),
                             'finish' => Carbon::createFromFormat('d/m/Y H:i:s', $to),
+                            'total_addresses' => count($addresses),
                         ]);
 
                         foreach ($addresses as $address) {

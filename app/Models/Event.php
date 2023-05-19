@@ -13,6 +13,7 @@ class Event extends Model
         'service_center_id',
         'start',
         'finish',
+        'total_addresses',
     ];
 
     protected $casts = [
