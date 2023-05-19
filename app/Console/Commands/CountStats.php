@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Address;
+use App\Models\Event;
 use App\Models\ServiceCenter;
 use Illuminate\Console\Command;
 
@@ -23,6 +24,11 @@ class CountStats extends Command
         Address::query()->each(function(Address $address) {
             $address->total_events = $address->events()->count();
             $address->save();
+        });
+
+        Event::query()->whereNull('total_addresses')->each(function(Event $event) {
+            $event->total_addresses = $event->addresses()->count();
+            $event->save();
         });
     }
 }

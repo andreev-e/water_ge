@@ -19,6 +19,10 @@ return new class extends Migration
         Schema::table('addresses', static function(Blueprint $table) {
             $table->integer('total_events')->nullable();
         });
+
+        Schema::table('events', static function(Blueprint $table) {
+            $table->integer('total_addresses')->nullable();
+        });
     }
 
     /**
@@ -32,6 +36,10 @@ return new class extends Migration
 
         Schema::table('addresses', static function(Blueprint $table) {
             $table->dropColumn('total_events');
+        });
+
+        Schema::table('events', static function(Blueprint $table) {
+            $table->dropColumn('total_addresses');
         });
     }
 };

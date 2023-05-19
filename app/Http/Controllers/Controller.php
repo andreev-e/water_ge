@@ -52,7 +52,7 @@ class Controller extends BaseController
                 foreach ($events as $event) {
                     if ($date === $event->start->format('d.m.Y') && $serviceCenter->id === $event->serviceCenter->id) {
                         $found = true;
-                        $number = $serviceCenter->total_addresses - $event->addresses->count();
+                        $number = $serviceCenter->total_addresses - $event->total_addresses;
                         $graphData['datasets'][$serviceCenter->id]['data'][] = $number;
                         break;
                     }

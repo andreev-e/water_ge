@@ -30,11 +30,10 @@ class Event extends Model
         return $this->belongsTo(ServiceCenter::class);
     }
 
-
     public static function getCurrent()
     {
         return self::query()
-            ->where('finish', '>=', Carbon::now())
+            ->where('finish', '>=', Carbon::now()->timezone('Asia/Tbilisi'))
             ->get();
     }
 }

@@ -34,9 +34,9 @@
                 <tr class="border text-left">
                     <td class="p-1"><b>{{ $event->serviceCenter->name_ru }}</b>
                         ({{ $event->serviceCenter->name }})
-                        <b>~{{ round($event->addresses->count() / $event->serviceCenter->total_addresses * 100) }}%
+                        <b>~{{ round($event->total_addresses / $event->serviceCenter->total_addresses * 100) }}%
                             адресов</b>
-                        ({{ count($event->addresses) }} адрес)
+                        ({{ $event->total_addresses }} адрес)
                     </td>
                     <td>{{ $event->start->format('d.m.Y H:i') }} - {{ $event->finish->format('d.m.Y H:i') }}</td>
                     <td x-data="{ open: false }">
