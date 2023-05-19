@@ -18,7 +18,7 @@ use PHPHtmlParser\Exceptions\NotLoadedException;
 use PHPHtmlParser\Exceptions\StrictException;
 use PhpTelegramBot\Laravel\Facades\Telegram;
 
-class LoadSchedule extends Command
+class LoadWater extends Command
 {
     protected $signature = 'load-schedule';
 
@@ -28,7 +28,7 @@ class LoadSchedule extends Command
      * Execute the console command.
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function handle(Client $client, Dom $dom, Telegram $telegram): void
+    public function handle(Client $client, Dom $dom): void
     {
         for ($i = 0; $i < 1; $i++) {
             $url = 'http://water.gov.ge/page/full/107' . ($i * 10 === 0 ? '' : '/' . $i * 10);

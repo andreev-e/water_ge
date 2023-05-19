@@ -16,7 +16,8 @@ class ServiceCenter extends Model
     ];
     public function addresses(): HasMany
     {
-        return $this->hasMany(Address::class);
+        return $this->hasMany(Address::class)
+            ->orderBy('total_events', 'DESC');
     }
 
     public function events(): HasMany

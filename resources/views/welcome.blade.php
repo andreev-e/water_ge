@@ -132,7 +132,7 @@
                         @click.outside="open = false"
                         class="absolute bg-white shadow-2xl p-8 border-1 right-1 text-left"
                     >
-                        @foreach($serviceCenter->addresses()->orderBy('total_events', 'DESC')->limit(50)->get() as $address)
+                        @foreach($serviceCenter->addresses->slice(0, 50) as $address)
                             @include('address', ['address' => $address])
                         @endforeach
                     </div>

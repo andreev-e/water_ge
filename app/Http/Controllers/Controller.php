@@ -17,6 +17,7 @@ class Controller extends BaseController
         $currentEvents = Event::getCurrent();
 
         $serviceCenters = ServiceCenter::query()
+            ->with('addresses')
             ->orderBy('total_events', 'DESC')
             ->get();
 
