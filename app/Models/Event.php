@@ -22,7 +22,7 @@ class Event extends Model
     protected $casts = [
         'start' => 'datetime',
         'finish' => 'datetime',
-        'type' => EventTypes::class
+        'type' => EventTypes::class,
     ];
 
     public function addresses(): BelongsToMany
@@ -38,10 +38,12 @@ class Event extends Model
     public static function getCurrent(EventTypes $type = null)
     {
         return self::query()
-            ->when($type, function ($query) use ($type) {
+            ->when($type, function($query) use ($type) {
                 $query->where('type', $type->value);
             })
+            ->orderBy('start')
             ->where('finish', '>=', Carbon::now()->timezone('Asia/Tbilisi'))
+            ->where('start', '<=', Carbon::now()->addDay()->timezone('Asia/Tbilisi'))
             ->get();
     }
 }
