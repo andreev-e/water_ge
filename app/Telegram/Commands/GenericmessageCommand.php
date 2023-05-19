@@ -43,13 +43,23 @@ class GenericmessageCommand extends SystemCommand
                 ]);
         }
 
-        foreach (Event::getCurrent() as $event) {
+        $events = Event::getCurrent();
+        foreach ($events as $event) {
             Notification::route('telegram', $chatId)
                 ->notify(new EventNotification($event, $languageCode));
         }
 
+        if (count($events)) {
+            return $this->replyToChat(
+                __('telegram.actual_shutdowns', locale: $languageCode) . ' ^^^',
+                [
+                    'parse_mode' => 'markdown',
+                    'reply_markup' => Keyboard::remove(['selective' => true]),
+                ]);
+        }
+
         return $this->replyToChat(
-            __('telegram.actual_shutdowns', locale: $languageCode) . '^^^',
+            __('telegram.no_shutdowns', locale: $languageCode),
             [
                 'parse_mode' => 'markdown',
                 'reply_markup' => Keyboard::remove(['selective' => true]),
