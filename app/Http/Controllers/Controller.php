@@ -17,10 +17,16 @@ class Controller extends BaseController
     {
         $currentEvents = Event::getCurrent();
 
-        $serviceCenters = ServiceCenter::query()
-            ->with('addresses')
-            ->orderBy('total_events', 'DESC')
-            ->get();
+        $serviceCenters = Cache::remember('serviceCenters', 60 * 60, function() {
+            return ServiceCenter::query()
+                ->with([
+                    'addresses' => function($query) {
+                        return $query->limit(50);
+                    },
+                ])
+                ->orderBy('total_events', 'DESC')
+                ->get();
+        });
 
         $events = Event::query()
             ->with('serviceCenter', 'addresses')
