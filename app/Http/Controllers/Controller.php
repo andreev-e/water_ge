@@ -17,13 +17,12 @@ class Controller extends BaseController
         $currentEvents = Event::getCurrent();
 
         $serviceCenters = ServiceCenter::query()
-            ->limit(10)
             ->orderBy('total_events', 'DESC')
             ->get();
 
         $events = Event::query()
             ->with('serviceCenter')
-            ->where('start', '>=', now()->subDays(90))
+            ->where('start', '>=', now()->subDays(120))
             ->orderBy('start')
             ->get();
 
@@ -48,8 +47,8 @@ class Controller extends BaseController
 
         foreach ($graphData['labels'] as $date) {
             foreach ($events as $event) {
-                foreach ($serviceCenters as $serviceCenter) {
-                    if ($date === $event->start->format('d.m.Y')) {
+                if ($date === $event->start->format('d.m.Y')) {
+                    foreach ($serviceCenters as $serviceCenter) {
                         $graphData['datasets'][$serviceCenter->id]['data'][] = $serviceCenter->id === $event->serviceCenter->id ? $event->addresses()->count() : 0;
                     }
                 }
