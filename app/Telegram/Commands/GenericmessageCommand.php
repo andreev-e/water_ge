@@ -10,6 +10,7 @@ use Longman\TelegramBot\Commands\SystemCommand;
 use Longman\TelegramBot\Entities\Keyboard;
 use Longman\TelegramBot\Entities\ServerResponse;
 use Longman\TelegramBot\Telegram;
+use stringEncode\Exception;
 
 class GenericmessageCommand extends SystemCommand
 {
@@ -44,12 +45,16 @@ class GenericmessageCommand extends SystemCommand
         }
 
         $events = Event::getCurrent();
-        foreach ($events as $event) {
-            Notification::route('telegram', $chatId)
-                ->notify(new EventNotification($event, $languageCode));
-        }
 
         if (count($events)) {
+            foreach ($events as $event) {
+                try {
+                    Notification::route('telegram', $chatId)
+                        ->notify(new EventNotification($event, $languageCode));
+                } catch (Exception $e) {
+                }
+            }
+
             return $this->replyToChat(
                 __('telegram.actual_shutdowns', locale: $languageCode) . ' ^^^',
                 [
