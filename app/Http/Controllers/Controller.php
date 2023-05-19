@@ -23,7 +23,7 @@ class Controller extends BaseController
 
         $events = Event::query()
             ->with('serviceCenter')
-            ->limit(200)
+            ->where('start', '>=', now()->subDays(180))
             ->orderBy('start')
             ->get();
 
