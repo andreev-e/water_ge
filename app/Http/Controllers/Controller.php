@@ -17,7 +17,7 @@ class Controller extends BaseController
         $currentEvents = Event::getCurrent();
 
         $serviceCenters = ServiceCenter::query()
-            ->limit(20)
+            ->limit(10)
             ->orderBy('total_events', 'DESC')
             ->get();
 
