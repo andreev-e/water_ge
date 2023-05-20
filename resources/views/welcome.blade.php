@@ -40,8 +40,10 @@
                         {!! $event->type->getIcon() !!}
                         <b>{{ $event->serviceCenter->name_ru }}</b>
                         ({{ $event->serviceCenter->name }})
+                        @if ($event->serviceCenter->total_addresses)
                         <b>~{{ round($event->total_addresses / $event->serviceCenter->total_addresses * 100) }}%
                             адресов</b>
+                        @endif
                         ({{ $event->total_addresses }} адрес)
                         {{ $event->effected_customers ? ' - затронуто ' . $event->effected_customers . ' потребителей' : '' }}
                     </td>

@@ -17,6 +17,9 @@ class Event extends Model
         'total_addresses',
         'type',
         'effected_customers',
+        'name',
+        'name_en',
+        'name_ru',
     ];
 
     protected $casts = [

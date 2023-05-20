@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Address;
 use App\Models\Dictionary;
+use App\Models\Event;
 use App\Models\ServiceCenter;
 use App\Services\Translation\TranslationInterface;
 use Illuminate\Console\Command;
@@ -34,6 +35,10 @@ class Translate extends Command
         $elements = Address::query()->whereNull('name_en')
             ->limit(1000)->get();
         $this->translateCollection($elements);
+
+        $elements = Event::query()->whereNull('name_en')
+            ->limit(100)->get();
+        $this->translateCollection($elements);
     }
 
     private function translateCollection(Collection $collection): void
@@ -43,7 +48,7 @@ class Translate extends Command
             $element->name_ru = $this->translatePhrase($element->name, 'ru');
             $element->timestamps = false;
             $element->save();
-            echo $element->id . ' ' . $element->name . ' ' . $element->name_en . PHP_EOL;
+//            echo $element->id . ' ' . $element->name . ' ' . $element->name_en . PHP_EOL;
         }
     }
 

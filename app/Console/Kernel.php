@@ -4,6 +4,7 @@ namespace App\Console;
 
 use App\Console\Commands\CountStats;
 use App\Console\Commands\LoadEnergy;
+use App\Console\Commands\LoadGas;
 use App\Console\Commands\LoadWater;
 use App\Console\Commands\Translate;
 use Illuminate\Console\Scheduling\Schedule;
@@ -15,6 +16,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command(LoadWater::class)->everyFiveMinutes();
         $schedule->command(LoadEnergy::class)->everyFiveMinutes();
+        $schedule->command(LoadGas::class)->everyFiveMinutes();
         $schedule->command(Translate::class)->everyMinute();
         $schedule->command(CountStats::class)->hourly();
     }

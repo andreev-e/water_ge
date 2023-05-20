@@ -16,6 +16,9 @@ return new class extends Migration
             $table->dateTime('finish');
             $table->integer('effected_customers');
             $table->string('type');
+            $table->text('name');
+            $table->text('name_en');
+            $table->text('name_ru');
             $table->timestamps();
         });
     }
