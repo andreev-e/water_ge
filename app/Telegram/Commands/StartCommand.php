@@ -5,13 +5,13 @@ namespace App\Telegram\Commands;
 
 
 use Longman\TelegramBot\Commands\UserCommand;
+use Longman\TelegramBot\Entities\CallbackQuery;
 use Longman\TelegramBot\Entities\InlineKeyboard;
 use Longman\TelegramBot\Entities\InlineKeyboardButton;
 use Longman\TelegramBot\Entities\ServerResponse;
 
 class StartCommand extends UserCommand
 {
-    protected static array $callbacks = ['set_city'];
     protected $name = 'start';
     protected $description = 'Start';
     protected $usage = '/start';
@@ -27,7 +27,7 @@ class StartCommand extends UserCommand
 
         $anotherButton = new InlineKeyboardButton([
             'text' => __('telegram.buttons.set_city', locale: $languageCode),
-            'callback_data' => 'set_city',
+            'callback_data' => 'command=start&action=set_city',
         ]);
 
         $keyboard = new InlineKeyboard([
@@ -40,5 +40,12 @@ class StartCommand extends UserCommand
                 'reply_markup' => $keyboard,
             ]
         );
+    }
+
+    public static function handleCallbackQuery(CallbackQuery $callback_query, array $callback_data): ServerResponse
+    {
+        return $callback_query->answer([
+            'text' => 'Awesome' . implode(', ', $callback_data),
+        ]);
     }
 }
