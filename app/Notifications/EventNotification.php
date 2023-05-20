@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Enums\EventTypes;
 use App\Models\Event;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
@@ -32,8 +33,13 @@ class EventNotification extends Notification
         $message = TelegramMessage::create()
             ->content('🚫' . $this->event->type->getIcon() . __('telegram.shutdown', locale: $this->languageCode) . ': ')
             ->line($this->event->serviceCenter->name_ru)
-            ->line($this->event->start->format('d.m.Y H:i') . ' - ' . $this->event->finish->format('d.m.Y H:i'))
-            ->line('~' . round($this->event->addresses->count() / $this->event->serviceCenter->total_addresses * 100) . '% адресов отключено:');
+            ->line($this->event->start->format('d.m.Y H:i') . ' - ' . $this->event->finish->format('d.m.Y H:i'));
+
+        if ($this->event->type === EventTypes::gas) {
+            $message->line($this->event->name_ru);
+        } else {
+            $message->line('~' . round($this->event->addresses->count() / $this->event->serviceCenter->total_addresses * 100) . '% адресов отключено:');
+        }
 
         foreach ($this->event->addresses->slice(0, 5) as $address) {
             $message->line($address->name_ru . ' (' . $address->name . ')');
