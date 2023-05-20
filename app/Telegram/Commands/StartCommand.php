@@ -5,8 +5,8 @@ namespace App\Telegram\Commands;
 
 
 use Longman\TelegramBot\Commands\UserCommand;
-use Longman\TelegramBot\Entities\InlineKeyboard;
-use Longman\TelegramBot\Entities\InlineKeyboardButton;
+use Longman\TelegramBot\Entities\Keyboard;
+use Longman\TelegramBot\Entities\KeyboardButton;
 use Longman\TelegramBot\Entities\ServerResponse;
 
 class StartCommand extends UserCommand
@@ -24,13 +24,10 @@ class StartCommand extends UserCommand
     {
         $languageCode = $this->getMessage()->getFrom()->getLanguageCode();
 
-        $anotherButton = new InlineKeyboardButton([
-            'text' => __('telegram.buttons.set_city', locale: $languageCode),
-            'callback_data' => '/subscribe',
-        ]);
-
-        $keyboard = new InlineKeyboard([
-            $anotherButton,
+        $keyboard = new Keyboard([
+            new KeyboardButton([
+                'text' => '/subscribe',
+            ])
         ]);
 
         return $this->replyToChat(
