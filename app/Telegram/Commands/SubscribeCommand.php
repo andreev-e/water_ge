@@ -65,9 +65,14 @@ class SubscribeCommand extends UserCommand
             }
 
             return $callback_query->answer([
-                'text' => __('telegram.subscribe_success', ['city' => $serviceCenter->name_ru], $languageCode),
+                'text' => __('telegram.subscribe_success', ['city' => $serviceCenter->${'name_' . $languageCode}],
+                    $languageCode),
             ]);
         }
+
+        return $callback_query->answer([
+            'text' => __('telegram.subscribe_fail', locale: $languageCode),
+        ]);
 
     }
 }
