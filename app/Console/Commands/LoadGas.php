@@ -29,7 +29,7 @@ class LoadGas extends Command
             $response = $client->get($url, [
                 'query' => [
                     'pageIndex' => $page,
-                    'PageSize' => 300,
+                    'PageSize' => 100,
                 ],
                 'compress' => true,
             ]);
@@ -73,19 +73,20 @@ class LoadGas extends Command
                         'name_en' => $item->detail->notificationTitleEN,
                     ]);
 
-//                    $botUser = BotUser::query()
-//                        ->where('id', '411174495')
-//                        ->first();
-//
-//                    if ($botUser) {
-//                        Notification::route('telegram', $botUser->id)
-//                            ->notify(new EventNotification($event, $botUser->language_code));
-//                    }
+                    $botUser = BotUser::query()
+                        ->where('id', '411174495')
+                        ->first();
+
+                    if ($botUser) {
+                        Notification::route('telegram', $botUser->id)
+                            ->notify(new EventNotification($event, $botUser->language_code));
+                    }
                 }
             }
 
             $page++;
             echo $page . PHP_EOL;
+            return;
         } while ($data->hasNext);
     }
 
