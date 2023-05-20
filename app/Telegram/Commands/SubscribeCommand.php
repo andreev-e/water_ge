@@ -13,18 +13,18 @@ class SubscribeCommand extends UserCommand
 {
     protected $name = 'subscribe';
     protected $description = '';
-    protected $usage = '/subscribe';
+    protected $usage = '/subscribe <serviceCenter>';
     protected $version = '1.0.0';
 
     public function execute(): ServerResponse
     {
-        return $this->replyToChat('subscribe');
+        return $this->replyToChat('subscribed!!!!');
     }
 
     public static function handleCallbackQuery(CallbackQuery $callback_query, array $callback_data): ServerResponse
     {
         return $callback_query->answer([
-            'text' => 'Awesome' . implode(', ', $callback_data),
+            'text' => 'Awesome ' . implode(', ', $callback_data) . $callback_data['serviceCenter'],
         ]);
     }
 }
