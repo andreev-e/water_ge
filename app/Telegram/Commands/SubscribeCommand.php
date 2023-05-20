@@ -7,6 +7,7 @@ use App\Models\ServiceCenter;
 use Longman\TelegramBot\Commands\UserCommand;
 use Longman\TelegramBot\Entities\CallbackQuery;
 use Longman\TelegramBot\Entities\InlineKeyboard;
+use Longman\TelegramBot\Entities\InlineKeyboardButton;
 use Longman\TelegramBot\Entities\KeyboardButton;
 use Longman\TelegramBot\Entities\ServerResponse;
 
@@ -23,17 +24,17 @@ class SubscribeCommand extends UserCommand
 
         $buttons = [];
         foreach (ServiceCenter::all() as $serviceCenter) {
-            $button = new KeyboardButton([
+            $button = new InlineKeyboardButton([
                 'text' => $serviceCenter->name_ru,
                 'callback_data' => 'command=subscribe&serviceCenter=' . $serviceCenter->id,
             ]);
-            $buttons[] = [$button];
+            $buttons[] = $button;
         }
 
         $keyboard = new InlineKeyboard($buttons);
 
         return $this->replyToChat(
-            __('telegram.start', locale: $languageCode),
+            __('telegram.buttons.set_city', locale: $languageCode),
             [
                 'reply_markup' => $keyboard,
             ]
