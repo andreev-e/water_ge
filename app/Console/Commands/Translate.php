@@ -38,7 +38,7 @@ class Translate extends Command
 
         $elements = Event::query()
             ->whereNotNull('name')
-            ->whereNull('name_en')
+            ->whereNull('name_ru')
             ->limit(100)->get();
         $this->translateCollection($elements);
     }
@@ -46,7 +46,9 @@ class Translate extends Command
     private function translateCollection(Collection $collection): void
     {
         foreach ($collection as $element) {
-            $element->name_en = $this->translatePhrase($element->name, 'en');
+            if ($element->name_en === null) {
+                $element->name_en = $this->translatePhrase($element->name, 'en');
+            }
             $element->name_ru = $this->translatePhrase($element->name, 'ru');
             $element->timestamps = false;
             $element->save();

@@ -70,6 +70,7 @@ class LoadGas extends Command
                         'total_addresses' => 0,
                         'type' => EventTypes::gas,
                         'name' => $item->detail->notificationTitle,
+                        'name_en' => $item->detail->notificationTitleEN,
                     ]);
 
 //                    $botUser = BotUser::query()
