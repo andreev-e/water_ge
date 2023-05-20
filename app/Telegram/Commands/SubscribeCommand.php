@@ -65,7 +65,7 @@ class SubscribeCommand extends UserCommand
     }
 
 
-    public static function replyWithKeyboard($command): ServerResponse
+    public static function replyWithKeyboard($command)
     {
         $languageCode = $command->getMessage()->getFrom()->getLanguageCode();
 
