@@ -4,6 +4,7 @@
 namespace App\Telegram\Commands;
 
 
+use App\Models\ServiceCenter;
 use Longman\TelegramBot\Commands\UserCommand;
 use Longman\TelegramBot\Entities\CallbackQuery;
 use Longman\TelegramBot\Entities\InlineKeyboard;
@@ -22,14 +23,20 @@ class SubscribeCommand extends UserCommand
     {
         $languageCode = $this->getMessage()->getFrom()->getLanguageCode();
 
-        $anotherButton = new InlineKeyboardButton([
-            'text' => __('telegram.buttons.set_city', locale: $languageCode),
-            'callback_data' => 'command=subscribe&serviceCenter=1',
-        ]);
+        $buttons = [];
+        foreach (ServiceCenter::all() as $serviceCenter) {
+            $button = new InlineKeyboardButton([
+                'text' => $serviceCenter->name_ru,
+                'callback_data' => 'command=subscribe&serviceCenter=' . $serviceCenter->id,
+            ]);
+            $buttons[] = $button;
+        }
+//        $anotherButton = new InlineKeyboardButton([
+//            'text' => __('telegram.buttons.set_city', locale: $languageCode),
+//            'callback_data' => 'command=subscribe&serviceCenter=1',
+//        ]);
 
-        $keyboard = new InlineKeyboard([
-            $anotherButton,
-        ]);
+        $keyboard = new InlineKeyboard($buttons);
 
         return $this->replyToChat(
             __('telegram.start', locale: $languageCode),
