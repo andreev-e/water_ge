@@ -30,7 +30,7 @@ class EventNotification extends Notification
         $url = url('https://water.andreev-e.ru/#' . $this->event->id);
 
         $message = TelegramMessage::create()
-            ->content($this->event->type->getIcon() . __('telegram.shutdown', locale: $this->languageCode) . ': ')
+            ->content('🚫' . $this->event->type->getIcon() . __('telegram.shutdown', locale: $this->languageCode) . ': ')
             ->line($this->event->serviceCenter->name_ru)
             ->line($this->event->start->format('d.m.Y H:i') . ' - ' . $this->event->finish->format('d.m.Y H:i'))
             ->line('~' . round($this->event->addresses->count() / $this->event->serviceCenter->total_addresses * 100) . '% адресов отключено, ' . count($this->event->addresses) . 'шт:');
