@@ -19,7 +19,7 @@ class LoadEnergy extends Command
 
     protected $description = 'Command description';
 
-    public function handle(Client $client, Dom $dom)
+    public function handle(Client $client)
     {
         $url = 'https://my.energo-pro.ge/owback/searchAlerts';
         $response = $client->post($url, [
@@ -65,14 +65,9 @@ class LoadEnergy extends Command
                     ]);
 
                     foreach ($addresses as $address) {
-                        $addressArray = array_filter([$rawEvent->scName, $rawEvent->regionName, $address],
-                            function($item) {
-                                return !empty($item);
-                            });
-
                         /* @var $addressObject \App\Models\Address */
                         $addressObject = $serviceCenter->addresses()->firstOrCreate([
-                            'name' => implode(', ', $addressArray),
+                            'name' => $address,
                         ]);
                         $addressObject->events()->syncWithoutDetaching($event);
                     }
