@@ -26,7 +26,7 @@ class StartCommand extends UserCommand
 
         $anotherButton = new InlineKeyboardButton([
             'text' => __('telegram.buttons.set_city', locale: $languageCode),
-            'callback_data' => '/search',
+            'callback_data' => 'set_city',
         ]);
 
         $keyboard = new InlineKeyboard([
@@ -39,5 +39,27 @@ class StartCommand extends UserCommand
                 'reply_markup' => $keyboard,
             ]
         );
+    }
+
+    /**
+     * @throws \Longman\TelegramBot\Exception\TelegramException
+     */
+    public function onCallbackQuery(): ServerResponse
+    {
+        $callbackQuery = $this->getCallbackQuery();
+        $data = $callbackQuery->getData();
+
+        // Handle the callback data
+        if ($data === 'set_city') {
+            // Code to handle the callback for the '/search' button
+            // ...
+            // Return the appropriate response
+            return $this->replyToChat('You clicked the set_city button!');
+        }
+
+        // Handle other callback data if needed
+
+        // Return an empty response if the callback data is not recognized
+        return $this->replyToChat('You clicked unknown button!');
     }
 }
