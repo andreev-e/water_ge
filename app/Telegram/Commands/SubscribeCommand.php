@@ -29,7 +29,7 @@ class SubscribeCommand extends UserCommand
             ];
         }
 
-        $keyboard = new InlineKeyboard($buttons);
+        $keyboard = new InlineKeyboard(...$buttons);
 
         $inline_keyboard = new InlineKeyboard([
             ['text' => 'Inline Query (current chat)', 'switch_inline_query_current_chat' => 'inline query...'],
