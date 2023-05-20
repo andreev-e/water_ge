@@ -23,11 +23,10 @@ class SubscribeCommand extends UserCommand
 
         $buttons = [];
         foreach (ServiceCenter::all() as $serviceCenter) {
-            $button = new InlineKeyboardButton([
+            $buttons[] = new InlineKeyboardButton([
                 'text' => $serviceCenter->name_ru,
                 'callback_data' => 'command=subscribe&serviceCenter=' . $serviceCenter->id,
             ]);
-            $buttons[] = [$button];
         }
 
         $keyboard = new InlineKeyboard($buttons);
