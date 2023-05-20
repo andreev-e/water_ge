@@ -30,6 +30,7 @@ class SubscribeCommand extends UserCommand
         }
 
         $keyboard = new InlineKeyboard($buttons);
+        $keyboard->setResizeKeyboard(true);
 
         return $this->replyToChat(
             __('telegram.buttons.set_city', locale: $languageCode),
