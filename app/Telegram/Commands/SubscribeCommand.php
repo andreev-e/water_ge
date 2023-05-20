@@ -23,10 +23,10 @@ class SubscribeCommand extends UserCommand
 
         $buttons = [];
         foreach (ServiceCenter::all() as $serviceCenter) {
-            $buttons[] = new InlineKeyboardButton([
+            $buttons[] = [
                 'text' => $serviceCenter->name_ru,
                 'callback_data' => 'command=subscribe&serviceCenter=' . $serviceCenter->id,
-            ]);
+            ];
         }
 
         $keyboard = new InlineKeyboard($buttons);
@@ -39,13 +39,10 @@ class SubscribeCommand extends UserCommand
             ['text' => 'Open URL', 'url' => 'https://github.com/php-telegram-bot/example-bot'],
         ]);
 
-        $keyboard->setSelective(true);
-        $keyboard->setResizeKeyboard(false);
-
         return $this->replyToChat(
             __('telegram.select_city', locale: $languageCode),
             [
-                'reply_markup' => $inline_keyboard,
+                'reply_markup' => $keyboard,
             ]
         );
     }
