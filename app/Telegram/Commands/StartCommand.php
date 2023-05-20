@@ -11,6 +11,7 @@ use Longman\TelegramBot\Entities\ServerResponse;
 
 class StartCommand extends UserCommand
 {
+    protected static array $callbacks = ['set_city'];
     protected $name = 'start';
     protected $description = 'Start';
     protected $usage = '/start';

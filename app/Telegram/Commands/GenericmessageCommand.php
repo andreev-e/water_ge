@@ -65,17 +65,4 @@ class GenericmessageCommand extends SystemCommand
                 'reply_markup' => Keyboard::remove(['selective' => true]),
             ]);
     }
-
-    public function onCallbackQuery(): ServerResponse
-    {
-        $callbackQuery = $this->getCallbackQuery();
-        $data = $callbackQuery->getData();
-
-        if ($data === 'set_city') {
-
-            return $this->replyToChat('callback set_city');
-        }
-
-        return $this->replyToChat('callback');
-    }
 }
