@@ -7,5 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Subscriptions extends Model
 {
-    use HasFactory;
+    protected $fillable = [
+        'bot_user_id',
+        'service_center_id',
+    ];
 }

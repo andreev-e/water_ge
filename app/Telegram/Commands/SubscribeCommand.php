@@ -4,6 +4,7 @@
 namespace App\Telegram\Commands;
 
 use App\Models\ServiceCenter;
+use App\Models\Subscriptions;
 use Longman\TelegramBot\Commands\UserCommand;
 use Longman\TelegramBot\Entities\CallbackQuery;
 use Longman\TelegramBot\Entities\InlineKeyboard;
@@ -43,10 +44,30 @@ class SubscribeCommand extends UserCommand
 
     public static function handleCallbackQuery(CallbackQuery $callback_query, array $callback_data): ServerResponse
     {
+        $languageCode = $callback_query->getMessage()->getFrom()->getLanguageCode();
+
         $chatId = $callback_query->getMessage()->getChat()->getId();
 
-        return $callback_query->answer([
-            'text' => json_encode($callback_data) . ' chat id:' . $chatId,
-        ]);
+        $serviceCenter = ServiceCenter::query()->find($callback_data['serviceCenter']);
+
+        if ($serviceCenter) {
+            $subscription = Subscriptions::query()
+                ->where('bot_user_id', $chatId)
+                ->where('service_center_id', $serviceCenter->id);
+
+            if ($subscription) {
+                $subscription->delete();
+            } else {
+                Subscriptions::query()->create([
+                    'bot_user_id' => $chatId,
+                    'service_center_id' => $callback_data['serviceCenter'],
+                ]);
+            }
+
+            return $callback_query->answer([
+                'text' => __('telegram.subscribe_success', ['city' => $serviceCenter->name_ru], $languageCode),
+            ]);
+        }
+
     }
 }
