@@ -24,7 +24,7 @@ class SubscribeCommand extends UserCommand
     public static function handleCallbackQuery(CallbackQuery $callback_query, array $callback_data): ServerResponse
     {
         return $callback_query->answer([
-            'text' => 'Awesome, subscribe',
+            'text' => 'Awesome' . implode(', ', $callback_data),
         ]);
     }
 }
