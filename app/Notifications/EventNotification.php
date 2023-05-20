@@ -31,13 +31,15 @@ class EventNotification extends Notification
         $url = url('https://water.andreev-e.ru/#' . $this->event->id);
 
         $message = TelegramMessage::create()
-            ->content('🚫' . $this->event->type->getIcon() . ': ' . $this->event->serviceCenter->name_ru)
+            ->content('🚫' . $this->event->type->getIcon() . ' ' . $this->event->serviceCenter->name_ru . ' ')
             ->line($this->event->start->format('d.m.Y H:i') . ' - ' . $this->event->finish->format('d.m.Y H:i'));
 
         if ($this->event->type === EventTypes::gas) {
             $message->line($this->event->name_ru);
         } else {
-            $message->line('~' . round($this->event->addresses->count() / $this->event->serviceCenter->total_addresses * 100) . '% адресов отключено:');
+            if ($this->event->serviceCenter->total_addresses) {
+                $message->line('~' . round($this->event->addresses->count() / $this->event->serviceCenter->total_addresses * 100) . '% адресов отключено:');
+            }
         }
 
         foreach ($this->event->addresses->slice(0, 5) as $address) {

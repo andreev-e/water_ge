@@ -11,7 +11,6 @@ use Carbon\Carbon;
 use GuzzleHttp\Client;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Notification;
-use PHPHtmlParser\Dom;
 
 class LoadEnergy extends Command
 {
