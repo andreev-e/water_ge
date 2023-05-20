@@ -33,13 +33,16 @@ class EventNotification extends Notification
             ->content($this->event->type->getIcon() . __('telegram.shutdown', locale: $this->languageCode) . ': ')
             ->line($this->event->serviceCenter->name_ru)
             ->line($this->event->start->format('d.m.Y H:i') . ' - ' . $this->event->finish->format('d.m.Y H:i'))
-            ->line('~' . round($this->event->addresses->count() / $this->event->serviceCenter->total_addresses * 100) . '% адресов отключено ' . count($this->event->addresses) . ':');
+            ->line('~' . round($this->event->addresses->count() / $this->event->serviceCenter->total_addresses * 100) . '% адресов отключено, ' . count($this->event->addresses) . ':');
 
-        foreach ($this->event->addresses->slice(0, 10) as $address) {
+        foreach ($this->event->addresses->slice(0, 5) as $address) {
             $message->line($address->name_ru . ' (' . $address->name . ')');
         }
 
-        $message->button('Смотреть все ' . count($this->event->addresses), $url);
+        if ($this->event->addresses->count() > 5) {
+            $message->button('Смотреть все ' . count($this->event->addresses), $url);
+        }
+
 
         return $message;
 
