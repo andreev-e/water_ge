@@ -23,21 +23,27 @@ class SubscribeCommand extends UserCommand
 
         $buttons = [];
         foreach (ServiceCenter::all() as $serviceCenter) {
-            $buttons[] = [[
-                'text' => $serviceCenter->name_ru,
-                'callback_data' => 'command=subscribe&serviceCenter=' . $serviceCenter->id,
-            ]];
+            $buttons[] = [
+                [
+                    'text' => $serviceCenter->name_ru,
+                    'callback_data' => 'command=subscribe&serviceCenter=' . $serviceCenter->id,
+                ],
+            ];
         }
 
-        $keyboard = new InlineKeyboard($buttons);
+        $keyboard = new InlineKeyboard(...$buttons);
 
-        $inline_keyboard = new InlineKeyboard([
-            ['text' => 'Inline Query (current chat)', 'switch_inline_query_current_chat' => 'inline query...'],
-            ['text' => 'Inline Query (other chat)', 'switch_inline_query' => 'inline query...'],
-        ], [
-            ['text' => 'Callback', 'callback_data' => 'identifier'],
-            ['text' => 'Open URL', 'url' => 'https://github.com/php-telegram-bot/example-bot'],
-        ]);
+        $inline_keyboard = new InlineKeyboard(
+            [
+                ['text' => 'Inline Query (current chat)', 'switch_inline_query_current_chat' => 'inline query...'],
+            ],
+            [
+                ['text' => 'Inline Query (other chat)', 'switch_inline_query' => 'inline query...'],
+            ],
+            [
+                ['text' => 'Callback', 'callback_data' => 'identifier'],
+                ['text' => 'Open URL', 'url' => 'https://github.com/php-telegram-bot/example-bot'],
+            ]);
 
         return $this->replyToChat(
             __('telegram.select_city', locale: $languageCode),
