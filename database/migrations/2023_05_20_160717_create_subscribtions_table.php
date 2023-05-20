@@ -15,7 +15,6 @@ return new class extends Migration
             $table->foreignIdFor(BotUser::class);
             $table->foreignIdFor(ServiceCenter::class);
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 

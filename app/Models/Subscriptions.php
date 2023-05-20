@@ -11,4 +11,9 @@ class Subscriptions extends Model
         'bot_user_id',
         'service_center_id',
     ];
+
+    public function botUser()
+    {
+        return $this->belongsTo(BotUser::class);
+    }
 }

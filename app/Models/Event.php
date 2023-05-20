@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use App\Enums\EventTypes;
+use App\Notifications\EventNotification;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\Notification;
 
 class Event extends Model
 {
@@ -48,5 +50,19 @@ class Event extends Model
             ->where('finish', '>=', Carbon::now()->timezone('Asia/Tbilisi'))
             ->where('start', '<=', Carbon::now()->addDay()->timezone('Asia/Tbilisi'))
             ->get();
+    }
+
+
+    public function notifySubscribed(): void
+    {
+        $subscriptions = Subscriptions::query()
+            ->with('botUser')
+            ->where('service_center_id', $this->service_center_id)
+            ->get();
+
+        foreach ($subscriptions as $subscription) {
+            Notification::route('telegram', $subscription->bot_user_id)
+                ->notify(new EventNotification($this, $subscription->botUser->language_code));
+        }
     }
 }

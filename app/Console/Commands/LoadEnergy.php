@@ -71,14 +71,7 @@ class LoadEnergy extends Command
                         $addressObject->events()->syncWithoutDetaching($event);
                     }
 
-                    $botUser = BotUser::query()
-                        ->where('id', '411174495')
-                        ->first();
-
-                    if ($botUser) {
-                        Notification::route('telegram', $botUser->id)
-                            ->notify(new EventNotification($event, $botUser->language_code));
-                    }
+                    $event->notifySubscribed();
                 }
             }
         }
