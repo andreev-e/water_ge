@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Subscriptions extends Model
 {
@@ -12,7 +13,7 @@ class Subscriptions extends Model
         'service_center_id',
     ];
 
-    public function botUser()
+    public function botUser(): BelongsTo
     {
         return $this->belongsTo(BotUser::class);
     }

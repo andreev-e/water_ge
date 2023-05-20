@@ -21,11 +21,16 @@ class SubscribeCommand extends UserCommand
     {
         $languageCode = $this->getMessage()->getFrom()->getLanguageCode();
 
+        $chatId = $this->getMessage()->getChat()->getId();
+
+        $subscribed = Subscriptions::query()->where('bot_user_id', $chatId)->get()->pluck('service_center_id');
+
         $buttons = [];
         foreach (ServiceCenter::query()->orderByDesc('total_addresses')->get() as $serviceCenter) {
             $buttons[] = [
                 [
-                    'text' => $serviceCenter->name_ru,
+                    'text' => $serviceCenter->name_ru
+                        . (in_array($serviceCenter->id, $subscribed->toArray(), true) ? ' ✅' : ''),
                     'callback_data' => 'command=subscribe&serviceCenter=' . $serviceCenter->id,
                 ],
             ];
