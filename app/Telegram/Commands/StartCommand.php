@@ -30,7 +30,7 @@ class StartCommand extends UserCommand
         ]);
 
         $keyboard = new InlineKeyboard([
-            [$anotherButton],
+            $anotherButton,
         ]);
 
         return $this->replyToChat(
