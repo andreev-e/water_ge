@@ -22,14 +22,20 @@ class SubscribeCommand extends UserCommand
         $languageCode = $this->getMessage()->getFrom()->getLanguageCode();
 
         $buttons = [];
-        foreach (ServiceCenter::all() as $serviceCenter) {
-            $buttons[] = new InlineKeyboardButton([
-                'text' => $serviceCenter->name_ru,
-                'callback_data' => 'command=subscribe&serviceCenter=' . $serviceCenter->id,
-            ]);
+        foreach (ServiceCenter::all()->chunk(2) as $chunk) {
+            $chunkButtons = [];
+            foreach ($chunk as $serviceCenter) {
+                $chunkButtons[] = new InlineKeyboardButton([
+                    'text' => $serviceCenter->name_ru,
+                    'callback_data' => 'command=subscribe&serviceCenter=' . $serviceCenter->id,
+                ]);
+            }
+            $buttons[] = $chunkButtons;
         }
 
         $keyboard = new InlineKeyboard($buttons);
+
+        $keyboard->setSelective(true);
         $keyboard->setResizeKeyboard(true);
 
         return $this->replyToChat(
