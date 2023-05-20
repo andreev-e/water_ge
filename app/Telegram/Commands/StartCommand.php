@@ -26,7 +26,7 @@ class StartCommand extends UserCommand
 
         $anotherButton = new InlineKeyboardButton([
             'text' => __('telegram.buttons.set_city', locale: $languageCode),
-            'callback_data' => 'command=subscribe&serviceCenter=1',
+            'callback_data' => 'command=subscribe',
         ]);
 
         $keyboard = new InlineKeyboard([
