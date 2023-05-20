@@ -3,14 +3,12 @@
 
 namespace App\Telegram\Commands;
 
-
 use App\Models\ServiceCenter;
 use Longman\TelegramBot\Commands\UserCommand;
 use Longman\TelegramBot\Entities\CallbackQuery;
 use Longman\TelegramBot\Entities\InlineKeyboard;
-use Longman\TelegramBot\Entities\InlineKeyboardButton;
+use Longman\TelegramBot\Entities\KeyboardButton;
 use Longman\TelegramBot\Entities\ServerResponse;
-use Longman\TelegramBot\Exception\TelegramException;
 
 class SubscribeCommand extends UserCommand
 {
@@ -25,11 +23,11 @@ class SubscribeCommand extends UserCommand
 
         $buttons = [];
         foreach (ServiceCenter::all() as $serviceCenter) {
-            $button = new InlineKeyboardButton([
+            $button = new KeyboardButton([
                 'text' => $serviceCenter->name_ru,
                 'callback_data' => 'command=subscribe&serviceCenter=' . $serviceCenter->id,
             ]);
-            $buttons[] = [$button];
+            $buttons[] = $button;
         }
 
         $keyboard = new InlineKeyboard($buttons);
