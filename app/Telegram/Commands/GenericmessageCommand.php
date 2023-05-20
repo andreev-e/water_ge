@@ -4,13 +4,11 @@ namespace App\Telegram\Commands;
 
 use App\Models\Event;
 use App\Notifications\EventNotification;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Notification;
 use Longman\TelegramBot\Commands\SystemCommand;
 use Longman\TelegramBot\Entities\Keyboard;
 use Longman\TelegramBot\Entities\ServerResponse;
 use Longman\TelegramBot\Telegram;
-use stringEncode\Exception;
 
 class GenericmessageCommand extends SystemCommand
 {
@@ -66,5 +64,18 @@ class GenericmessageCommand extends SystemCommand
                 'parse_mode' => 'markdown',
                 'reply_markup' => Keyboard::remove(['selective' => true]),
             ]);
+    }
+
+    public function onCallbackQuery(): ServerResponse
+    {
+        $callbackQuery = $this->getCallbackQuery();
+        $data = $callbackQuery->getData();
+
+        if ($data === 'set_city') {
+
+            return $this->replyToChat('callback set_city');
+        }
+
+        return $this->replyToChat('callback');
     }
 }

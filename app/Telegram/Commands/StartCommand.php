@@ -40,26 +40,4 @@ class StartCommand extends UserCommand
             ]
         );
     }
-
-    /**
-     * @throws \Longman\TelegramBot\Exception\TelegramException
-     */
-    public function onCallbackQuery(): ServerResponse
-    {
-        $callbackQuery = $this->getCallbackQuery();
-        $data = $callbackQuery->getData();
-
-        // Handle the callback data
-        if ($data === 'set_city') {
-            // Code to handle the callback for the '/search' button
-            // ...
-            // Return the appropriate response
-            return $this->replyToChat('You clicked the set_city button!');
-        }
-
-        // Handle other callback data if needed
-
-        // Return an empty response if the callback data is not recognized
-        return $this->replyToChat('You clicked unknown button!');
-    }
 }
