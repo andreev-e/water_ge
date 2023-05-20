@@ -53,7 +53,8 @@ class SubscribeCommand extends UserCommand
         if ($serviceCenter) {
             $subscription = Subscriptions::query()
                 ->where('bot_user_id', $chatId)
-                ->where('service_center_id', $serviceCenter->id);
+                ->where('service_center_id', $serviceCenter->id)
+                ->first();
 
             if ($subscription) {
                 $subscription->delete();
@@ -61,16 +62,17 @@ class SubscribeCommand extends UserCommand
                     'text' => __('telegram.unsubscribe_success', ['city' => $serviceCenter->name_ru],
                         $languageCode),
                 ]);
-            } else {
-                Subscriptions::query()->create([
-                    'bot_user_id' => $chatId,
-                    'service_center_id' => $callback_data['serviceCenter'],
-                ]);
-                return $callback_query->answer([
-                    'text' => __('telegram.subscribe_success', ['city' => $serviceCenter->name_ru],
-                        $languageCode),
-                ]);
             }
+
+            Subscriptions::query()->create([
+                'bot_user_id' => $chatId,
+                'service_center_id' => $callback_data['serviceCenter'],
+            ]);
+
+            return $callback_query->answer([
+                'text' => __('telegram.subscribe_success', ['city' => $serviceCenter->name_ru],
+                    $languageCode),
+            ]);
         }
 
         return $callback_query->answer([
