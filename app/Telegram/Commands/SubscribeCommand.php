@@ -27,7 +27,7 @@ class SubscribeCommand extends UserCommand
                 'text' => $serviceCenter->name_ru,
                 'callback_data' => 'command=subscribe&serviceCenter=' . $serviceCenter->id,
             ]);
-            $buttons[] = $button;
+            $buttons[] = [$button];
         }
 
         $keyboard = new InlineKeyboard($buttons);
