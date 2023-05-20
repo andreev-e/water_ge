@@ -6,7 +6,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Отключения воды и электричества в Грузии</title>
+    <title>Отключения воды, электричества и газа в Грузии</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -14,7 +14,7 @@
 <body>
 <div
     class="px-2 py-3 w-full">
-    <h1 class="text-4xl text-center my-5">Отключения воды и электричества в Грузии</h1>
+    <h1 class="text-4xl text-center my-5">Отключения воды, электричества и газа в Грузии</h1>
     <table class="table-auto w-full text-center">
         <tr>
             <td>
@@ -40,30 +40,34 @@
                         {!! $event->type->getIcon() !!}
                         <b>{{ $event->serviceCenter->name_ru }}</b>
                         ({{ $event->serviceCenter->name }})
-                        @if ($event->serviceCenter->total_addresses)
-                        <b>~{{ round($event->total_addresses / $event->serviceCenter->total_addresses * 100) }}%
-                            адресов</b>
+                        @if ($event->serviceCenter->total_addresses && $event->type !== EventTypes::gas)
+                            <b>~{{ round($event->total_addresses / $event->serviceCenter->total_addresses * 100) }}%
+                                адресов</b>
+                            ({{ $event->total_addresses }} адрес)
+                            {{ $event->effected_customers ? ' - затронуто ' . $event->effected_customers . ' потребителей' : '' }}
                         @endif
-                        ({{ $event->total_addresses }} адрес)
-                        {{ $event->effected_customers ? ' - затронуто ' . $event->effected_customers . ' потребителей' : '' }}
                     </td>
                     <td>{{ $event->start->format('d.m.Y H:i') }} - {{ $event->finish->format('d.m.Y H:i') }}</td>
                     <td x-data="{ open: false }">
-                        <button
-                            class="btn bg-slate-200 p-2"
-                            x-on:click="open = ! open"
-                        >
-                            Показать
-                        </button>
-                        <div
-                            x-show="open"
-                            @click.outside="open = false"
-                            class="absolute bg-white shadow-2xl p-8 border-1 right-1 text-left"
-                        >
-                            @foreach($event->addresses as $address)
-                                @include('address', ['address' => $address])
-                            @endforeach
-                        </div>
+                        @if ($event->type === EventTypes::gas)
+                            {{$event->name_ru}}
+                        @else
+                            <button
+                                class="btn bg-slate-200 p-2"
+                                x-on:click="open = ! open"
+                            >
+                                Показать
+                            </button>
+                            <div
+                                x-show="open"
+                                @click.outside="open = false"
+                                class="absolute bg-white shadow-2xl p-8 border-1 right-1 text-left"
+                            >
+                                @foreach($event->addresses as $address)
+                                    @include('address', ['address' => $address])
+                                @endforeach
+                            </div>
+                        @endif
                     </td>
                 </tr>
             @endforeach

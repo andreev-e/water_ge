@@ -69,7 +69,7 @@ class LoadGas extends Command
                         'finish' => Carbon::createFromFormat('Y-m-d\TH:i:sO', $item->end),
                         'total_addresses' => 0,
                         'type' => EventTypes::gas,
-                        'message' => $item->detail->notificationTitle,
+                        'name' => $item->detail->notificationTitle,
                     ]);
 
 //                    $botUser = BotUser::query()
