@@ -39,11 +39,11 @@ class SubscribeCommand extends UserCommand
             if ($subscription) {
                 $subscription->delete();
 
-                self::replyWithKeyboard($callback_query);
-                return $callback_query->answer([
-                    'text' => __('telegram.unsubscribe_success', ['city' => $serviceCenter->name_ru],
-                        $languageCode),
-                ]);
+                return self::replyWithKeyboard($callback_query);
+//                return $callback_query->answer([
+//                    'text' => __('telegram.unsubscribe_success', ['city' => $serviceCenter->name_ru],
+//                        $languageCode),
+//                ]);
             }
 
             Subscriptions::query()->create([
@@ -51,21 +51,20 @@ class SubscribeCommand extends UserCommand
                 'service_center_id' => $callback_data['serviceCenter'],
             ]);
 
-            self::replyWithKeyboard($callback_query);
-            return $callback_query->answer([
-                'text' => __('telegram.subscribe_success', ['city' => $serviceCenter->name_ru],
-                    $languageCode),
-            ]);
+            return self::replyWithKeyboard($callback_query);
+//            return $callback_query->answer([
+//                'text' => __('telegram.subscribe_success', ['city' => $serviceCenter->name_ru],
+//                    $languageCode),
+//            ]);
         }
 
-        self::replyWithKeyboard($callback_query);
         return $callback_query->answer([
             'text' => __('telegram.subscribe_fail', locale: $languageCode),
         ]);
     }
 
 
-    public static function replyWithKeyboard($command)
+    public static function replyWithKeyboard($command): ServerResponse
     {
         $languageCode = $command->getMessage()->getFrom()->getLanguageCode();
 
