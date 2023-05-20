@@ -27,7 +27,7 @@ class StartCommand extends UserCommand
 
         $anotherButton = new InlineKeyboardButton([
             'text' => __('telegram.buttons.set_city', locale: $languageCode),
-            'callback_data' => 'command=start&action=set_city',
+            'callback_data' => 'command=subscribe',
         ]);
 
         $keyboard = new InlineKeyboard([
@@ -40,12 +40,5 @@ class StartCommand extends UserCommand
                 'reply_markup' => $keyboard,
             ]
         );
-    }
-
-    public static function handleCallbackQuery(CallbackQuery $callback_query, array $callback_data): ServerResponse
-    {
-        return $callback_query->answer([
-            'text' => 'Awesome' . implode(', ', $callback_data),
-        ]);
     }
 }
