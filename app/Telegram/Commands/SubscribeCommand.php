@@ -22,7 +22,7 @@ class SubscribeCommand extends UserCommand
         $languageCode = $this->getMessage()->getFrom()->getLanguageCode();
 
         $buttons = [];
-        foreach (ServiceCenter::all() as $serviceCenter) {
+        foreach (ServiceCenter::query()->orderByDesc('total_addresses')->get() as $serviceCenter) {
             $buttons[] = [
                 [
                     'text' => $serviceCenter->name_ru,
@@ -32,18 +32,6 @@ class SubscribeCommand extends UserCommand
         }
 
         $keyboard = new InlineKeyboard(...$buttons);
-
-        $inline_keyboard = new InlineKeyboard(
-            [
-                ['text' => 'Inline Query (current chat)', 'switch_inline_query_current_chat' => 'inline query...'],
-            ],
-            [
-                ['text' => 'Inline Query (other chat)', 'switch_inline_query' => 'inline query...'],
-            ],
-            [
-                ['text' => 'Callback', 'callback_data' => 'identifier'],
-                ['text' => 'Open URL', 'url' => 'https://github.com/php-telegram-bot/example-bot'],
-            ]);
 
         return $this->replyToChat(
             __('telegram.select_city', locale: $languageCode),
@@ -55,8 +43,10 @@ class SubscribeCommand extends UserCommand
 
     public static function handleCallbackQuery(CallbackQuery $callback_query, array $callback_data): ServerResponse
     {
+        $chatId = $callback_query->getMessage()->getChat()->getId();
+
         return $callback_query->answer([
-            'text' => json_encode($callback_data),
+            'text' => json_encode($callback_data) . ' chat id:' . $chatId,
         ]);
     }
 }
