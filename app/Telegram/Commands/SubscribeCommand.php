@@ -19,31 +19,7 @@ class SubscribeCommand extends UserCommand
 
     public function execute(): ServerResponse
     {
-        $languageCode = $this->getMessage()->getFrom()->getLanguageCode();
-
-        $chatId = $this->getMessage()->getChat()->getId();
-
-        $subscribed = Subscriptions::query()->where('bot_user_id', $chatId)->get()->pluck('service_center_id');
-
-        $buttons = [];
-        foreach (ServiceCenter::query()->orderByDesc('total_addresses')->get() as $serviceCenter) {
-            $buttons[] = [
-                [
-                    'text' => $serviceCenter->name_ru
-                        . (in_array($serviceCenter->id, $subscribed->toArray(), true) ? ' ✅' : ''),
-                    'callback_data' => 'command=subscribe&serviceCenter=' . $serviceCenter->id,
-                ],
-            ];
-        }
-
-        $keyboard = new InlineKeyboard(...$buttons);
-
-        return $this->replyToChat(
-            __('telegram.select_city', locale: $languageCode),
-            [
-                'reply_markup' => $keyboard,
-            ]
-        );
+        return self::replyWithKeyboard($this);
     }
 
     public static function handleCallbackQuery(CallbackQuery $callback_query, array $callback_data): ServerResponse
@@ -62,6 +38,8 @@ class SubscribeCommand extends UserCommand
 
             if ($subscription) {
                 $subscription->delete();
+
+                self::replyWithKeyboard($callback_query);
                 return $callback_query->answer([
                     'text' => __('telegram.unsubscribe_success', ['city' => $serviceCenter->name_ru],
                         $languageCode),
@@ -73,15 +51,46 @@ class SubscribeCommand extends UserCommand
                 'service_center_id' => $callback_data['serviceCenter'],
             ]);
 
+            self::replyWithKeyboard($callback_query);
             return $callback_query->answer([
                 'text' => __('telegram.subscribe_success', ['city' => $serviceCenter->name_ru],
                     $languageCode),
             ]);
         }
 
+        self::replyWithKeyboard($callback_query);
         return $callback_query->answer([
             'text' => __('telegram.subscribe_fail', locale: $languageCode),
         ]);
+    }
 
+
+    public static function replyWithKeyboard($command): ServerResponse
+    {
+        $languageCode = $command->getMessage()->getFrom()->getLanguageCode();
+
+        $chatId = $command->getMessage()->getChat()->getId();
+
+        $subscribed = Subscriptions::query()->where('bot_user_id', $chatId)->get()->pluck('service_center_id');
+
+        $buttons = [];
+        foreach (ServiceCenter::query()->orderByDesc('total_addresses')->get() as $serviceCenter) {
+            $buttons[] = [
+                [
+                    'text' => $serviceCenter->name_ru
+                        . (in_array($serviceCenter->id, $subscribed->toArray(), true) ? ' ✅' : ''),
+                    'callback_data' => 'command=subscribe&serviceCenter=' . $serviceCenter->id,
+                ],
+            ];
+        }
+
+        $keyboard = new InlineKeyboard(...$buttons);
+
+        return $command->replyToChat(
+            __('telegram.select_city', locale: $languageCode),
+            [
+                'reply_markup' => $keyboard,
+            ]
+        );
     }
 }
