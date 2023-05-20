@@ -29,12 +29,8 @@ class SubscribeCommand extends UserCommand
                 'text' => $serviceCenter->name_ru,
                 'callback_data' => 'command=subscribe&serviceCenter=' . $serviceCenter->id,
             ]);
-            $buttons[] = $button;
+            $buttons[] = [$button];
         }
-//        $anotherButton = new InlineKeyboardButton([
-//            'text' => __('telegram.buttons.set_city', locale: $languageCode),
-//            'callback_data' => 'command=subscribe&serviceCenter=1',
-//        ]);
 
         $keyboard = new InlineKeyboard($buttons);
 
