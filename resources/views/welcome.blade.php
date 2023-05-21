@@ -112,57 +112,6 @@
             },
         });
     </script>
-    {{--    <h3 class="text-2xl text-center">По сервисным центрам</h3>--}}
-    {{--    <table class="table-auto w-full text-left" x-data="{ showAll: false }">--}}
-    {{--        <thead>--}}
-    {{--            <tr>--}}
-    {{--                <th></th>--}}
-    {{--                <th>Город</th>--}}
-    {{--                <th>Число отключений</th>--}}
-    {{--                <th>Часто отключаемые адреса</th>--}}
-    {{--            </tr>--}}
-    {{--        </thead>--}}
-    {{--        @php $i = 0; @endphp--}}
-    {{--        @foreach($serviceCenters as $serviceCenter)--}}
-    {{--            <tr--}}
-    {{--                @if($i > 9)--}}
-    {{--                    x-show="showAll"--}}
-    {{--                @endif--}}
-    {{--                class="border"--}}
-    {{--            >--}}
-    {{--                <td>{{++$i}}</td>--}}
-    {{--                <td>{{ $serviceCenter->name_ru }} ({{ $serviceCenter->name }})</td>--}}
-    {{--                <td>{{ $serviceCenter->total_events }}</td>--}}
-    {{--                <td x-data="{ open: false }">--}}
-    {{--                    <button--}}
-    {{--                        class="btn bg-slate-200 p-2"--}}
-    {{--                        x-on:click="open = ! open"--}}
-    {{--                    >--}}
-    {{--                        Показать--}}
-    {{--                    </button>--}}
-    {{--                    <div--}}
-    {{--                        x-show="open"--}}
-    {{--                        @click.outside="open = false"--}}
-    {{--                        class="absolute bg-white shadow-2xl p-8 border-1 right-1 text-left"--}}
-    {{--                    >--}}
-    {{--                        @foreach($serviceCenter->addresses->slice(0, 50) as $address)--}}
-    {{--                            @include('address', ['address' => $address])--}}
-    {{--                        @endforeach--}}
-    {{--                    </div>--}}
-    {{--                </td>--}}
-    {{--            </tr>--}}
-    {{--        @endforeach--}}
-    {{--        <tr>--}}
-    {{--            <td colspan="4" class="text-center">--}}
-    {{--                <button--}}
-    {{--                    class="btn bg-slate-200 p-2 w-full"--}}
-    {{--                    x-on:click="showAll = ! showAll"--}}
-    {{--                >--}}
-    {{--                    Показать все--}}
-    {{--                </button>--}}
-    {{--            </td>--}}
-    {{--        </tr>--}}
-    {{--    </table>--}}
 </div>
 <!-- Yandex.Metrika counter -->
 <script type="text/javascript">

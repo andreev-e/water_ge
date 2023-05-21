@@ -24,7 +24,7 @@ class Controller extends BaseController
             ->get();
 
         $events = Event::query()
-            ->with('serviceCenter', 'addresses')
+            ->with(['serviceCenter', 'addresses'])
             ->where('start', '>=', now()->subDays(120))
             ->orderBy('start')
             ->get();

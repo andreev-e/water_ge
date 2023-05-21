@@ -43,6 +43,7 @@ class Event extends Model
     public static function getCurrent(EventTypes $type = null)
     {
         return self::query()
+            ->with(['serviceCenter', 'addresses'])
             ->when($type, function($query) use ($type) {
                 $query->where('type', $type->value);
             })
