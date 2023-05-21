@@ -24,4 +24,9 @@ class ServiceCenter extends Model
     {
         return $this->hasMany(Event::class);
     }
+
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscriptions::class);
+    }
 }

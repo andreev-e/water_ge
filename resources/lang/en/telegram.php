@@ -2,6 +2,7 @@
 
 return [
     'shutdown' => 'Shutdown',
+    'you_are_subscribed' => 'You are subscribed to shutdown notifications in :cities.',
     'no_shutdowns' => 'No actual shutdowns. Check your subscriptions /subscribe',
     'default_answer' => 'Can\'t help you.',
     'actual_shutdowns' => 'Actual shutdowns',

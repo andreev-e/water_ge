@@ -2,6 +2,7 @@
 
 return [
     'shutdown' => 'Отключение',
+    'you_are_subscribed' => 'Вы подписаны на уведомления об отключениях в :cities.',
     'no_shutdowns' => 'Нет актуальных отключений. Проверьте подписки /subscribe',
     'default_answer' => 'Не могу помочь.',
     'actual_shutdowns' => 'Актуальные отключения',
