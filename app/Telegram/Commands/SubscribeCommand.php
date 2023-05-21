@@ -71,7 +71,7 @@ class SubscribeCommand extends UserCommand
         $subscribed = Subscriptions::query()->where('bot_user_id', $chatId)->get()->pluck('service_center_id');
 
         $buttons = [];
-        foreach (ServiceCenter::query()->orderByDesc('total_addresses')->get() as $serviceCenter) {
+        foreach (ServiceCenter::query()->orderBy('name_ru')->get() as $serviceCenter) {
             $buttons[] = [
                 [
                     'text' => $serviceCenter->name_ru
