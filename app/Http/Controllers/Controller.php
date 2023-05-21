@@ -20,11 +20,6 @@ class Controller extends BaseController
 
         $serviceCenters = Cache::remember('serviceCenters', 60 * 60, function() {
             return ServiceCenter::query()
-                ->with([
-                    'addresses' => function($query) {
-                        return $query->limit(50);
-                    },
-                ])
                 ->orderBy('total_events', 'DESC')
                 ->get();
         });

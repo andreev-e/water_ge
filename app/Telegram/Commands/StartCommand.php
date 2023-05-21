@@ -24,17 +24,8 @@ class StartCommand extends UserCommand
     {
         $languageCode = $this->getMessage()->getFrom()->getLanguageCode();
 
-        $keyboard = new Keyboard([
-            new KeyboardButton([
-                'text' => '/subscribe',
-            ])
-        ]);
-
         return $this->replyToChat(
             __('telegram.start', locale: $languageCode),
-            [
-                'reply_markup' => $keyboard,
-            ]
         );
     }
 }
