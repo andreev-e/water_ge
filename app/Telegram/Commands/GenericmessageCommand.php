@@ -4,11 +4,7 @@ namespace App\Telegram\Commands;
 
 use App\Models\Event;
 use App\Models\ServiceCenter;
-use App\Models\Subscriptions;
-use App\Notifications\EventNotification;
-use Illuminate\Support\Facades\Notification;
 use Longman\TelegramBot\Commands\SystemCommand;
-use Longman\TelegramBot\Entities\Keyboard;
 use Longman\TelegramBot\Entities\ServerResponse;
 use Longman\TelegramBot\Telegram;
 
@@ -43,16 +39,11 @@ class GenericmessageCommand extends SystemCommand
         if ($totalEvents) {
             return $this->replyToChat(
                 __('telegram.you_are_subscribed', ['cities' => $cities], $languageCode) . ' ' .
-                __('telegram.actual_shutdowns', locale: $languageCode));
-
+                __('telegram.change_subscriptions', locale: $languageCode));
         }
 
         return $this->replyToChat(
             __('telegram.you_are_subscribed', ['cities' => $cities], $languageCode) . ' ' .
-            __('telegram.no_shutdowns', locale: $languageCode),
-            [
-                'parse_mode' => 'markdown',
-                'reply_markup' => Keyboard::remove(['selective' => true]),
-            ]);
+            __('telegram.no_shutdowns', locale: $languageCode));
     }
 }
