@@ -40,6 +40,10 @@ class SubscribeCommand extends UserCommand
 
         $serviceCenter = ServiceCenter::query()->find($callback_data['serviceCenter']);
 
+        $messageId = $callback_query->getMessage()->getMessageId();
+
+        $keyboard = self::makeKeyboard($callback_query);
+
         if ($serviceCenter) {
             $subscription = Subscriptions::query()
                 ->where('bot_user_id', $chatId)
@@ -49,9 +53,11 @@ class SubscribeCommand extends UserCommand
             if ($subscription) {
                 $subscription->delete();
 
-                return $callback_query->answer([
-                    'text' => __('telegram.unsubscribe_success', ['city' => $serviceCenter->name_ru],
-                        $languageCode),
+                return Request::editMessageText([
+                    'chat_id' => $chatId,
+                    'message_id' => $messageId,
+                    'text' => __('telegram.select_city', locale: $languageCode),
+                    'reply_markup' => $keyboard,
                 ]);
             }
 
@@ -60,21 +66,12 @@ class SubscribeCommand extends UserCommand
                 'service_center_id' => $callback_data['serviceCenter'],
             ]);
 
-            $chatId = $callback_query->getMessage()->getChat()->getId();
-            $messageId = $callback_query->getMessage()->getMessageId();
-            $keyboard = self::makeKeyboard($callback_query);
-
             return Request::editMessageText([
                 'chat_id' => $chatId,
                 'message_id' => $messageId,
                 'text' => __('telegram.select_city', locale: $languageCode),
                 'reply_markup' => $keyboard,
             ]);
-
-//            return $callback_query->answer([
-//                'text' => __('telegram.subscribe_success', ['city' => $serviceCenter->name_ru],
-//                    $languageCode),
-//            ]);
         }
 
         return $callback_query->answer([
