@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Enums\EventTypes;
+use App\Models\Address;
+use App\Models\BotUser;
 use App\Models\Event;
 use App\Models\ServiceCenter;
+use App\Models\Subscriptions;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
@@ -18,7 +21,7 @@ class Controller extends BaseController
     {
         $currentEvents = Event::getCurrent();
 
-        $graphData = Cache::remember('graphdata', 60 * 60, function() {
+        $graphData = Cache::remember('graphData', 60 * 60, function() {
 
             $events = Event::query()
                 ->with(['serviceCenter', 'addresses'])
@@ -73,9 +76,20 @@ class Controller extends BaseController
             return $graphData;
         });
 
+        $stat = Cache::remember('statData', 60 * 60, function() {
+            return [
+                'Сервисных центров' => ServiceCenter::query()->count(),
+                'Адресов в базе' => Address::query()->count(),
+                'Событий в базе' => Event::query()->count(),
+                'Подписчиков' => BotUser::query()->count(),
+                'Подписок' => Subscriptions::query()->count(),
+            ];
+        });
+
         return view('welcome', compact([
             'currentEvents',
             'graphData',
+            'stat',
         ]));
     }
 

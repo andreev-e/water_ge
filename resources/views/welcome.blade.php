@@ -17,11 +17,9 @@
     <h1 class="text-4xl text-center my-5">Отключения воды, электричества и газа в Грузии</h1>
     <table class="table-auto w-full text-center">
         <tr>
-            <td>
-                Сервисных центров: <?= \App\Models\ServiceCenter::query()->count() ?>
-            </td>
-            <td>Адресов в базе: <?= \App\Models\Address::query()->count() ?></td>
-            <td>Событий в базе: <?= \App\Models\Event::query()->count() ?></td>
+            @foreach($stat as $name => $datum)
+                <td>{{$name}}: {{$datum}}</td>
+            @endforeach
         </tr>
     </table>
     <h2 class="text-3xl text-center my-5">Актуальные отключения</h2>
