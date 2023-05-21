@@ -9,6 +9,7 @@ use Longman\TelegramBot\Commands\UserCommand;
 use Longman\TelegramBot\Entities\CallbackQuery;
 use Longman\TelegramBot\Entities\InlineKeyboard;
 use Longman\TelegramBot\Entities\ServerResponse;
+use Longman\TelegramBot\Request;
 
 class SubscribeCommand extends UserCommand
 {
@@ -19,7 +20,16 @@ class SubscribeCommand extends UserCommand
 
     public function execute(): ServerResponse
     {
-        return self::replyWithKeyboard($this);
+        $languageCode = $this->getMessage()->getFrom()->getLanguageCode();
+
+        $keyboard = self::makeKeyboard($this);
+
+        return $this->replyToChat(
+            __('telegram.select_city', locale: $languageCode),
+            [
+                'reply_markup' => $keyboard,
+            ]
+        );
     }
 
     public static function handleCallbackQuery(CallbackQuery $callback_query, array $callback_data): ServerResponse
@@ -50,6 +60,17 @@ class SubscribeCommand extends UserCommand
                 'service_center_id' => $callback_data['serviceCenter'],
             ]);
 
+            $chatId = $callback_query->getMessage()->getChat()->getId();
+            $messageId = $callback_query->getMessage()->getMessageId();
+            $keyboard = self::makeKeyboard($callback_query);
+
+            Request::editMessageText([
+                'chat_id' => $chatId,
+                'message_id' => $messageId,
+                'text' => __('telegram.select_city', locale: $languageCode),
+                'reply_markup' => $keyboard,
+            ]);
+
             return $callback_query->answer([
                 'text' => __('telegram.subscribe_success', ['city' => $serviceCenter->name_ru],
                     $languageCode),
@@ -62,13 +83,12 @@ class SubscribeCommand extends UserCommand
     }
 
 
-    public static function replyWithKeyboard($command): ServerResponse
+    public static function makeKeyboard($command): InlineKeyboard
     {
-        $languageCode = $command->getMessage()->getFrom()->getLanguageCode();
-
         $chatId = $command->getMessage()->getChat()->getId();
 
-        $subscribed = Subscriptions::query()->where('bot_user_id', $chatId)->get()->pluck('service_center_id');
+        $subscribed = Subscriptions::query()->where('bot_user_id', $chatId)
+            ->get()->pluck('service_center_id');
 
         $buttons = [];
         foreach (ServiceCenter::query()->orderBy('name_ru')->get() as $serviceCenter) {
@@ -81,13 +101,6 @@ class SubscribeCommand extends UserCommand
             ];
         }
 
-        $keyboard = new InlineKeyboard(...$buttons);
-
-        return $command->replyToChat(
-            __('telegram.select_city', locale: $languageCode),
-            [
-                'reply_markup' => $keyboard,
-            ]
-        );
+        return new InlineKeyboard(...$buttons);
     }
 }
