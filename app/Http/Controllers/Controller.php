@@ -18,11 +18,10 @@ class Controller extends BaseController
     {
         $currentEvents = Event::getCurrent();
 
-        $serviceCenters = Cache::remember('serviceCenters', 60 * 60, function() {
-            return ServiceCenter::query()
-                ->orderBy('total_events', 'DESC')
-                ->get();
-        });
+        $serviceCenters = ServiceCenter::query()
+            ->orderBy('total_events', 'DESC')
+            ->limit(10)
+            ->get();
 
         $events = Event::query()
             ->with('serviceCenter', 'addresses')
@@ -41,8 +40,7 @@ class Controller extends BaseController
             }
         }
 
-        $serviceCentersToDraw = 10;
-        foreach ($serviceCenters->slice(0, $serviceCentersToDraw) as $serviceCenter) {
+        foreach ($serviceCenters as $serviceCenter) {
             $color = $this->rand_color();
             $graphData['datasets'][$serviceCenter->id]['label'] = $serviceCenter->name_ru;
             $graphData['datasets'][$serviceCenter->id]['backgroundColor'] = $color;
@@ -51,7 +49,7 @@ class Controller extends BaseController
         }
 
         foreach ($graphData['labels'] as $date) {
-            foreach ($serviceCenters->slice(0, $serviceCentersToDraw) as $serviceCenter) {
+            foreach ($serviceCenters as $serviceCenter) {
                 $found = false;
                 foreach ($events as $event) {
                     if ($date === $event->start->format('d.m.Y') && $serviceCenter->id === $event->serviceCenter->id) {
