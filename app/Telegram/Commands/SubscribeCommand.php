@@ -64,17 +64,17 @@ class SubscribeCommand extends UserCommand
             $messageId = $callback_query->getMessage()->getMessageId();
             $keyboard = self::makeKeyboard($callback_query);
 
-            Request::editMessageText([
+            return Request::editMessageText([
                 'chat_id' => $chatId,
                 'message_id' => $messageId,
                 'text' => __('telegram.select_city', locale: $languageCode),
                 'reply_markup' => $keyboard,
             ]);
 
-            return $callback_query->answer([
-                'text' => __('telegram.subscribe_success', ['city' => $serviceCenter->name_ru],
-                    $languageCode),
-            ]);
+//            return $callback_query->answer([
+//                'text' => __('telegram.subscribe_success', ['city' => $serviceCenter->name_ru],
+//                    $languageCode),
+//            ]);
         }
 
         return $callback_query->answer([
