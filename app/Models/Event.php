@@ -53,10 +53,13 @@ class Event extends Model
     }
 
 
-    public function notifySubscribed(): void
+    public function notifySubscribed(int $botUserId): void
     {
         $subscriptions = Subscriptions::query()
             ->with('botUser')
+            ->when($botUserId, function($query) use ($botUserId) {
+                $query->where('bot_user_id', $botUserId);
+            })
             ->where('service_center_id', $this->service_center_id)
             ->get();
 

@@ -21,41 +21,19 @@ class GenericmessageCommand extends SystemCommand
      */
     public function execute(): ServerResponse
     {
-        $location = $this->getMessage()->getLocation();
-
         $languageCode = $this->getMessage()->getFrom()->getLanguageCode();
 
-        $text = $this->getMessage()->getText();
-
         $chatId = $this->getMessage()->getChat()->getId();
-
-        $callbackQuery = $this->getCallbackQuery();
-
-
-        if ($callbackQuery) {
-            $data = $callbackQuery->getData();
-
-            return $this->replyToChat($data[0],
-                [
-                    'parse_mode' => 'markdown',
-                    'reply_markup' => Keyboard::remove(['selective' => true]),
-                ]);
-        }
 
         $events = Event::getCurrent();
 
         if (count($events)) {
             foreach ($events as $event) {
-                Notification::route('telegram', $chatId)
-                    ->notify(new EventNotification($event, $languageCode));
+                $event->notifySubscribed($chatId);
             }
 
             return $this->replyToChat(
-                __('telegram.actual_shutdowns', locale: $languageCode) . ' ^^^',
-                [
-                    'parse_mode' => 'markdown',
-                    'reply_markup' => Keyboard::remove(['selective' => true]),
-                ]);
+                __('telegram.actual_shutdowns', locale: $languageCode) . ' ^^^');
         }
 
         return $this->replyToChat(
