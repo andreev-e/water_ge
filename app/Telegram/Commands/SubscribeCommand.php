@@ -42,8 +42,6 @@ class SubscribeCommand extends UserCommand
 
         $messageId = $callback_query->getMessage()->getMessageId();
 
-        $keyboard = self::makeKeyboard($callback_query);
-
         if ($serviceCenter) {
             $subscription = Subscriptions::query()
                 ->where('bot_user_id', $chatId)
@@ -52,6 +50,8 @@ class SubscribeCommand extends UserCommand
 
             if ($subscription) {
                 $subscription->delete();
+
+                $keyboard = self::makeKeyboard($callback_query);
 
                 return Request::editMessageText([
                     'chat_id' => $chatId,
@@ -65,6 +65,8 @@ class SubscribeCommand extends UserCommand
                 'bot_user_id' => $chatId,
                 'service_center_id' => $callback_data['serviceCenter'],
             ]);
+
+            $keyboard = self::makeKeyboard($callback_query);
 
             return Request::editMessageText([
                 'chat_id' => $chatId,
