@@ -53,7 +53,7 @@ class Event extends Model
     }
 
 
-    public function notifySubscribed(int $botUserId): void
+    public function notifySubscribed(int $botUserId = null): void
     {
         $subscriptions = Subscriptions::query()
             ->with('botUser')
