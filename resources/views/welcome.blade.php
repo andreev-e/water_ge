@@ -73,7 +73,7 @@
             @endforeach
         </tbody>
     </table>
-    <h2 class="text-3xl text-center my-5">Статистика</h2>
+    <h2 class="text-3xl text-center my-5">Статистика (только вода и электроэнергия)</h2>
     <canvas id="eventsChart"></canvas>
     <script>
         const ctx = document.getElementById('eventsChart');

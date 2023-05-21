@@ -23,6 +23,7 @@ class Controller extends BaseController
             $events = Event::query()
                 ->with(['serviceCenter', 'addresses'])
                 ->where('start', '>=', now()->subDays(120))
+                ->whereIn('type', [EventTypes::water, EventTypes::energy])
                 ->orderBy('start')
                 ->get();
 
