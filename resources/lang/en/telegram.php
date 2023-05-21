@@ -5,7 +5,7 @@ return [
     'you_are_subscribed' => 'You are subscribed to shutdown notifications in :cities.',
     'no_shutdowns' => 'No actual shutdowns. Check your subscriptions /subscribe',
     'default_answer' => 'Can\'t help you.',
-    'actual_shutdowns' => 'Actual shutdowns',
+    'actual_shutdowns' => 'Actual shutdowns. Change subscriptions /subscribe',
     'start' => 'Hi there! This bot can notify you about upcoming shutdowns. Set your subscription cities /subscribe',
     'select_city' => 'Select cities:',
     'subscribe_success' => 'You have successfully subscribed to shutdown notifications in :city',

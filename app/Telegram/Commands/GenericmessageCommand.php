@@ -43,7 +43,7 @@ class GenericmessageCommand extends SystemCommand
         if ($totalEvents) {
             return $this->replyToChat(
                 __('telegram.you_are_subscribed', ['cities' => $cities], $languageCode) . ' ' .
-                __('telegram.actual_shutdowns', locale: $languageCode) . ' ^^^');
+                __('telegram.actual_shutdowns', locale: $languageCode));
 
         }
 
