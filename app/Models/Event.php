@@ -53,7 +53,7 @@ class Event extends Model
     }
 
 
-    public function notifySubscribed(int $botUserId = null): void
+    public function notifySubscribed(int $botUserId = null): int
     {
         $subscriptions = Subscriptions::query()
             ->with('botUser')
@@ -67,5 +67,7 @@ class Event extends Model
             Notification::route('telegram', $subscription->bot_user_id)
                 ->notify(new EventNotification($this, $subscription->botUser->language_code));
         }
+
+        return count($subscriptions);
     }
 }

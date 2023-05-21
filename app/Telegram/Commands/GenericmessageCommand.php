@@ -27,13 +27,15 @@ class GenericmessageCommand extends SystemCommand
 
         $events = Event::getCurrent();
 
-        if (count($events)) {
-            foreach ($events as $event) {
-                $event->notifySubscribed($chatId);
-            }
+        $totalEvents = 0;
+        foreach ($events as $event) {
+            $totalEvents += $event->notifySubscribed($chatId);
+        }
 
+        if ($totalEvents) {
             return $this->replyToChat(
                 __('telegram.actual_shutdowns', locale: $languageCode) . ' ^^^');
+
         }
 
         return $this->replyToChat(
