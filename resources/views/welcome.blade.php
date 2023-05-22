@@ -29,7 +29,9 @@
     <table class="table-auto w-full text-left">
         <thead>
             <tr class="border">
-                <th>Город</th>
+                <th>Что</th>
+                <th>Где</th>
+                <th>Затронуто</th>
                 <th>Когда отключение</th>
                 <th>Когда включат</th>
                 <th>Период</th>
@@ -39,10 +41,13 @@
         <tbody>
             @foreach($currentEvents as $event)
                 <tr id="{{$event->id}}" class="border text-left {{ $event->start < Carbon::now() ? 'bg-cyan-50': ''}}">
-                    <td class="p-1">
+                    <td class="px-1">
                         {!! $event->type->getIcon() !!}
+                    </td>
+                    <td class="px-1">
                         <b>{{ $event->serviceCenter->name_ru }}</b>
-                        ({{ $event->serviceCenter->name }})
+                    </td>
+                    <td class="px-1">
                         @if ($event->serviceCenter->total_addresses && $event->type !== EventTypes::gas)
                             <b>~{{ round($event->total_addresses / $event->serviceCenter->total_addresses * 100) }}%
                                 адресов</b>
@@ -50,14 +55,14 @@
                             {{ $event->effected_customers ? ' - затронуто ' . $event->effected_customers . ' потребителей' : '' }}
                         @endif
                     </td>
-                    <td class="p-1">{{ $event->start->diffForHumans() }}</td>
-                    <td class="p-1">{{ $event->start < Carbon::now() ? $event->finish->diffForHumans(): $event->finish->diffForHumans($event->start)  }}</td>
-                    <td class="p-1">{{ $event->start->format('d.m.Y H:i') }}
+                    <td class="px-1">{{ $event->start->diffForHumans() }}</td>
+                    <td class="px-1">{{ $event->start < Carbon::now() ? $event->finish->diffForHumans(): $event->finish->diffForHumans($event->start)  }}</td>
+                    <td class="px-1">{{ $event->start->format('d.m.Y H:i') }}
                         - {{ $event->finish->format('d.m.Y H:i') }}</td>
 
                     <td class="p-1" x-data="{ open: false }">
                         <button
-                            class="btn bg-slate-200 p-2"
+                            class="btn bg-slate-200 p-0.5"
                             x-on:click="open = ! open"
                         >
                             Показать
