@@ -29,18 +29,16 @@
     <table class="table-auto w-full text-left">
         <thead>
             <tr class="border">
-                <th class="align-top">#</th>
-                <th class="align-top">Город</th>
-                <th class="align-top">Когда отключение</th>
-                <th class="align-top">Когда включат</th>
-                <th class="align-top">Период</th>
+                <th>Город</th>
+                <th>Когда отключение</th>
+                <th>Когда включат</th>
+                <th>Период</th>
                 <th>Отключенные адреса</th>
             </tr>
         </thead>
         <tbody>
             @foreach($currentEvents as $event)
-                <tr class="border text-left {{ $event->start < Carbon::now() ? 'bg-cyan-50': ''}}">
-                    <td>{{$event->id}}</td>
+                <tr id="{{$event->id}}" class="border text-left {{ $event->start < Carbon::now() ? 'bg-cyan-50': ''}}">
                     <td class="p-1">
                         {!! $event->type->getIcon() !!}
                         <b>{{ $event->serviceCenter->name_ru }}</b>
