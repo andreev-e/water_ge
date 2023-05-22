@@ -29,8 +29,9 @@
     <table class="table-auto w-full text-left">
         <thead>
             <tr class="border">
+                <th class="align-top">#</th>
                 <th class="align-top">Город</th>
-                <th class="align-top">Когда отключат</th>
+                <th class="align-top">Когда отключение</th>
                 <th class="align-top">Когда включат</th>
                 <th class="align-top">Период</th>
                 <th>Отключенные адреса</th>
@@ -39,6 +40,7 @@
         <tbody>
             @foreach($currentEvents as $event)
                 <tr class="border text-left {{ $event->start < Carbon::now() ? 'bg-cyan-50': ''}}">
+                    <td>{{$event->id}}</td>
                     <td class="p-1">
                         {!! $event->type->getIcon() !!}
                         <b>{{ $event->serviceCenter->name_ru }}</b>
@@ -50,30 +52,34 @@
                             {{ $event->effected_customers ? ' - затронуто ' . $event->effected_customers . ' потребителей' : '' }}
                         @endif
                     </td>
-                    <td>{{ $event->start->diffForHumans() }}</td>
-                    <td>{{ $event->finish->diffForHumans() }}</td>
-                    <td>{{ $event->start->format('d.m.Y H:i') }} - {{ $event->finish->format('d.m.Y H:i') }}</td>
+                    <td class="p-1">{{ $event->start->diffForHumans() }}</td>
+                    <td class="p-1">{{ $event->start < Carbon::now() ? $event->finish->diffForHumans(): $event->finish->diffForHumans($event->start)  }}</td>
+                    <td class="p-1">{{ $event->start->format('d.m.Y H:i') }}
+                        - {{ $event->finish->format('d.m.Y H:i') }}</td>
 
-                    <td x-data="{ open: false }">
-                        @if ($event->type === EventTypes::gas)
-                            {{$event->name_ru}}
-                        @else
-                            <button
-                                class="btn bg-slate-200 p-2"
-                                x-on:click="open = ! open"
-                            >
-                                Показать
-                            </button>
-                            <div
-                                x-show="open"
-                                @click.outside="open = false"
-                                class="absolute bg-white shadow-2xl p-8 border-1 right-1 text-left"
-                            >
+                    <td class="p-1" x-data="{ open: false }">
+                        <button
+                            class="btn bg-slate-200 p-2"
+                            x-on:click="open = ! open"
+                        >
+                            Показать
+                        </button>
+                        <div
+                            x-show="open"
+                            @click.outside="open = false"
+                            class="absolute bg-white shadow-2xl p-8 border-1 right-1 text-left"
+                        >
+                            @if ($event->type === EventTypes::gas)
+                                <p>{{$event->name_ru}}</p>
+                                <p>{{$event->name}}</p>
+                                <p>{{$event->nam_en}}</p>
+                            @else
                                 @foreach($event->addresses as $address)
                                     @include('address', ['address' => $address])
                                 @endforeach
-                            </div>
-                        @endif
+                            @endif
+                        </div>
+
                     </td>
                 </tr>
             @endforeach
