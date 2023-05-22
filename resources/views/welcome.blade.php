@@ -53,6 +53,8 @@
                                 адресов</b>
                             ({{ $event->total_addresses }} адрес)
                             {{ $event->effected_customers ? ' - затронуто ' . $event->effected_customers . ' потребителей' : '' }}
+                        @else
+                            -
                         @endif
                     </td>
                     <td class="px-1">{{ $event->start->diffForHumans() }}</td>
