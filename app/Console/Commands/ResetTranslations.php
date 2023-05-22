@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Address;
 use App\Models\Dictionary;
+use App\Models\Event;
 use Illuminate\Console\Command;
 
 class ResetTranslations extends Command
@@ -16,6 +17,10 @@ class ResetTranslations extends Command
     {
         Address::query()->update([
             'name_en' => null,
+            'name_ru' => null,
+        ]);
+
+        Event::query()->update([
             'name_ru' => null,
         ]);
 

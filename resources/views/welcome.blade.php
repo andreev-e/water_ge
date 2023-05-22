@@ -18,6 +18,7 @@
 <div
     class="px-2 py-3 w-full">
     <h1 class="text-4xl text-center my-5">Отключения воды, электричества и газа в Грузии</h1>
+    <a target="_blank" class="block text-2xl text-center my-5 text-cyan-600" href="https://t.me/WaterGeorgia_bot">@WaterGeorgia_bot</a>
     <table class="table-auto w-full text-center">
         <tr>
             @foreach($stat as $name => $datum)
@@ -26,7 +27,7 @@
         </tr>
     </table>
     <h2 class="text-3xl text-center my-5">Актуальные отключения</h2>
-    <table class="table-auto w-full text-left">
+    <table class="table-auto w-full text-left overflow-x-scroll">
         <thead>
             <tr class="border">
                 <th>Что</th>

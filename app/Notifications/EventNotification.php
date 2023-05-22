@@ -28,7 +28,7 @@ class EventNotification extends Notification
      */
     public function toTelegram($notifiable): TelegramMessage
     {
-        $url = url('https://water.andreev-e.ru/#' . $this->event->id);
+        $url = url('https://water.andreev-e.ru/?service_center_id=' . $this->event->service_center_id . '#' . $this->event->id);
 
         $message = TelegramMessage::create()
             ->content('🚫' . $this->event->type->getIcon() . $this->event->serviceCenter->name_ru . ': ')

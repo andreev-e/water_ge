@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\EventTypes;
+use App\Http\Requests\EventRequest;
 use App\Models\Address;
 use App\Models\BotUser;
 use App\Models\Event;
@@ -10,6 +11,7 @@ use App\Models\ServiceCenter;
 use App\Models\Subscriptions;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Cache;
 
@@ -17,11 +19,31 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, ValidatesRequests;
 
-    public function index()
+    public function index(EventRequest $request)
     {
+//        dd($request->validated());
+
         $currentEvents = Event::getCurrent();
 
-        $graphData = Cache::remember('graphData', 60 * 60, function() {
+        $graphData = $this->getGraphData();
+
+        $stat = $this->getStatData();
+
+        return view('welcome', compact([
+            'currentEvents',
+            'graphData',
+            'stat',
+        ]));
+    }
+
+    function rand_color()
+    {
+        return '#' . str_pad(dechex(mt_rand(0, 0xFFFFFF)), 6, '0', STR_PAD_LEFT);
+    }
+
+    private function getGraphData(): array
+    {
+        return Cache::remember('graphData', 60 * 60, function() {
 
             $events = Event::query()
                 ->with(['serviceCenter', 'addresses'])
@@ -75,8 +97,11 @@ class Controller extends BaseController
 
             return $graphData;
         });
+    }
 
-        $stat = Cache::remember('statData', 60 * 60, function() {
+    private function getStatData(): array
+    {
+        return Cache::remember('statData', 60 * 60, function() {
             return [
                 'Сервисных центров' => ServiceCenter::query()->count(),
                 'Адресов в базе' => Address::query()->count(),
@@ -85,16 +110,5 @@ class Controller extends BaseController
                 'Подписок' => Subscriptions::query()->count(),
             ];
         });
-
-        return view('welcome', compact([
-            'currentEvents',
-            'graphData',
-            'stat',
-        ]));
-    }
-
-    function rand_color()
-    {
-        return '#' . str_pad(dechex(mt_rand(0, 0xFFFFFF)), 6, '0', STR_PAD_LEFT);
     }
 }
