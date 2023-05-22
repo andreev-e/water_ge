@@ -49,7 +49,7 @@ class Event extends Model
             })
             ->orderBy('start')
             ->where('finish', '>=', Carbon::now()->timezone('Asia/Tbilisi'))
-            ->where('start', '<=', Carbon::now()->addDay()->timezone('Asia/Tbilisi'))
+            ->where('start', '<=', Carbon::now()->addWeek()->timezone('Asia/Tbilisi'))
             ->get();
     }
 

@@ -1,5 +1,8 @@
 @php
     use App\Enums\EventTypes;
+    use \Carbon\Carbon;
+
+    Carbon::setLocale('ru');
 @endphp
     <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -27,13 +30,15 @@
         <thead>
             <tr class="border">
                 <th class="align-top">Город</th>
+                <th class="align-top">Когда отключат</th>
+                <th class="align-top">Когда включат</th>
                 <th class="align-top">Период</th>
                 <th>Отключенные адреса</th>
             </tr>
         </thead>
         <tbody>
             @foreach($currentEvents as $event)
-                <tr class="border text-left">
+                <tr class="border text-left {{ $event->start < Carbon::now() ? 'bg-cyan-50': ''}}">
                     <td class="p-1">
                         {!! $event->type->getIcon() !!}
                         <b>{{ $event->serviceCenter->name_ru }}</b>
@@ -45,7 +50,10 @@
                             {{ $event->effected_customers ? ' - затронуто ' . $event->effected_customers . ' потребителей' : '' }}
                         @endif
                     </td>
+                    <td>{{ $event->start->diffForHumans() }}</td>
+                    <td>{{ $event->finish->diffForHumans() }}</td>
                     <td>{{ $event->start->format('d.m.Y H:i') }} - {{ $event->finish->format('d.m.Y H:i') }}</td>
+
                     <td x-data="{ open: false }">
                         @if ($event->type === EventTypes::gas)
                             {{$event->name_ru}}

@@ -92,11 +92,7 @@ class LoadWater extends Command
                             $addressObject->events()->syncWithoutDetaching($event);
                         }
 
-                        BotUser::query()->where('is_bot', false)
-                            ->each(function(BotUser $botUser) use ($event) {
-                                Notification::route('telegram', $botUser->id)
-                                    ->notify(new EventNotification($event, $botUser->language_code));
-                            });
+                        $event->notifySubscribed();
                     }
                 }
             } catch (ChildNotFoundException|CircularException|StrictException|NotLoadedException $e) {
