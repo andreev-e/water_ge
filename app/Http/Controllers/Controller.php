@@ -21,11 +21,14 @@ class Controller extends BaseController
 
     public function index(EventRequest $request)
     {
-//        dd($request->validated());
+        $currentEvents = Event::query()
+            ->current()
+            ->when($request->has('service_center_id'), function($query) use ($request) {
+                $query->where('service_center_id', $request->get('service_center_id'));
+            })
+            ->get();
 
-        $currentEvents = Event::getCurrent();
-
-        $graphData = $this->getGraphData();
+        $graphData = $this->getGraphData($request);
 
         $stat = $this->getStatData();
 
@@ -41,14 +44,16 @@ class Controller extends BaseController
         return '#' . str_pad(dechex(mt_rand(0, 0xFFFFFF)), 6, '0', STR_PAD_LEFT);
     }
 
-    private function getGraphData(): array
+    private function getGraphData(EventRequest $request): array
     {
-        return Cache::remember('graphData', 60 * 60, function() {
-
+        return Cache::remember('graphData_id_' . $request->get('service_center_id'), 60 * 60, function() use ($request) {
             $events = Event::query()
                 ->with(['serviceCenter', 'addresses'])
                 ->where('start', '>=', now()->subDays(120))
                 ->whereIn('type', [EventTypes::water, EventTypes::energy])
+                ->when($request->has('service_center_id'), function($query) use ($request) {
+                    $query->where('service_center_id', $request->get('service_center_id'));
+                })
                 ->orderBy('start')
                 ->get();
 
@@ -64,6 +69,9 @@ class Controller extends BaseController
             }
 
             $serviceCenters = ServiceCenter::query()
+                ->when($request->has('service_center_id'), function($query) use ($request) {
+                    $query->where('id', $request->get('service_center_id'));
+                })
                 ->orderBy('total_events', 'DESC')
                 ->limit(10)
                 ->get();

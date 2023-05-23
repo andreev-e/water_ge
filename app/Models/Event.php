@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\EventTypes;
 use App\Notifications\EventNotification;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -40,19 +41,24 @@ class Event extends Model
         return $this->belongsTo(ServiceCenter::class);
     }
 
-    public static function getCurrent(EventTypes $type = null)
+    public function scopeCurrent(): Builder
     {
         return self::query()
             ->with(['serviceCenter', 'addresses'])
+            ->where('finish', '>=', Carbon::now()->timezone('Asia/Tbilisi'))
+            ->where('start', '<=', Carbon::now()->addWeek()->timezone('Asia/Tbilisi'))
+            ->orderBy('start');
+    }
+
+    public static function getCurrent(EventTypes $type = null)
+    {
+        return self::query()
+            ->current()
             ->when($type, function($query) use ($type) {
                 $query->where('type', $type->value);
             })
-            ->orderBy('start')
-            ->where('finish', '>=', Carbon::now()->timezone('Asia/Tbilisi'))
-            ->where('start', '<=', Carbon::now()->addWeek()->timezone('Asia/Tbilisi'))
             ->get();
     }
-
 
     public function notifySubscribed(int $botUserId = null): int
     {

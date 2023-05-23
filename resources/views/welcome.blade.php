@@ -18,7 +18,9 @@
 <div
     class="px-2 py-3 w-full">
     <h1 class="text-4xl text-center my-5">Отключения воды, электричества и газа в Грузии</h1>
-    <a target="_blank" class="block text-2xl text-center my-5 text-cyan-600" href="https://t.me/WaterGeorgia_bot">@WaterGeorgia_bot</a>
+    <a target="_blank" class="block text-2xl text-center my-5 text-cyan-600" href="https://t.me/WaterGeorgia_bot">
+        @WaterGeorgia_bot
+    </a>
     <table class="table-auto w-full text-center">
         <tr>
             @foreach($stat as $name => $datum)
@@ -31,7 +33,10 @@
         <thead>
             <tr class="border">
                 <th>Что</th>
-                <th>Где</th>
+                <th>
+                    Где
+                    <a class="text-cyan-600" href="/">х</a>
+                </th>
                 <th>Затронуто</th>
                 <th>Когда отключение</th>
                 <th>Когда включат</th>
@@ -46,7 +51,9 @@
                         {!! $event->type->getIcon() !!}
                     </td>
                     <td class="px-1">
-                        <b>{{ $event->serviceCenter->name_ru }}</b>
+                        <a class="text-cyan-600" href="?service_center_id={{ $event->serviceCenter->id }}">
+                            {{ $event->serviceCenter->name_ru }}
+                        </a>
                     </td>
                     <td class="px-1">
                         @if ($event->serviceCenter->total_addresses && $event->type !== EventTypes::gas)
