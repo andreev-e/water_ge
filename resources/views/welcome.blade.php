@@ -72,7 +72,7 @@
 
                     <td class="p-1" x-data="{ open: false }">
                         <button
-                            class="btn bg-slate-200 p-0.5"
+                            class="btn bg-slate-200 px-2 py-0.5 rounded"
                             x-on:click="open = ! open"
                         >
                             Показать
@@ -130,7 +130,7 @@
                     y: {
                         title: {
                             display: true,
-                            text: 'Число адресов за вычетом отключенных',
+                            text: '% адресов за вычетом отключенных',
                         },
                     },
                 },

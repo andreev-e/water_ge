@@ -46,65 +46,67 @@ class Controller extends BaseController
 
     private function getGraphData(EventRequest $request): array
     {
-        return Cache::remember('graphData_id_' . $request->get('service_center_id'), 60 * 60, function() use ($request) {
-            $events = Event::query()
-                ->with(['serviceCenter', 'addresses'])
-                ->where('start', '>=', now()->subDays(120))
-                ->whereIn('type', [EventTypes::water, EventTypes::energy])
-                ->when($request->has('service_center_id'), function($query) use ($request) {
-                    $query->where('service_center_id', $request->get('service_center_id'));
-                })
-                ->orderBy('start')
-                ->get();
+        return Cache::remember('graphData_id_' . $request->get('service_center_id'), 60 * 60,
+            function() use ($request) {
 
-            $graphData = [];
-            $graphData['labels'] = [];
-            $graphData['datasets'] = [];
+                $dist = 90;
+                $fromDate = now()->subDays($dist);
+                $events = Event::query()
+                    ->with(['serviceCenter', 'addresses'])
+                    ->where('start', '>=', $fromDate)
+                    ->whereIn('type', [EventTypes::water, EventTypes::energy])
+                    ->when($request->has('service_center_id'), function($query) use ($request) {
+                        $query->where('service_center_id', $request->get('service_center_id'));
+                    })
+                    ->orderBy('start')
+                    ->get();
 
-            foreach ($events as $event) {
-                $date = $event->start->format('d.m.Y');
-                if (!in_array($date, $graphData['labels'], true)) {
-                    $graphData['labels'][] = $date;
+                $graphData = [];
+                $graphData['labels'] = [];
+                $graphData['datasets'] = [];
+
+                while ($fromDate->lessThan(now()->addDays(5))) {
+                    $graphData['labels'][] = $fromDate->format('d.m.Y');
+                    $fromDate->addDay();
                 }
-            }
 
-            $serviceCenters = ServiceCenter::query()
-                ->when($request->has('service_center_id'), function($query) use ($request) {
-                    $query->where('id', $request->get('service_center_id'));
-                })
-                ->orderBy('total_events', 'DESC')
-                ->limit(10)
-                ->get();
+                $serviceCenters = ServiceCenter::query()
+                    ->when($request->has('service_center_id'), function($query) use ($request) {
+                        $query->where('id', $request->get('service_center_id'));
+                    })
+                    ->orderBy('total_events', 'DESC')
+                    ->limit(10)
+                    ->get();
 
-            foreach ($serviceCenters as $serviceCenter) {
-                $color = $this->rand_color();
-                $graphData['datasets'][$serviceCenter->id]['label'] = $serviceCenter->name_ru;
-                $graphData['datasets'][$serviceCenter->id]['backgroundColor'] = $color;
-                $graphData['datasets'][$serviceCenter->id]['borderColor'] = $color;
-                $graphData['datasets'][$serviceCenter->id]['fill'] = false;
-            }
-
-            foreach ($graphData['labels'] as $date) {
                 foreach ($serviceCenters as $serviceCenter) {
-                    $found = false;
-                    foreach ($events as $event) {
-                        if ($date === $event->start->format('d.m.Y') && $serviceCenter->id === $event->serviceCenter->id) {
-                            $found = true;
-                            $number = $serviceCenter->total_addresses - $event->total_addresses;
-                            $graphData['datasets'][$serviceCenter->id]['data'][] = $number;
-                            break;
+                    $color = $this->rand_color();
+                    $graphData['datasets'][$serviceCenter->id]['label'] = $serviceCenter->name_ru;
+                    $graphData['datasets'][$serviceCenter->id]['backgroundColor'] = $color;
+                    $graphData['datasets'][$serviceCenter->id]['borderColor'] = $color;
+                    $graphData['datasets'][$serviceCenter->id]['fill'] = false;
+                }
+
+                foreach ($graphData['labels'] as $date) {
+                    foreach ($serviceCenters as $serviceCenter) {
+                        $found = false;
+                        foreach ($events as $event) {
+                            if ($date === $event->start->format('d.m.Y') && $serviceCenter->id === $event->serviceCenter->id) {
+                                $found = true;
+                                $number = ($serviceCenter->total_addresses - $event->total_addresses) /$serviceCenter->total_addresses * 100;
+                                $graphData['datasets'][$serviceCenter->id]['data'][] = $number;
+                                break;
+                            }
+                        }
+                        if (!$found) {
+                            $graphData['datasets'][$serviceCenter->id]['data'][] = 100;
                         }
                     }
-                    if (!$found) {
-                        $graphData['datasets'][$serviceCenter->id]['data'][] = $serviceCenter->total_addresses;
-                    }
                 }
-            }
 
-            $graphData['datasets'] = array_values($graphData['datasets']);
+                $graphData['datasets'] = array_values($graphData['datasets']);
 
-            return $graphData;
-        });
+                return $graphData;
+            });
     }
 
     private function getStatData(): array
