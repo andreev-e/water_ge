@@ -32,7 +32,7 @@ class EventNotification extends Notification
 
         $message = TelegramMessage::create()
             ->content('🚫' . $this->event->type->getIcon() . $this->event->serviceCenter->name_ru . ': ')
-            ->line($this->event->start->format('d.m.Y H:i') . ' - ' . $this->event->finish->format('d.m.Y H:i'));
+            ->line($this->event->from_to);
 
         if ($this->event->type === EventTypes::gas) {
             $message->line($this->event->name_ru);

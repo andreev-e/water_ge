@@ -77,4 +77,17 @@ class Event extends Model
 
         return count($subscriptions);
     }
+
+    public function getFromToAttribute(): string
+    {
+        if ($this->start->format('d.m.Y') === $this->finish->format('d.m.Y')) {
+            return $this->start->format('d.m H:i') . ' - ' . $this->finish->format('H:i');
+        }
+
+        if ($this->start->format('m.Y') === $this->finish->format('m.Y')) {
+            return $this->start->format('d.m H:i') . ' - ' . $this->finish->format('d.m H:i');
+        }
+
+        return $this->start->format('d.m.Y H:i') . ' - ' . $this->finish->format('d.m.Y H:i');
+    }
 }

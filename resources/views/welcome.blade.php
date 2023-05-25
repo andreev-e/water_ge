@@ -67,8 +67,7 @@
                     </td>
                     <td class="px-1">{{ $event->start->diffForHumans() }}</td>
                     <td class="px-1">{{ $event->start < Carbon::now() ? $event->finish->diffForHumans(): $event->finish->diffForHumans($event->start)  }}</td>
-                    <td class="px-1">{{ $event->start->format('d.m.Y H:i') }}
-                        - {{ $event->finish->format('d.m.Y H:i') }}</td>
+                    <td class="px-1">{{ $event->from_to }}</td>
 
                     <td class="p-1" x-data="{ open: false }">
                         <button
