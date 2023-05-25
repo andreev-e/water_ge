@@ -46,7 +46,7 @@
         </thead>
         <tbody>
             @foreach($currentEvents as $event)
-                <tr id="{{$event->id}}" class="border text-left {{ $event->start < Carbon::now() ? 'bg-cyan-50': ''}}">
+                <tr id="{{$event->id}}" class="border text-left {{ $event->start < Carbon::now() ? 'bg-yellow-50': ''}}">
                     <td class="px-1">
                         {!! $event->type->getIcon() !!}
                     </td>

@@ -81,6 +81,15 @@ class Event extends Model
     public function getFromToAttribute(): string
     {
         if ($this->start->format('d.m.Y') === $this->finish->format('d.m.Y')) {
+            if (now()->format('d.m') === $this->start->format('d.m')) {
+                return 'Сегодня ' . $this->start->format('H:i') . ' - ' . $this->finish->format('H:i');
+            }
+            if (now()->addDay()->format('d.m') === $this->start->format('d.m')) {
+                return 'Завтра ' . $this->start->format('H:i') . ' - ' . $this->finish->format('H:i');
+            }
+            if (now()->addDays(2)->format('d.m') === $this->start->format('d.m')) {
+                return 'Послезавтра ' . $this->start->format('H:i') . ' - ' . $this->finish->format('H:i');
+            }
             return $this->start->format('d.m H:i') . ' - ' . $this->finish->format('H:i');
         }
 
