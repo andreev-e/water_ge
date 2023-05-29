@@ -11,8 +11,6 @@ class Address extends Model
 {
     protected $fillable = [
         'name',
-        'name_en',
-        'name_ru',
     ];
 
     public function events(): BelongsToMany

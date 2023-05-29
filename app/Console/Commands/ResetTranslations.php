@@ -15,11 +15,6 @@ class ResetTranslations extends Command
 
     public function handle()
     {
-        Address::query()->update([
-            'name_en' => null,
-            'name_ru' => null,
-        ]);
-
         Event::query()->update([
             'name_ru' => null,
         ]);

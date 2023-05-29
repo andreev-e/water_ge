@@ -13,8 +13,6 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(ServiceCenter::class);
             $table->string('name');
-            $table->string('name_en')->nullable();
-            $table->string('name_ru')->nullable();
             $table->timestamps();
         });
     }

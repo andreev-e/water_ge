@@ -32,10 +32,6 @@ class Translate extends Command
             ->limit(100)->get();
         $this->translateCollection($elements);
 
-        $elements = Address::query()->whereNull('name_en')
-            ->limit(1000)->get();
-        $this->translateCollection($elements);
-
         $elements = Event::query()
             ->whereNotNull('name')
             ->whereNull('name_ru')
