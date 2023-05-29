@@ -12,6 +12,8 @@ class EventNotification extends Notification
 {
     use Queueable;
 
+    const SHOW_IN_MESSAGE = 20;
+
     public function __construct(
         public Event $event,
         public ?string $languageCode,
@@ -42,11 +44,11 @@ class EventNotification extends Notification
             }
         }
 
-        foreach ($this->event->addresses->slice(0, 5) as $address) {
+        foreach ($this->event->addresses->slice(0, self::SHOW_IN_MESSAGE) as $address) {
             $message->line($address->translit);
         }
 
-        if (count($this->event->addresses) > 5) {
+        if (count($this->event->addresses) > self::SHOW_IN_MESSAGE) {
             $message->line('...');
             $message->button('Смотреть все (' . count($this->event->addresses) . ')', $url);
         }
