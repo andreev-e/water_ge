@@ -43,7 +43,7 @@ class EventNotification extends Notification
         }
 
         foreach ($this->event->addresses->slice(0, 5) as $address) {
-            $message->line($address->name_ru . ' (' . $address->name . ')');
+            $message->line($address->translit);
         }
 
         if (count($this->event->addresses) > 5) {
@@ -52,7 +52,5 @@ class EventNotification extends Notification
         }
 
         return $message;
-
-//            ->buttonWithCallback('Confirm', 'confirm_invoice');
     }
 }
