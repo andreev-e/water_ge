@@ -29,11 +29,19 @@ class Controller extends BaseController
             })
             ->get();
 
+        $title = 'Отключения воды, электричества и газа в Грузии';
+        if ($request->has('service_center_id')) {
+            $serviceCenter = ServiceCenter::query()
+                ->findOrFail($request->get('service_center_id'));
+            $title = $serviceCenter->name_ru . ' - отключения воды, электричества и газа';
+        }
+
         $graphData = $this->getGraphData($request);
 
         $stat = $this->getStatData();
 
         return view('welcome', compact([
+            'title',
             'currentEvents',
             'graphData',
             'stat',

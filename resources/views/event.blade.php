@@ -6,7 +6,7 @@
 @endphp
 
 @extends('layout')
-@section('title', 'Отключение ' . $event->type->getIcon() . ' в ' . $event->serviceCenter->name_ru)
+@section('title', 'Отключение ' . $event->type->getIcon() . ' в ' . $event->serviceCenter->name_ru . ' ' . mb_strtolower($event->from_to))
 
 @section('content')
     <table class="table-auto w-full text-left overflow-x-scroll">

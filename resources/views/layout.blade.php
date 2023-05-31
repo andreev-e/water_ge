@@ -11,9 +11,11 @@
 <body>
 <div class="px-2 py-3 w-full">
     <h1 class="text-4xl text-center my-5">@yield('title')</h1>
-    <a target="_blank" class="block text-2xl text-center my-5 text-cyan-600" href="https://t.me/WaterGeorgia_bot">
-        @WaterGeorgia_bot
-    </a>
+    <div class="text-center my-5">
+        <a target="_blank" class="text-2xl text-center  text-cyan-600" href="https://t.me/WaterGeorgia_bot">
+            @WaterGeorgia_bot
+        </a>
+    </div>
     @yield('content')
 </div>
 <!-- Yandex.Metrika counter -->

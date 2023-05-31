@@ -5,7 +5,7 @@
 @endphp
 
 @extends('layout')
-@section('title', 'Отключения воды, электричества и газа в Грузии')
+@section('title', $title)
 
 @section('content')
     <table class="table-auto w-full text-center">
