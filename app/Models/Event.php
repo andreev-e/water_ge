@@ -44,7 +44,7 @@ class Event extends Model
     public function scopeCurrent(): Builder
     {
         return self::query()
-            ->with(['serviceCenter', 'addresses'])
+            ->with('serviceCenter')
             ->where('finish', '>=', Carbon::now()->timezone('Asia/Tbilisi'))
             ->where('start', '<=', Carbon::now()->addWeek()->timezone('Asia/Tbilisi'))
             ->orderBy('start');

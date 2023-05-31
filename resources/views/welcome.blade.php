@@ -1,26 +1,13 @@
 @php
-    use App\Enums\EventTypes;
     use \Carbon\Carbon;
 
     Carbon::setLocale('ru');
 @endphp
-    <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Отключения воды, электричества и газа в Грузии</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-<div
-    class="px-2 py-3 w-full">
-    <h1 class="text-4xl text-center my-5">Отключения воды, электричества и газа в Грузии</h1>
-    <a target="_blank" class="block text-2xl text-center my-5 text-cyan-600" href="https://t.me/WaterGeorgia_bot">
-        @WaterGeorgia_bot
-    </a>
+
+@extends('layout')
+@section('title', 'Отключения воды, электричества и газа в Грузии')
+
+@section('content')
     <table class="table-auto w-full text-center">
         <tr>
             @foreach($stat as $name => $datum)
@@ -28,72 +15,15 @@
             @endforeach
         </tr>
     </table>
-    <h2 class="text-3xl text-center my-5">Актуальные отключения</h2>
+    <h2 class="text-3xl text-center my-5">
+        Актуальные отключения
+        ({{ count($currentEvents) }})
+    </h2>
     <table class="table-auto w-full text-left overflow-x-scroll">
-        <thead>
-            <tr class="border">
-                <th>Что</th>
-                <th>
-                    Где
-                    <a class="text-cyan-600" href="/">х</a>
-                </th>
-                <th>Затронуто</th>
-                <th>Когда отключение</th>
-                <th>Когда включат</th>
-                <th>Период</th>
-                <th>Отключенные адреса</th>
-            </tr>
-        </thead>
+        @include('table_head', ['withLink' => true])
         <tbody>
             @foreach($currentEvents as $event)
-                <tr id="{{$event->id}}" class="border text-left {{ $event->start < Carbon::now() ? 'bg-yellow-50': ''}}">
-                    <td class="px-1">
-                        {!! $event->type->getIcon() !!}
-                    </td>
-                    <td class="px-1">
-                        <a class="text-cyan-600" href="?service_center_id={{ $event->serviceCenter->id }}">
-                            {{ $event->serviceCenter->name_ru }}
-                        </a>
-                    </td>
-                    <td class="px-1">
-                        @if ($event->serviceCenter->total_addresses && $event->type !== EventTypes::gas)
-                            <b>~{{ round($event->total_addresses / $event->serviceCenter->total_addresses * 100) }}%
-                                адресов</b>
-                            ({{ $event->total_addresses }} адрес)
-                            {{ $event->effected_customers ? ' - затронуто ' . $event->effected_customers . ' потребителей' : '' }}
-                        @else
-                            -
-                        @endif
-                    </td>
-                    <td class="px-1">{{ $event->start->diffForHumans() }}</td>
-                    <td class="px-1">{{ $event->start < Carbon::now() ? $event->finish->diffForHumans(): $event->finish->diffForHumans($event->start)  }}</td>
-                    <td class="px-1">{{ $event->from_to }}</td>
-
-                    <td class="p-1" x-data="{ open: false }">
-                        <button
-                            class="btn bg-slate-200 px-2 py-0.5 rounded"
-                            x-on:click="open = ! open"
-                        >
-                            Показать
-                        </button>
-                        <div
-                            x-show="open"
-                            @click.outside="open = false"
-                            class="absolute bg-white shadow-2xl p-8 border-1 right-1 text-left"
-                        >
-                            @if ($event->type === EventTypes::gas)
-                                <p>{{$event->name_ru}}</p>
-                                <p>{{$event->name}}</p>
-                                <p>{{$event->nam_en}}</p>
-                            @else
-                                @foreach($event->addresses as $address)
-                                    @include('address', ['address' => $address])
-                                @endforeach
-                            @endif
-                        </div>
-
-                    </td>
-                </tr>
+                @include('table_row', ['event' => $event, 'withLink' => true])
             @endforeach
         </tbody>
     </table>
@@ -136,33 +66,4 @@
             },
         });
     </script>
-</div>
-<!-- Yandex.Metrika counter -->
-<script type="text/javascript">
-    (function (m, e, t, r, i, k, a) {
-        m[i] = m[i] || function () {
-            (m[i].a = m[i].a || []).push(arguments);
-        };
-        m[i].l = 1 * new Date();
-        for (var j = 0; j < document.scripts.length; j++) {
-            if (document.scripts[j].src === r) {
-                return;
-            }
-        }
-        k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a);
-    })
-    (window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js', 'ym');
-
-    ym(93642618, 'init', {
-        clickmap: true,
-        trackLinks: true,
-        accurateTrackBounce: true,
-        webvisor: true,
-    });
-</script>
-<noscript>
-    <div><img src="https://mc.yandex.ru/watch/93642618" style="position:absolute; left:-9999px;" alt="" /></div>
-</noscript>
-<!-- /Yandex.Metrika counter -->
-</body>
-</html>
+@endsection

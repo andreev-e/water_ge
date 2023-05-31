@@ -14,12 +14,13 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\View\View;
 
 class Controller extends BaseController
 {
     use AuthorizesRequests, ValidatesRequests;
 
-    public function index(EventRequest $request)
+    public function index(EventRequest $request): View
     {
         $currentEvents = Event::query()
             ->current()
@@ -39,7 +40,12 @@ class Controller extends BaseController
         ]));
     }
 
-    function rand_color()
+    public function event(Event $event): View
+    {
+        return view('event', compact('event'));
+    }
+
+    private function randColor(): string
     {
         return '#' . str_pad(dechex(mt_rand(0, 0xFFFFFF)), 6, '0', STR_PAD_LEFT);
     }
@@ -79,7 +85,7 @@ class Controller extends BaseController
                     ->get();
 
                 foreach ($serviceCenters as $serviceCenter) {
-                    $color = $this->rand_color();
+                    $color = $this->randColor();
                     $graphData['datasets'][$serviceCenter->id]['label'] = $serviceCenter->name_ru;
                     $graphData['datasets'][$serviceCenter->id]['backgroundColor'] = $color;
                     $graphData['datasets'][$serviceCenter->id]['borderColor'] = $color;
@@ -92,7 +98,7 @@ class Controller extends BaseController
                         foreach ($events as $event) {
                             if ($date === $event->start->format('d.m.Y') && $serviceCenter->id === $event->serviceCenter->id) {
                                 $found = true;
-                                $number = ($serviceCenter->total_addresses - $event->total_addresses) /$serviceCenter->total_addresses * 100;
+                                $number = ($serviceCenter->total_addresses - $event->total_addresses) / $serviceCenter->total_addresses * 100;
                                 $graphData['datasets'][$serviceCenter->id]['data'][] = $number;
                                 break;
                             }

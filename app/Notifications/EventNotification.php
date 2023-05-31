@@ -30,7 +30,7 @@ class EventNotification extends Notification
      */
     public function toTelegram($notifiable): TelegramMessage
     {
-        $url = url('https://water.andreev-e.ru/?service_center_id=' . $this->event->service_center_id . '#' . $this->event->id);
+        $url = url('https://water.andreev-e.ru/event/' . $this->event->id);
 
         $message = TelegramMessage::create()
             ->content('🚫' . $this->event->type->getIcon() . $this->event->serviceCenter->name_ru . ': ')
@@ -51,6 +51,8 @@ class EventNotification extends Notification
         if (count($this->event->addresses) > self::SHOW_IN_MESSAGE) {
             $message->line('...');
             $message->button('Смотреть все (' . count($this->event->addresses) . ')', $url);
+        } else {
+            $message->button('Смотреть на сайте', $url);
         }
 
         return $message;
