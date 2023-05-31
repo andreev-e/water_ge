@@ -27,13 +27,13 @@
     <td class="px-1">{{ $event->from_to }}</td>
 
     @if($withLink)
-    <td class="p-1">
-        <a
-            href="{{ route('event', ['event' => $event->id]) }}"
-            class="btn bg-slate-200 px-2 py-0.5 rounded"
-        >
-            Смотреть
-        </a>
-    </td>
-        @endif
+        <td class="p-1">
+            <a
+                href="{{ route('event', ['event' => $event->id]) }}"
+                class="btn bg-slate-200 px-2 py-0.5 rounded"
+            >
+                Смотреть
+            </a>
+        </td>
+    @endif
 </tr>
