@@ -30,17 +30,24 @@ class Controller extends BaseController
             ->get();
 
         $title = 'Отключения воды, электричества и газа в Грузии';
+
         if ($request->has('service_center_id')) {
             $serviceCenter = ServiceCenter::query()
                 ->findOrFail($request->get('service_center_id'));
             $title = $serviceCenter->name_ru . ' - отключения воды, электричества и газа';
         }
 
-        $graphData = $this->getGraphData($request);
+        $graphData = [];
+
+        if ($request->has('service_center_id')) {
+            $graphData = $this->getEventsGraphData($request);
+        } else {
+            $graphData = $this->getSubscribesGraphData();
+        }
 
         $stat = $this->getStatData();
 
-        return view('welcome', compact([
+        return view('index', compact([
             'title',
             'currentEvents',
             'graphData',
@@ -58,20 +65,18 @@ class Controller extends BaseController
         return '#' . str_pad(dechex(mt_rand(0, 0xFFFFFF)), 6, '0', STR_PAD_LEFT);
     }
 
-    private function getGraphData(EventRequest $request): array
+    private function getEventsGraphData(EventRequest $request): array
     {
         return Cache::remember('graphData_id_' . $request->get('service_center_id'), 60 * 60,
             function() use ($request) {
-
-                $dist = 90;
+                $dist = 120;
                 $fromDate = now()->subDays($dist);
+
                 $events = Event::query()
                     ->with(['serviceCenter', 'addresses'])
                     ->where('start', '>=', $fromDate)
                     ->whereIn('type', [EventTypes::water, EventTypes::energy])
-                    ->when($request->has('service_center_id'), function($query) use ($request) {
-                        $query->where('service_center_id', $request->get('service_center_id'));
-                    })
+                    ->where('service_center_id', $request->get('service_center_id'))
                     ->orderBy('start')
                     ->get();
 
@@ -85,11 +90,8 @@ class Controller extends BaseController
                 }
 
                 $serviceCenters = ServiceCenter::query()
-                    ->when($request->has('service_center_id'), function($query) use ($request) {
-                        $query->where('id', $request->get('service_center_id'));
-                    })
+                    ->where('id', $request->get('service_center_id'))
                     ->orderBy('total_events', 'DESC')
-                    ->limit(10)
                     ->get();
 
                 foreach ($serviceCenters as $serviceCenter) {
@@ -118,6 +120,54 @@ class Controller extends BaseController
                 }
 
                 $graphData['datasets'] = array_values($graphData['datasets']);
+
+                $graphData['title'] = 'Статистика отключений (только вода и электроэнергия)';
+                $graphData['xTitle'] = 'Даты';
+                $graphData['yTitle'] = '% адресов за вычетом отключенных';
+
+                return $graphData;
+            });
+    }
+
+    private function getSubscribesGraphData(): array
+    {
+        return Cache::remember('graphData_users', 60 * 60,
+            function() {
+                $dist = 30;
+                $fromDate = now()->subDays($dist);
+
+                $users = BotUser::query()->whereNot('is_bot')->get();
+
+                $graphData = [];
+                $graphData['labels'] = [];
+                $graphData['datasets'] = [];
+
+                while ($fromDate->lessThan(now())) {
+                    $graphData['labels'][] = $fromDate->format('d.m.Y');
+                    $fromDate->addDay();
+                }
+
+                $color = $this->randColor();
+                $graphData['datasets'][1]['label'] = 'Пользователи';
+                $graphData['datasets'][1]['backgroundColor'] = $color;
+                $graphData['datasets'][1]['borderColor'] = $color;
+                $graphData['datasets'][1]['fill'] = false;
+
+                $total = 0;
+                foreach ($graphData['labels'] as $date) {
+                    foreach ($users as $user) {
+                        if ($date === $user->created_at->format('d.m.Y')) {
+                            $total++;
+                        }
+                    }
+                    $graphData['datasets'][1]['data'][] = $total;
+                }
+
+                $graphData['datasets'] = array_values($graphData['datasets']);
+
+                $graphData['title'] = 'Число пользователей бота';
+                $graphData['xTitle'] = 'Даты';
+                $graphData['yTitle'] = 'Пользователи';
 
                 return $graphData;
             });
