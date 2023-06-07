@@ -37,8 +37,6 @@ class Controller extends BaseController
             $title = $serviceCenter->name_ru . ' - отключения воды, электричества и газа';
         }
 
-        $graphData = [];
-
         if ($request->has('service_center_id')) {
             $graphData = $this->getEventsGraphData($request);
         } else {
@@ -180,8 +178,6 @@ class Controller extends BaseController
                 'Сервисных центров' => ServiceCenter::query()->count(),
                 'Адресов в базе' => Address::query()->count(),
                 'Событий в базе' => Event::query()->count(),
-                'Подписчиков' => BotUser::query()->count(),
-                'Подписок' => Subscriptions::query()->count(),
             ];
         });
     }
