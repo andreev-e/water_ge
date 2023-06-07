@@ -19,14 +19,16 @@
         Актуальные отключения
         ({{ count($currentEvents) }})
     </h2>
-    <table class="table-auto w-full text-left overflow-x-scroll">
-        @include('table_head', ['withLink' => true])
-        <tbody>
-            @foreach($currentEvents as $event)
-                @include('table_row', ['event' => $event, 'withLink' => true])
-            @endforeach
-        </tbody>
-    </table>
+    <div class="overflow-x-scroll">
+        <table class="table-auto w-full text-left overflow-x-scroll">
+            @include('table_head', ['withLink' => true])
+            <tbody>
+                @foreach($currentEvents as $event)
+                    @include('table_row', ['event' => $event, 'withLink' => true])
+                @endforeach
+            </tbody>
+        </table>
+    </div>
 
     @if ($graphData)
         @include('chart', ['graphData' => $graphData])
