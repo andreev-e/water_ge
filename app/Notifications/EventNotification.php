@@ -37,7 +37,7 @@ class EventNotification extends Notification
             ->line($this->event->from_to);
 
         if ($this->event->type === EventTypes::gas) {
-            $message->line($this->event->name_ru);
+            $message->line($this->event->name_ru ?? $this->event->name_en);
         } else {
             if ($this->event->serviceCenter->total_addresses) {
                 $message->line('~' . round($this->event->addresses->count() / $this->event->serviceCenter->total_addresses * 100) . '% адресов отключено:');
