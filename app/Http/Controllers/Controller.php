@@ -138,6 +138,10 @@ class Controller extends BaseController
                     ->where('created_at', '>=', $fromDate)
                     ->whereNot('is_bot')->get();
 
+                $total = BotUser::query()
+                    ->where('created_at', '<', $fromDate)
+                    ->whereNot('is_bot')->count();
+
                 $graphData = [];
                 $graphData['labels'] = [];
                 $graphData['datasets'] = [];
@@ -152,10 +156,6 @@ class Controller extends BaseController
                 $graphData['datasets'][1]['backgroundColor'] = $color;
                 $graphData['datasets'][1]['borderColor'] = $color;
                 $graphData['datasets'][1]['fill'] = false;
-
-                $total = BotUser::query()
-                    ->where('created_at', '<', $fromDate)
-                    ->whereNot('is_bot')->count();
 
                 foreach ($graphData['labels'] as $date) {
                     foreach ($users as $user) {
