@@ -13,7 +13,7 @@ class EventNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    const SHOW_IN_MESSAGE = 20;
+    const SHOW_IN_MESSAGE = 10;
 
     public function __construct(
         public Event $event,
