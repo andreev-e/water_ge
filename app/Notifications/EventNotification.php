@@ -5,10 +5,11 @@ namespace App\Notifications;
 use App\Enums\EventTypes;
 use App\Models\Event;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use NotificationChannels\Telegram\TelegramMessage;
 
-class EventNotification extends Notification
+class EventNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
