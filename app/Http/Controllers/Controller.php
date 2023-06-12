@@ -136,7 +136,7 @@ class Controller extends BaseController
 
     private function getSubscribesGraphData(): array
     {
-        return Cache::remember('graphData_users', 60 * 60,
+        return Cache::remember('graphData_users', 0,
             function() {
                 $dist = 30;
                 $fromDate = now()->subDays($dist);
@@ -145,9 +145,17 @@ class Controller extends BaseController
                     ->where('created_at', '>=', $fromDate)
                     ->whereNot('is_bot')->get();
 
-                $total = BotUser::query()
+                $subscriptions = Subscriptions::query()
+                    ->where('created_at', '>=', $fromDate)
+                    ->get();
+
+                $totalUsers = BotUser::query()
                     ->where('created_at', '<', $fromDate)
                     ->whereNot('is_bot')->count();
+
+                $totalSubscriptions = Subscriptions::query()
+                    ->where('created_at', '<', $fromDate)
+                    ->count();
 
                 $graphData = [];
                 $graphData['labels'] = [];
@@ -164,13 +172,26 @@ class Controller extends BaseController
                 $graphData['datasets'][1]['borderColor'] = $color;
                 $graphData['datasets'][1]['fill'] = false;
 
+                $color = $this->randColor();
+                $graphData['datasets'][2]['label'] = 'Подписки';
+                $graphData['datasets'][2]['backgroundColor'] = $color;
+                $graphData['datasets'][2]['borderColor'] = $color;
+                $graphData['datasets'][2]['fill'] = false;
+
                 foreach ($graphData['labels'] as $date) {
                     foreach ($users as $user) {
                         if ($date === $user->created_at->format('d.m.Y')) {
-                            $total++;
+                            $totalUsers++;
                         }
                     }
-                    $graphData['datasets'][1]['data'][] = $total;
+                    $graphData['datasets'][1]['data'][] = $totalUsers;
+
+                    foreach ($subscriptions as $subscription) {
+                        if ($date === $subscription->created_at->format('d.m.Y')) {
+                            $totalSubscriptions++;
+                        }
+                    }
+                    $graphData['datasets'][2]['data'][] = $totalSubscriptions;
                 }
 
                 $graphData['datasets'] = array_values($graphData['datasets']);
