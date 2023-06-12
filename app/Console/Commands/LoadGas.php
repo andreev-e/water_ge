@@ -39,7 +39,11 @@ class LoadGas extends Command
             foreach ($data->items as $item) {
                 $foundedServiceCenter = null;
                 foreach ($serviceCenters as $serviceCenter) {
-                    $nameGe = str_replace('ს სერვის ცენტრი', '', $serviceCenter->name);
+                    $nameGe = str_replace(
+                        array('ს სერვის ცენტრი', 'ს სერვის ცენთრი', 'აბაშა'),
+                        array('', '', 'აბაში'),
+                        $serviceCenter->name
+                    );
                     if (stripos($item->detail->notificationTitle, $nameGe) ||
                         stripos($item->detail->notificationTitleEN, $serviceCenter->name_en)) {
                         $foundedServiceCenter = $serviceCenter->id;
