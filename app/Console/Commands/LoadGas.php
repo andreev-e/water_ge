@@ -40,8 +40,8 @@ class LoadGas extends Command
                 $foundedServiceCenter = null;
                 foreach ($serviceCenters as $serviceCenter) {
                     $nameGe = str_replace(
-                        array('ს სერვის ცენტრი', 'ს სერვის ცენთრი', 'აბაშა'),
-                        array('', '', 'აბაში'),
+                        array('ს სერვის ცენტრი', 'ს სერვის ცენთრი', 'აბაშა', 'ყვარელი'),
+                        array('', '', 'აბაში', 'ყვარლი'),
                         $serviceCenter->name
                     );
                     if (stripos($item->detail->notificationTitle, $nameGe) ||
