@@ -1,6 +1,9 @@
 <thead>
     <tr class="border">
-        <th>Что</th>
+        <th>
+            Что
+            <a class="text-cyan-600" href="/">х</a>
+        </th>
         <th>
             Где
             <a class="text-cyan-600" href="/">х</a>

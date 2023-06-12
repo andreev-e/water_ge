@@ -6,7 +6,9 @@
 <tr id="{{$event->id}}"
     class="border text-left {{ $event->start < Carbon::now() ? 'bg-yellow-50': ''}}">
     <td class="px-1">
-        {!! $event->type->getIcon() !!}
+        <a class="text-cyan-600" href="/?type={{ $event->type->value }}">
+            {!! $event->type->getIcon() !!}
+        </a>
     </td>
     <td class="px-1">
         <a class="text-cyan-600" href="/?service_center_id={{ $event->serviceCenter->id }}">

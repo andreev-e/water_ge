@@ -27,6 +27,9 @@ class Controller extends BaseController
             ->when($request->has('service_center_id'), function($query) use ($request) {
                 $query->where('service_center_id', $request->get('service_center_id'));
             })
+            ->when($request->has('type'), function($query) use ($request) {
+                $query->where('type', $request->get('type'));
+            })
             ->get();
 
         $title = 'Отключения воды, электричества и газа в Грузии';
@@ -35,6 +38,10 @@ class Controller extends BaseController
             $serviceCenter = ServiceCenter::query()
                 ->findOrFail($request->get('service_center_id'));
             $title = $serviceCenter->name_ru . ' - отключения воды, электричества и газа';
+        }
+
+        if ($request->has('type')) {
+            $title = 'Отключения ' . EventTypes::tryFrom($request->get('type'))?->getIcon() . ' в Грузии';
         }
 
         if ($request->has('service_center_id')) {
