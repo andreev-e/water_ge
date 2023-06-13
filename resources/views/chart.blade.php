@@ -1,5 +1,7 @@
 <h2 class="text-3xl text-center my-5">{{ $graphData['title']  }}</h2>
-<canvas id="eventsChart"></canvas>
+<div style="height: 600px">
+    <canvas id="eventsChart"></canvas>
+</div>
 <script>
     const ctx = document.getElementById('eventsChart');
     const labels = {!! json_encode($graphData['labels']) !!};
@@ -14,6 +16,7 @@
         type: 'line',
         data: data,
         options: {
+            maintainAspectRatio: false,
             plugins: {
                 title: {
                     text: '{{ $graphData['title'] }}',
