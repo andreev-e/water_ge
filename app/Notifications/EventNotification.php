@@ -41,7 +41,13 @@ class EventNotification extends Notification implements ShouldQueue
             $message->line($this->event->name_ru ?? $this->event->name_en);
         } else {
             if ($this->event->serviceCenter->total_addresses) {
-                $message->line('~' . round($this->event->addresses->count() / $this->event->serviceCenter->total_addresses * 100) . '% адресов отключено:');
+                $percent = round($this->event->addresses->count() / $this->event->serviceCenter->total_addresses * 100);
+                if ($percent < 1) {
+                    $percent = '<1';
+                } else {
+                    $percent = '~' . $percent;
+                }
+                $message->line($percent . '% адресов отключено:');
             }
         }
 
