@@ -14,7 +14,7 @@ class CheckFailedJobs extends Command
 
     public function handle(): void
     {
-        $failedJobs = FailedJob::query()->limit(1000)->get();
+        $failedJobs = FailedJob::query()->limit(100)->get();
 
         foreach ($failedJobs as $failedJob) {
 
