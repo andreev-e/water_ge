@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Console\Commands\CheckFailedJobs;
 use App\Console\Commands\CountStats;
 use App\Console\Commands\LoadEnergy;
 use App\Console\Commands\LoadGas;
@@ -19,6 +20,7 @@ class Kernel extends ConsoleKernel
         $schedule->command(LoadGas::class)->everyFiveMinutes();
         $schedule->command(Translate::class)->everyMinute();
         $schedule->command(CountStats::class)->hourly();
+        $schedule->command(CheckFailedJobs::class)->everyMinute();
     }
 
     protected function commands(): void
