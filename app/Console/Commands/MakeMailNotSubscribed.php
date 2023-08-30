@@ -15,7 +15,7 @@ class MakeMailNotSubscribed extends Command
     public function handle()
     {
         $ids = BotUser::query()
-            ->where('username', 'evgeniy_planer')
+//            ->where('username', 'evgeniy_planer')
             ->withCount('subscriptions')
             ->having('subscriptions_count', 0)
             ->get()
