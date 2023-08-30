@@ -42,6 +42,8 @@ jobs:
             && /opt/php81/bin/php artisan cache:clear
             && /opt/php81/bin/php artisan telegram:delete-webhook
             && /opt/php81/bin/php artisan telegram:set-webhook
+            && truncate -s 0 ${{ vars.PROD_PATH }}/storage/logs/laravel.log
+            && truncate -s 0 ${{ vars.PROD_PATH }}/storage/logs/queue.log
 
 
 
