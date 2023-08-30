@@ -7,6 +7,8 @@ use App\Console\Commands\CountStats;
 use App\Console\Commands\LoadEnergy;
 use App\Console\Commands\LoadGas;
 use App\Console\Commands\LoadWater;
+use App\Console\Commands\MakeMailNotSubscribed;
+use App\Console\Commands\SendMail;
 use App\Console\Commands\Translate;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
@@ -21,6 +23,8 @@ class Kernel extends ConsoleKernel
         $schedule->command(Translate::class)->everyMinute();
         $schedule->command(CountStats::class)->hourly();
         $schedule->command(CheckFailedJobs::class)->hourly();
+        $schedule->command(MakeMailNotSubscribed::class)->dailyAt('15:00');
+        $schedule->command(SendMail::class)->everyMinute();
     }
 
     protected function commands(): void
