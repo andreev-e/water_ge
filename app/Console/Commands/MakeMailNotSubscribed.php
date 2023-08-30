@@ -15,14 +15,28 @@ class MakeMailNotSubscribed extends Command
     public function handle()
     {
         $ids = BotUser::query()
-//            ->where('username', 'evgeniy_planer')
             ->withCount('subscriptions')
             ->having('subscriptions_count', 0)
             ->get()
             ->pluck('id');
+
+        $text = __('telegram.mail_not_subscribed', [], 'ru');
+
         if ($ids->count()) {
             Mail::query()->create([
-                'text' => 'Вы не подписаны ни на один город. Пожалуйста, нажмите /subscribe и выберите нужные на города, чтобы получать уведомления о плановых отключениях.',
+                'text' => $text,
+                'to' => $ids,
+                'status' => MailStatuses::new,
+            ]);
+        }
+
+        $ids = BotUser::query()
+            ->where('username', 'evgeniy_planer')
+            ->get()
+            ->pluck('id');
+        if ($ids->count()) {
+            Mail::query()->create([
+                'text' => 'Check  ' . $text,
                 'to' => $ids,
                 'status' => MailStatuses::new,
             ]);

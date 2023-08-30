@@ -14,4 +14,5 @@ return [
     'buttons' => [
         'set_city' => 'Select city',
     ],
+    'mail_not_subscribed' => 'You are not subscribed to any city. Please press /subscribe and select cities you want to receive notifications about upcoming shutdowns.',
 ];
