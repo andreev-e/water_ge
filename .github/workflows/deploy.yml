@@ -26,6 +26,8 @@ jobs:
             && supervisorctl reread
             && service supervisor restart
             && chown ${{ secrets.USER_NAME }}:${{ secrets.USER_NAME }} . -R
+            && truncate -s 0 ${{ vars.PROD_PATH }}/storage/logs/laravel.log
+            && truncate -s 0 ${{ vars.PROD_PATH }}/storage/logs/queue.log
       - name: executing remote ssh commands using password
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -42,8 +44,6 @@ jobs:
             && /opt/php81/bin/php artisan cache:clear
             && /opt/php81/bin/php artisan telegram:delete-webhook
             && /opt/php81/bin/php artisan telegram:set-webhook
-            && truncate -s 0 ${{ vars.PROD_PATH }}/storage/logs/laravel.log
-            && truncate -s 0 ${{ vars.PROD_PATH }}/storage/logs/queue.log
 
 
 
