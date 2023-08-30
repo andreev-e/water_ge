@@ -23,11 +23,11 @@ class Mail extends Model
 
     public function send(): void
     {
-        $this->status = MailStatuses::sent;
         foreach ($this->to as $id) {
             Notification::route('telegram', $id)
                 ->notify(new MailNotification($this));
         }
+        $this->status = MailStatuses::sent;
         $this->save();
     }
 }
