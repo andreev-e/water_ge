@@ -28,18 +28,14 @@ class MakeMailNotSubscribed extends Command
                 'to' => $ids,
                 'status' => MailStatuses::new,
             ]);
-        }
 
-        $ids = BotUser::query()
-            ->where('username', 'evgeniy_planer')
-            ->get()
-            ->pluck('id');
-        if ($ids->count()) {
-            Mail::query()->create([
-                'text' => 'Check  ' . $text,
-                'to' => $ids,
-                'status' => MailStatuses::new,
-            ]);
+            if ($ids->count()) {
+                Mail::query()->create([
+                    'text' => 'Уведомил о неподписанности на рассылку' . $ids->count(),
+                    'to' => [411174495],
+                    'status' => MailStatuses::new,
+                ]);
+            }
         }
     }
 }
