@@ -29,13 +29,11 @@ class MakeMailNotSubscribed extends Command
                 'status' => MailStatuses::new,
             ]);
 
-            if ($ids->count()) {
-                Mail::query()->create([
-                    'text' => 'Уведомил о неподписанности на рассылку' . $ids->count(),
-                    'to' => [411174495],
-                    'status' => MailStatuses::new,
-                ]);
-            }
+            Mail::query()->create([
+                'text' => 'Уведомил о неподписанности на рассылку' . $ids->count(),
+                'to' => [411174495],
+                'status' => MailStatuses::new,
+            ]);
         }
     }
 }
