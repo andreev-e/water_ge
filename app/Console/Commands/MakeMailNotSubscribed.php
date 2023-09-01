@@ -6,6 +6,7 @@ use App\Enums\MailStatuses;
 use App\Models\BotUser;
 use App\Models\Mail;
 use Illuminate\Console\Command;
+use PHPUnit\Event\Runtime\PHP;
 
 class MakeMailNotSubscribed extends Command
 {
@@ -30,7 +31,8 @@ class MakeMailNotSubscribed extends Command
             ]);
 
             Mail::query()->create([
-                'text' => 'Уведомил о неподписанности на рассылку' . $ids->count(),
+                'text' => 'Уведомил о неподписанности на рассылку ' . $ids->count() . PHP_EOL . PHP_EOL .
+                    __('telegram.promo', [], 'ru'),
                 'to' => [411174495],
                 'status' => MailStatuses::new,
             ]);
