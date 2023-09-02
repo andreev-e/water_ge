@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\MailStatuses;
-use App\Notifications\EventNotification;
 use App\Notifications\MailNotification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Notification;
@@ -19,7 +18,6 @@ class Mail extends Model
     protected $casts = [
         'to' => 'array',
     ];
-
 
     public function send(): void
     {

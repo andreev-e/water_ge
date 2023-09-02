@@ -27,7 +27,7 @@ class CheckFailedJobs extends Command
                 Subscriptions::query()
                     ->where('bot_user_id', $botUserId)
                     ->delete();
-                FailedJob::query()->find($failedJob->id)?->delete();
+//                FailedJob::query()->find($failedJob->id)?->delete();
             }
         }
     }
