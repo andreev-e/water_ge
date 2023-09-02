@@ -12,6 +12,9 @@ class CheckFailedJobs extends Command
 
     protected $description = 'Command description';
 
+    /**
+     * @throws \JsonException
+     */
     public function handle(): void
     {
         $failedJobs = FailedJob::query()->limit(100)->get();
@@ -19,7 +22,7 @@ class CheckFailedJobs extends Command
         foreach ($failedJobs as $failedJob) {
 
             $payload = $failedJob->payload;
-            $payload = json_decode($payload, false);
+            $payload = json_decode($payload, false, 512, JSON_THROW_ON_ERROR);
             $payload = unserialize($payload->data->command);
             $botUserId = $payload->notifiables[0]->routes['telegram'];
 
