@@ -22,7 +22,7 @@ class Kernel extends ConsoleKernel
         $schedule->command(LoadGas::class)->everyFiveMinutes();
         $schedule->command(Translate::class)->everyMinute();
         $schedule->command(CountStats::class)->hourly();
-        $schedule->command(CheckFailedJobs::class)->dailyAt('00:00');
+        $schedule->command(CheckFailedJobs::class)->hourly();
         $schedule->command(MakeMailNotSubscribed::class)->dailyAt('11:00');
         $schedule->command(SendMail::class)->everyMinute();
     }
