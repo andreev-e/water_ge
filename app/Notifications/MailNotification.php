@@ -29,8 +29,9 @@ class MailNotification extends Notification implements ShouldQueue
      */
     public function toTelegram($notifiable): TelegramMessage
     {
-        return TelegramMessage::create()->content($this->mail->text)->options([
-            'parse_mode' => 'html',
-        ]);
+        return TelegramMessage::create()->content($this->mail->text)
+            ->options([
+                'parse_mode' => 'html',
+            ]);
     }
 }
