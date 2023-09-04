@@ -211,7 +211,7 @@ class Controller extends BaseController
                 'Сервисных центров' => ServiceCenter::query()->count(),
                 'Адресов в базе' => Address::query()->count(),
                 'Событий в базе' => Event::query()->count(),
-                'Уведомлено сегодня' => Cache::get('notified_today', 0),
+                'Разослано сегодня' => Cache::get('notified_today', 0),
             ];
         });
     }
