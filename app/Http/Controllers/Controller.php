@@ -45,9 +45,17 @@ class Controller extends BaseController
             $title = 'Отключения ' . EventTypes::tryFrom($request->get('type'))?->getIcon() . ' в Грузии';
         }
 
+
         if ($request->has('service_center_id')) {
             $graphData = $this->getEventsGraphData($request);
+            $addresses = Address::query()
+                ->with('serviceCenter')
+                ->where('service_center_id', $request->get('service_center_id'))
+                ->orderBy('total_events', 'DESC')
+                ->limit(100)
+                ->get();
         } else {
+            $addresses  = [];
             $graphData = $this->getSubscribesGraphData();
         }
 
@@ -58,6 +66,7 @@ class Controller extends BaseController
             'currentEvents',
             'graphData',
             'stat',
+            'addresses',
         ]));
     }
 

@@ -33,4 +33,9 @@
     @if ($graphData)
         @include('chart', ['graphData' => $graphData])
     @endif
+
+    @if ($addresses)
+        @include('addresses_list', ['addresses' => $addresses])
+    @endif
+
 @endsection
