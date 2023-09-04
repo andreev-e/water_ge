@@ -15,5 +15,5 @@ return [
         'set_city' => 'Select city',
     ],
     'mail_not_subscribed' => 'You are not subscribed to any city. Please press /subscribe and select cities you want to receive notifications about upcoming shutdowns.',
-    'promo' => 'My new telegram bot with private adds around you <a href="https://t.me/tvito_bot">@tvito_bot</a>. No spam, flexible subscription settings. Join!',
+    'promo' => '<i>My new telegram bot with private adds around you <a href="https://t.me/tvito_bot">@tvito_bot</a>. No spam, flexible subscription settings. Join!</i>',
 ];
