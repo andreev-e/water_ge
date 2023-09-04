@@ -64,14 +64,27 @@ class Controller extends BaseController
     public function serviceCenters(): View
     {
         $serviceCenters = ServiceCenter::query()
-            ->withCount('subscriptions', 'events')
-            ->orderBy('events_count', 'DESC')
+            ->withCount('subscriptions')
+            ->orderBy('total_events', 'DESC')
             ->orderBy('subscriptions_count', 'DESC')
             ->get();
 
         $stat = $this->getStatData();
 
         return view('service-centers', compact('serviceCenters', 'stat'));
+    }
+
+    public function addresses(): View
+    {
+        $addresses = Address::query()
+            ->with('serviceCenter')
+            ->orderBy('total_events', 'DESC')
+            ->limit(200)
+            ->get();
+
+        $stat = $this->getStatData();
+
+        return view('addresses', compact('addresses', 'stat'));
     }
 
     public function event(Event $event): View
@@ -226,7 +239,7 @@ class Controller extends BaseController
         return Cache::remember('statData', 60 * 60, function() {
             return [
                 'Сервисных центров' => '<a href="' . route('service-centers') . '" class="text-cyan-600">' . ServiceCenter::query()->count() . '</a>',
-                'Адресов в базе' => Address::query()->count(),
+                'Адресов в базе' => '<a href="' . route('addresses') . '" class="text-cyan-600">' . Address::query()->count() . '</a>',
                 'Событий всего' => Event::query()->count(),
                 'Разослано сегодня' => Cache::get('notified_today', 0),
             ];

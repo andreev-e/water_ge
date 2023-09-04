@@ -18,21 +18,24 @@
     <table class="table-auto w-full text-left overflow-x-scroll">
         <thead>
             <tr class="border">
+                <th>Адрес</th>
                 <th>Сервис центр</th>
                 <th>Отключений</th>
-                <th>Подписчиков</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($serviceCenters as $serviceCenter)
+            @foreach($addresses as $address)
                 <tr class="border">
+                    <td>{{ $address->translit  }}</td>
                     <td>
-                        <a class="text-cyan-600" href="{{ route('index', ['service_center_id' => $serviceCenter->id]) }}">
-                            {{ $serviceCenter->name_ru  }}
+                        <a
+                            class="text-cyan-600"
+                            href="{{ route('index', ['service_center_id' => $address->serviceCenter->id]) }}"
+                        >
+                            {{ $address->serviceCenter->name_ru  }}
                         </a>
                     </td>
-                    <td>{{ $serviceCenter->total_events  }}</td>
-                    <td>{{ $serviceCenter->subscriptions_count  }}</td>
+                    <td>{{ $address->total_events  }}</td>
                 </tr>
             @endforeach
         </tbody>
