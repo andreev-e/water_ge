@@ -210,7 +210,7 @@ class Controller extends BaseController
             return [
                 'Сервисных центров' => ServiceCenter::query()->count(),
                 'Адресов в базе' => Address::query()->count(),
-                'Событий в базе' => Event::query()->count(),
+                'Событий всего' => Event::query()->count(),
                 'Разослано сегодня' => Cache::get('notified_today', 0),
             ];
         });
