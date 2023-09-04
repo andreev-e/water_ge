@@ -77,7 +77,7 @@ class Event extends Model
             Notification::route('telegram', $subscription->bot_user_id)
                 ->notify(new EventNotification($this, $subscription->botUser->language_code));
         }
-        Cache::put('notified_today', $notifiedToday, now()->endOfDay());
+        Cache::put('notified_today', $notifiedToday, now()->setTimezone('Asia/Tbilisi')->endOfDay());
 
         return count($subscriptions);
     }
