@@ -62,14 +62,11 @@ class EventNotification extends Notification implements ShouldQueue
             $message->line('...');
             $message->line('');
             $message->line(__('telegram.promo', [], 'ru'));
-            $message->button('Смотреть все (' . count($this->event->addresses) . ')', $url);
+            $message->button('Смотреть все адреса (' . count($this->event->addresses) . ')', $url);
         } else {
             $message->line('');
             $message->line(__('telegram.promo', [], 'ru'));
-            $message->button('Смотреть на сайте', $url);
         }
-
-
 
         return $message;
     }

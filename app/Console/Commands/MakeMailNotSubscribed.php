@@ -31,8 +31,7 @@ class MakeMailNotSubscribed extends Command
             ]);
 
             Mail::query()->create([
-                'text' => 'Уведомил о неподписанности на рассылку ' . $ids->count() . PHP_EOL . PHP_EOL .
-                    __('telegram.promo', [], 'ru'),
+                'text' => 'Уведомил о неподписанности на рассылку ' . $ids->count(),
                 'to' => [411174495],
                 'status' => MailStatuses::new,
             ]);
