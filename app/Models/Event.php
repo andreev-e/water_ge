@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
 
 class Event extends Model
@@ -70,10 +71,13 @@ class Event extends Model
             ->where('service_center_id', $this->service_center_id)
             ->get();
 
+        $notifiedToday = Cache::get('notified_today', 0);
         foreach ($subscriptions as $subscription) {
+            $notifiedToday++;
             Notification::route('telegram', $subscription->bot_user_id)
                 ->notify(new EventNotification($this, $subscription->botUser->language_code));
         }
+        Cache::put('notified_today', $notifiedToday, now()->endOfDay());
 
         return count($subscriptions);
     }
