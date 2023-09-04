@@ -36,6 +36,7 @@ class EventNotification extends Notification implements ShouldQueue
         $message = TelegramMessage::create()
             ->options([
                 'parse_mode' => 'html',
+                'disable_web_page_preview' => true,
             ])
             ->content('🚫' . $this->event->type->getIcon() . $this->event->serviceCenter->name_ru . ': ')
             ->line($this->event->from_to);
