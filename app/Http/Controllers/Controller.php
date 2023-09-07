@@ -212,7 +212,7 @@ class Controller extends BaseController
 
                     if ($address) {
                         $found = false;
-                        foreach ($address->events as $event) {
+                        foreach ($address->events()->where('start', '>=', $fromDate) as $event) {
                             if ($address && $date === $event->start->format('d.m.Y') && $address->service_center_id === $event->service_center_id) {
                                 $found = $event;
                                 $graphData['datasets']['addr_' . $address->id]['data'][] = 0;
