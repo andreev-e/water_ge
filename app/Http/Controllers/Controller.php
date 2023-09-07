@@ -122,9 +122,39 @@ class Controller extends BaseController
         return '#' . str_pad(dechex(random_int(0, 0xFFFFFF)), 6, '0', STR_PAD_LEFT);
     }
 
+    private function hexInvert(string $color): string
+    {
+        $color = trim($color);
+        $prependHash = false;
+        if (str_contains($color, '#')) {
+            $prependHash = true;
+            $color = str_replace('#', '', $color);
+        }
+        $len = strlen($color);
+        if ($len === 3 || $len === 6) {
+            if ($len === 3) {
+                $color = preg_replace('/(.)(.)(.)/', "\\1\\1\\2\\2\\3\\3", $color);
+            }
+        } else {
+            throw new \RuntimeException("Недопустимая длина HEX кода ($len). Длина должна быть 3 или 6 символов.");
+        }
+        if (!preg_match('/^[a-f0-9]{6}$/i', $color)) {
+            throw new \RuntimeException(sprintf('Неверная hex строка #%s', htmlspecialchars($color, ENT_QUOTES)));
+        }
+
+        $r = dechex(255 - hexdec(substr($color, 0, 2)));
+        $r = (strlen($r) > 1) ? $r : '0' . $r;
+        $g = dechex(255 - hexdec(substr($color, 2, 2)));
+        $g = (strlen($g) > 1) ? $g : '0' . $g;
+        $b = dechex(255 - hexdec(substr($color, 4, 2)));
+        $b = (strlen($b) > 1) ? $b : '0' . $b;
+
+        return ($prependHash ? '#' : '') . $r . $g . $b;
+    }
+
     private function getEventsGraphData(ServiceCenter $serviceCenter, Address $address = null): array
     {
-        return Cache::remember('graphData_id_' . $serviceCenter->id . '-' . $address?->id, 60*60,
+        return Cache::remember('graphData_id_' . $serviceCenter->id . '-' . $address?->id, 60 * 60,
             function() use ($serviceCenter, $address) {
                 $dist = 120;
                 $fromDate = now()->subDays($dist);
@@ -153,7 +183,7 @@ class Controller extends BaseController
                 $graphData['datasets'][$serviceCenter->id]['fill'] = false;
 
                 if ($address) {
-                    $color = $this->randColor();
+                    $color = $this->hexInvert($color);
                     $graphData['datasets']['addr_' . $address->id]['label'] = $address->translit;
                     $graphData['datasets']['addr_' . $address->id]['backgroundColor'] = $color;
                     $graphData['datasets']['addr_' . $address->id]['borderColor'] = $color;
@@ -166,7 +196,7 @@ class Controller extends BaseController
                         if ($date === $event->start->format('d.m.Y')) {
                             if ($serviceCenter->id === $event->serviceCenter->id) {
                                 $found = $event;
-                                $number = round(($serviceCenter->total_addresses - $event->total_addresses) / $serviceCenter->total_addresses * 100);
+                                $number = round(($serviceCenter->total_addresses - $event->total_addresses) / $serviceCenter->total_addresses * 100, 2);
                                 $graphData['datasets'][$serviceCenter->id]['data'][] = $number;
                             }
                         }
@@ -242,7 +272,7 @@ class Controller extends BaseController
                 $graphData['datasets'][1]['borderColor'] = $color;
                 $graphData['datasets'][1]['fill'] = false;
 
-                $color = $this->randColor();
+                $color = $this->hexInvert($color);
                 $graphData['datasets'][2]['label'] = 'Подписки';
                 $graphData['datasets'][2]['backgroundColor'] = $color;
                 $graphData['datasets'][2]['borderColor'] = $color;
