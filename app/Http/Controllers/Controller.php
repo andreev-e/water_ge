@@ -124,7 +124,7 @@ class Controller extends BaseController
 
     private function getEventsGraphData(ServiceCenter $serviceCenter, Address $address = null): array
     {
-        return Cache::remember('graphData_id_' . $serviceCenter->id . '-' . $address?->id, 0,
+        return Cache::remember('graphData_id_' . $serviceCenter->id . '-' . $address?->id, 60*60,
             function() use ($serviceCenter, $address) {
                 $dist = 120;
                 $fromDate = now()->subDays($dist);
