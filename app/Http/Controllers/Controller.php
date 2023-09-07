@@ -101,7 +101,7 @@ class Controller extends BaseController
     public function address(Address $address): View
     {
         $stat = $this->getStatData();
-
+        $address->load('serviceCenter', 'events');
         $graphData = $this->getEventsGraphData($address->serviceCenter, $address);
 
         return view('address', compact('address', 'stat', 'graphData'));
@@ -124,7 +124,7 @@ class Controller extends BaseController
 
     private function getEventsGraphData(ServiceCenter $serviceCenter, Address $address = null): array
     {
-        return Cache::remember('graphData_id_' . $serviceCenter->id . '-' . $address?->id, 60 * 60,
+        return Cache::remember('graphData_id_' . $serviceCenter->id . '-' . $address?->id, 0,
             function() use ($serviceCenter, $address) {
                 $dist = 120;
                 $fromDate = now()->subDays($dist);
@@ -163,20 +163,34 @@ class Controller extends BaseController
                 foreach ($graphData['labels'] as $date) {
                     $found = false;
                     foreach ($events as $event) {
-                        if ($serviceCenter->id === $event->serviceCenter->id && $date === $event->start->format('d.m.Y')) {
-                            $found = true;
-                            $number = ($serviceCenter->total_addresses - $event->total_addresses) / $serviceCenter->total_addresses * 100;
-                            $graphData['datasets'][$serviceCenter->id]['data'][] = $number;
-                            break;
-                        }
-                        if ($address && $address->serviceCenter->id === $event->serviceCenter->id && $date === $event->start->format('d.m.Y')) {
-                            $found = true;
-                            $graphData['datasets']['addr_' . $address->id]['data'][] = 0;
-                            break;
+                        if ($date === $event->start->format('d.m.Y')) {
+                            if ($serviceCenter->id === $event->serviceCenter->id) {
+                                $found = $event;
+                                $number = round(($serviceCenter->total_addresses - $event->total_addresses) / $serviceCenter->total_addresses * 100);
+                                $graphData['datasets'][$serviceCenter->id]['data'][] = $number;
+                            }
                         }
                     }
+
                     if (!$found) {
                         $graphData['datasets'][$serviceCenter->id]['data'][] = 100;
+                    } else {
+                        $events = $events->filter(function($event) use ($found) {
+                            return $event->id = $found->id;
+                        });
+                    }
+
+                    if ($address) {
+                        $found = false;
+                        foreach ($address->events as $event) {
+                            if ($address && $date === $event->start->format('d.m.Y') && $address->service_center_id === $event->service_center_id) {
+                                $found = $event;
+                                $graphData['datasets']['addr_' . $address->id]['data'][] = 0;
+                            }
+                        }
+                        if (!$found) {
+                            $graphData['datasets']['addr_' . $address->id]['data'][] = 100;
+                        }
                     }
                 }
 
