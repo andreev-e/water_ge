@@ -55,7 +55,7 @@ class Controller extends BaseController
                 ->limit(100)
                 ->get();
         } else {
-            $addresses  = [];
+            $addresses = [];
             $graphData = $this->getSubscribesGraphData();
         }
 
@@ -96,9 +96,19 @@ class Controller extends BaseController
         return view('addresses', compact('addresses', 'stat'));
     }
 
+
+    public function address(Address $address): View
+    {
+        $stat = $this->getStatData();
+
+        return view('address', compact('address', 'stat'));
+    }
+
     public function event(Event $event): View
     {
-        return view('event', compact('event'));
+        $stat = $this->getStatData();
+
+        return view('event', compact('event', 'stat'));
     }
 
     /**

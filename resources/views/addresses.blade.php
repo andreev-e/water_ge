@@ -5,7 +5,7 @@
 @endphp
 
 @extends('layout')
-@section('title', 'Сервис центры')
+@section('title', 'Часто отключаемые адреса')
 
 @section('content')
     <table class="table-auto w-full text-center">
@@ -15,7 +15,6 @@
             @endforeach
         </tr>
     </table>
-    <h2>Часто отключаемые адреса</h2>
-    @include('addresses_list', ['addresses' => $addresses])
+    @include('partial.addresses_list', ['addresses' => $addresses, 'withSC' => true])'])
 @endsection
 

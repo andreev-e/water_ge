@@ -9,6 +9,7 @@
 @section('title', 'Отключение ' . $event->type->getIcon() . ' в ' . $event->serviceCenter->name_ru . ' ' . mb_strtolower($event->from_to))
 
 @section('content')
+    @include('partial.stats', ['stat' => $stat])
     <table class="table-auto w-full text-left overflow-x-scroll">
         @include('table_head', ['withLink' => false])
         <tbody>
@@ -23,9 +24,7 @@
         <p>{{$event->name}}</p>
         <p>{{$event->nam_en}}</p>
     @else
-        @foreach($event->addresses as $address)
-            @include('address', ['address' => $address])
-        @endforeach
+        @include('partial.addresses_list', ['addresses' => $event->addresses, 'withSC' => false])
     @endif
 @endsection
 
