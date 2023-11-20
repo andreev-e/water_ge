@@ -40,7 +40,6 @@ jobs:
             && /opt/php81/bin/php /usr/local/bin/composer install --ignore-platform-req=ext-http --ignore-platform-req=ext-dom
             && /opt/php81/bin/php artisan key:generate
             && /opt/php81/bin/php artisan migrate
-            && /opt/php81/bin/php artisan optimize
             && /opt/php81/bin/php artisan telegram:delete-webhook
             && /opt/php81/bin/php artisan telegram:set-webhook
 
