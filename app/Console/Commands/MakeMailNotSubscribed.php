@@ -45,13 +45,14 @@ class MakeMailNotSubscribed extends Command
             foreach ($ids as $id) {
                 $key = 'mailed_not_subscribed_times_' . $id;
                 $value = Cache::get($key, 0);
-                Cache::remember($key, 60 * 60 * 24 * 25, static fn() => $value + 1);
+                $value++;
+                Cache::remember($key, 60 * 60 * 24 * 25, static fn() => $value);
                 if ($value > 10) {
                     BotUser::deleteForever($id);
                     Cache::forget($key);
                     $deleted[$id] = $id;
                 } else {
-                    $toDeleteQueue[$id] = $value + 1;
+                    $toDeleteQueue[$id] = $value;
                 }
             }
 
