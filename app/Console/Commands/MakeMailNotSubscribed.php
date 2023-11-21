@@ -46,7 +46,9 @@ class MakeMailNotSubscribed extends Command
                 $key = 'mailed_not_subscribed_times_' . $id;
                 $value = Cache::get($key, 0);
                 $value++;
-                Cache::remember($key, 60 * 60 * 24 * 25, $value);
+                Cache::remember($key, 60 * 60 * 24 * 25, static function() use (&$value) {
+                    return $value;
+                });
                 if ($value > 10) {
                     BotUser::deleteForever($id);
                     Cache::forget($key);
