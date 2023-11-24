@@ -52,7 +52,11 @@ class MakeMailNotSubscribed extends Command
                     Cache::forget($key);
                     $deleted[$id] = $id;
                 } else {
-                    $toDeleteQueue[$id] = $value;
+                    if (!isset($toDeleteQueue[$key])) {
+                        $toDeleteQueue[$key] = [$value];
+                    } else {
+                        $toDeleteQueue[$key][] = $value;
+                    }
                 }
             }
 
