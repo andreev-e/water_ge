@@ -51,12 +51,10 @@ class MakeMailNotSubscribed extends Command
                     BotUser::deleteForever($id);
                     Cache::forget($key);
                     $deleted[$id] = $id;
+                } elseif (!isset($toDeleteQueue[$key])) {
+                    $toDeleteQueue[$key] = [$value];
                 } else {
-                    if (!isset($toDeleteQueue[$key])) {
-                        $toDeleteQueue[$key] = [$value];
-                    } else {
-                        $toDeleteQueue[$key][] = $value;
-                    }
+                    $toDeleteQueue[$key][] = $value;
                 }
             }
 
