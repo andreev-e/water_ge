@@ -22,8 +22,10 @@ class CheckFailedJobs extends Command
 
         foreach ($failedJobs as $failedJob) {
             Log::error($failedJob->exception);
-            if (strpos($failedJob->exception, 'bot was blocked by the user') || strpos($failedJob->exception,
-                    'user is deactivated')) {
+            if (strpos($failedJob->exception, 'bot was blocked by the user')
+                || strpos($failedJob->exception, 'user is deactivated')
+                || strpos($failedJob->exception, 'send messages to bots')
+            ) {
                 $payload = $failedJob->payload;
                 $payload = json_decode($payload, false, 512, JSON_THROW_ON_ERROR);
                 $payload = unserialize($payload->data->command);
