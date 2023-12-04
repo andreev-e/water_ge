@@ -51,7 +51,7 @@ class EventNotification extends Notification implements ShouldQueue
                 } else {
                     $percent = '~' . $percent;
                 }
-                $message->line($percent . '% адресов отключено:');
+                $message->line($percent . ' % адресов отключено:');
             }
         }
 
