@@ -47,7 +47,7 @@ class EventNotification extends Notification implements ShouldQueue
             if ($this->event->serviceCenter->total_addresses) {
                 $percent = round($this->event->addresses->count() / $this->event->serviceCenter->total_addresses * 100);
                 if ($percent < 1) {
-                    $percent = '&laquo;1';
+                    $percent = '~1';
                 } else {
                     $percent = '~' . $percent;
                 }
