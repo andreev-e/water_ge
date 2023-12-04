@@ -48,9 +48,13 @@ class MakeMailNotSubscribed extends Command
                 $value++;
                 Cache::put($key, $value, 60 * 60 * 24 * 25);
                 if ($value > 10) {
-                    BotUser::deleteForever($id);
-                    Cache::forget($key);
-                    $deleted[$id] = $id;
+                    try {
+                        BotUser::deleteForever($id);
+                        Cache::forget($key);
+                        $deleted[$id] = $id;
+                    } catch (\Throwable $e) {
+                        $this->error($e->getMessage());
+                    }
                 } elseif (!isset($toDeleteQueue[$value])) {
                     $toDeleteQueue[$value] = 1;
                 } else {
