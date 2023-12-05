@@ -26,7 +26,12 @@ class BotUser extends Model
         if ($chat instanceof BotUserChat) {
             DB::statement("DELETE FROM `bot_telegram_update` WHERE `chat_id` = $chat->chat_id");
 
-            $callbackQueries = BotCallbackQuery::query()->where('user_id', $botUserId)->get();
+            $callbackQueries = BotCallbackQuery::query()
+                ->where(function($query) use ($chat, $botUserId) {
+                    $query->orWhere('chat_id', $chat->chat_id)
+                        ->orWhere('user_id', $botUserId);
+                })
+                ->get();
             foreach ($callbackQueries as $callbackQuery) {
                 if ($callbackQuery instanceof BotCallbackQuery) {
                     DB::statement("DELETE FROM `bot_telegram_update` WHERE `callback_query_id` = $callbackQuery->id");
