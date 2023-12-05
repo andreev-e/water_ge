@@ -32,7 +32,12 @@ class CheckFailedJobs extends Command
                 $botUserId = $payload->notifiables[0]->routes['telegram'];
 
                 if ($botUserId) {
-                    BotUser::deleteForever($botUserId);
+                    try {
+                        BotUser::deleteForever($botUserId);
+                    } catch (\Throwable $e) {
+                        Log::error($e->getMessage());
+                    }
+
                 }
 
                 $failedJob->delete();
