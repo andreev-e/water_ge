@@ -39,10 +39,10 @@ class EventNotification extends Notification implements ShouldQueue
                 'disable_web_page_preview' => true,
             ])
             ->content('🚫<b>' . $this->event->type->getIcon() . $this->event->serviceCenter->name_ru . '</b>: ')
-            ->line($this->event->from_to);
+            ->line('<b>' . $this->event->from_to . '</b>');
 
         if ($this->event->type === EventTypes::gas) {
-            $message->line($this->event->name_ru ?? $this->event->name_en);
+            $message->line('<b>' . ($this->event->name_ru ?? $this->event->name_en) . '</b>');
         } else {
             if ($this->event->serviceCenter->total_addresses) {
                 $percent = round($this->event->addresses->count() / $this->event->serviceCenter->total_addresses * 100);
