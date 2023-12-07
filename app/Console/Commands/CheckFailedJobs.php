@@ -35,6 +35,7 @@ class CheckFailedJobs extends Command
                     try {
                         BotUser::deleteForever($botUserId);
                     } catch (\Throwable $e) {
+                        echo $e->getMessage() . PHP_EOL;
                         Log::error($e->getMessage());
                     }
 

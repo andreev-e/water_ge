@@ -45,16 +45,14 @@ class BotUser extends Model
             DB::statement("DELETE FROM `bot_edited_message` WHERE `user_id` = $botUserId");
             DB::statement("DELETE FROM `bot_telegram_update` WHERE `chat_id` = $chat->chat_id");
 //            DB::statement("DELETE FROM `bot_telegram_update` WHERE `my_chat_member_updated_id` = $chat->chat_id");
-            echo 'bot_chat_member_updated' . PHP_EOL;
+
             DB::statement("DELETE FROM `bot_chat_member_updated` WHERE `user_id` = $botUserId");
             DB::statement("DELETE FROM `bot_chat_member_updated` WHERE `chat_id` = $chat->chat_id");
 
-            echo 'bot_message' . PHP_EOL;
             DB::statement("DELETE FROM `bot_message` WHERE `reply_to_chat` IS NOT NULL AND `reply_to_message` IS NOT NULL  AND `chat_id` = $chat->chat_id");
             DB::statement("DELETE FROM `bot_message` WHERE `reply_to_chat` IS NOT NULL AND `reply_to_message` IS NOT NULL  AND `user_id` = $botUserId");
             DB::statement("DELETE FROM `bot_message` WHERE `chat_id` = $chat->chat_id");
             DB::statement("DELETE FROM `bot_message` WHERE `user_id` = $botUserId");
-            echo 'bot_chat' . PHP_EOL;
             DB::statement("DELETE FROM `bot_chat` WHERE `id` = $chat->chat_id");
 
             BotUserChat::query()->where('user_id', $botUserId)->delete();
