@@ -42,7 +42,7 @@ class EventNotification extends Notification implements ShouldQueue
             ->line('<b>' . $this->event->from_to . '</b>');
 
         if ($this->event->type === EventTypes::gas) {
-            $message->line('<b>' . ($this->event->name_ru ?? $this->event->name_en) . '</b>');
+            $message->line(($this->event->name_ru ?? $this->event->name_en));
         } else {
             if ($this->event->serviceCenter->total_addresses) {
                 $percent = round($this->event->addresses->count() / $this->event->serviceCenter->total_addresses * 100);
