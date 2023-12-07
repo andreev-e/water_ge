@@ -38,7 +38,7 @@ class EventNotification extends Notification implements ShouldQueue
                 'parse_mode' => 'html',
                 'disable_web_page_preview' => true,
             ])
-            ->content('🚫' . $this->event->type->getIcon() . $this->event->serviceCenter->name_ru . ': ')
+            ->content('🚫<b>' . $this->event->type->getIcon() . $this->event->serviceCenter->name_ru . '</b>: ')
             ->line($this->event->from_to);
 
         if ($this->event->type === EventTypes::gas) {
