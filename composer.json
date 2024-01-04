@@ -14,7 +14,8 @@
         "laravel/framework": "^10.9",
         "laravel/tinker": "^2.8.1",
         "paquettg/php-html-parser": "^2.1",
-        "php-telegram-bot/laravel": "^2.1.x-dev"
+        "php-telegram-bot/laravel": "^2.1.x-dev",
+        "predis/predis": "^2.2"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "3.8.x-dev",
