@@ -7,6 +7,7 @@ use App\Models\BotUser;
 use App\Models\Mail;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use PHPUnit\Event\Runtime\PHP;
 
 class MakeMailNotSubscribed extends Command
@@ -48,9 +49,13 @@ class MakeMailNotSubscribed extends Command
                 $value++;
                 Cache::put($key, $value, 60 * 60 * 24 * 25);
                 if ($value > 5) {
-                    BotUser::deleteForever($id);
-                    Cache::forget($key);
-                    $deleted[$id] = $id;
+                    try {
+                        BotUser::deleteForever($id);
+                        Cache::forget($key);
+                        $deleted[$id] = $id;
+                    } catch (\Exception $e) {
+                        Log::error($e->getMessage());
+                    }
                 }
             }
 
