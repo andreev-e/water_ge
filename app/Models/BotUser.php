@@ -17,6 +17,10 @@ class BotUser extends Model
 
     public static function deleteForever($botUserId): void
     {
+        if ($botUserId === 6113375921) {
+            return;
+        }
+
         Subscriptions::query()
             ->where('bot_user_id', $botUserId)
             ->delete();
