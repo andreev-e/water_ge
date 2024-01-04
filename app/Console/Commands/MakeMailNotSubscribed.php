@@ -28,11 +28,11 @@ class MakeMailNotSubscribed extends Command
         $text = __('telegram.mail_not_subscribed', [], 'ru');
 
         if ($ids->count()) {
-            Mail::query()->create([
-                'text' => $text,
-                'to' => $ids,
-                'status' => MailStatuses::new,
-            ]);
+//            Mail::query()->create([
+//                'text' => $text,
+//                'to' => $ids,
+//                'status' => MailStatuses::new,
+//            ]);
 
             Mail::query()->create([
                 'text' => 'Уведомил не подписанных на рассылку ' . $ids->count(),
