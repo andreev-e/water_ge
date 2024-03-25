@@ -65,6 +65,10 @@ class Translate extends Command
             return $word;
         }
 
+        if (in_array($word, [',', '.'])) {
+            return $word;
+        }
+
         $dictionary = Dictionary::query()->firstOrCreate(['name' => $word]);
 
         if ($dictionary->name_en === null) {
