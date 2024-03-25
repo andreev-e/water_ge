@@ -72,10 +72,10 @@ class Translate extends Command
         $dictionary = Dictionary::query()->firstOrCreate(['name' => $word]);
 
         if ($dictionary->name_en === null) {
-            $dictionary->name_en = substr($this->translator->translate($word, 'ka_GE', 'en'), 0, 255);
+            $dictionary->name_en = mb_substr($this->translator->translate($word, 'ka_GE', 'en'), 0, 255);
         }
         if ($dictionary->name_ru === null) {
-            $dictionary->name_ru = substr($this->translator->translate($word, 'ka_GE', 'ru'), 0, 255);
+            $dictionary->name_ru = mb_substr($this->translator->translate($word, 'ka_GE', 'ru'), 0, 255);
         }
 
         $dictionary->used += 1;
