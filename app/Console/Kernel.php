@@ -19,7 +19,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command(LoadWater::class)->everyFiveMinutes();
         $schedule->command(LoadEnergy::class)->everyFiveMinutes();
-        $schedule->command(LoadGas::class)->everyFiveMinutes();
+//        $schedule->command(LoadGas::class)->everyFiveMinutes();
         $schedule->command(Translate::class)->everyMinute();
         $schedule->command(CountStats::class)->hourly();
         $schedule->command(CheckFailedJobs::class)->hourly();
