@@ -67,6 +67,10 @@ class LoadWater extends Command
                         }
                     }
 
+                    if (!isset($from) || !isset($to) || count($addresses) === 0) {
+                        continue;
+                    }
+
                     $serviceCenter = ServiceCenter::query()->firstOrCreate(['name' => $serviceCenter]);
 
                     $event = Event::query()
