@@ -9,7 +9,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # === 1. Шаг под root: Git + системные операции ===
       - name: executing remote ssh commands as root
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -18,26 +17,20 @@ jobs:
           password: ${{ secrets.ROOT_PASSWORD }}
           port: 22
           script: |
-            # Работаем в директории проекта
-            cd ${{ vars.PROD_PATH }} \
-            # Выполняем git и очистку от имени пользователя деплоя
-            && su - ${{ secrets.USER_NAME }} -c "
-              git config --global --add safe.directory '${{ vars.PROD_PATH }}' &&
-              cd '${{ vars.PROD_PATH }}' &&
-              git checkout master &&
-              git reset --hard &&
-              git pull &&
-              rm composer.lock &&
-              chown -R ${{ secrets.USER_NAME }}:${{ secrets.USER_NAME }} . &&
-              truncate -s 0 '${{ vars.PROD_PATH }}/storage/logs/laravel.log' &&
-              truncate -s 0 '${{ vars.PROD_PATH }}/storage/logs/queue.log'
-            " \
-            # После этого системные команды выполняем уже от root
-            && cp ${{ vars.PROD_PATH }}/deploy/queue-worker.conf /etc/supervisor/conf.d/${{ secrets.USER_NAME }}.conf \
-            && supervisorctl reread \
-            && service supervisor restart
+            cd ${{ vars.PROD_PATH }} && \
+            su - ${{ secrets.USER_NAME }} -c 'git config --global --add safe.directory '\''${{ vars.PROD_PATH }}'\'' && \
+              cd '\''${{ vars.PROD_PATH }}'\'' && \
+              git checkout master && \
+              git reset --hard && \
+              git pull && \
+              rm composer.lock && \
+              chown -R ${{ secrets.USER_NAME }}:${{ secrets.USER_NAME }} . && \
+              truncate -s 0 '\''${{ vars.PROD_PATH }}/storage/logs/laravel.log'\'' && \
+              truncate -s 0 '\''${{ vars.PROD_PATH }}/storage/logs/queue.log'\'' ' && \
+            cp ${{ vars.PROD_PATH }}/deploy/queue-worker.conf /etc/supervisor/conf.d/${{ secrets.USER_NAME }}.conf && \
+            supervisorctl reread && \
+            service supervisor restart
 
-      # === 2. Шаг под пользователем проекта: Composer + Artisan ===
       - name: executing remote ssh commands as deploy user
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -46,10 +39,10 @@ jobs:
           password: ${{ secrets.USER_PASSWORD }}
           port: 22
           script: |
-            cd ${{ vars.PROD_PATH }} &&
-            php -v &&
-            /opt/php81/bin/php /usr/local/bin/composer install --ignore-platform-req=ext-http --ignore-platform-req=ext-dom &&
-            /opt/php81/bin/php artisan key:generate &&
-            /opt/php81/bin/php artisan migrate &&
-            /opt/php81/bin/php artisan telegram:delete-webhook &&
+            cd ${{ vars.PROD_PATH }} && \
+            php -v && \
+            /opt/php81/bin/php /usr/local/bin/composer install --ignore-platform-req=ext-http --ignore-platform-req=ext-dom && \
+            /opt/php81/bin/php artisan key:generate && \
+            /opt/php81/bin/php artisan migrate && \
+            /opt/php81/bin/php artisan telegram:delete-webhook && \
             /opt/php81/bin/php artisan telegram:set-webhook
