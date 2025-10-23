@@ -9,8 +9,6 @@
     ],
     "license": "MIT",
     "require": {
-        "guzzlehttp/guzzle": "^7.5.1",
-        "laravel-notification-channels/telegram": "dev-master",
         "laravel/framework": "^10.9",
         "laravel/tinker": "^2.8.1",
         "paquettg/php-html-parser": "^2.1",
@@ -18,7 +16,7 @@
         "predis/predis": "^2.2"
     },
     "require-dev": {
-        "barryvdh/laravel-debugbar": "3.8.x-dev",
+        "barryvdh/laravel-debugbar": "^3.16",
         "fakerphp/faker": "^1.9.1",
         "laravel/pint": "^1.0",
         "laravel/sail": "^1.18",
