@@ -28,11 +28,12 @@ jobs:
               truncate -s 0 '\''${{ vars.PROD_PATH }}/storage/logs/laravel.log'\'' && \
               truncate -s 0 '\''${{ vars.PROD_PATH }}/storage/logs/queue.log'\'' ' && \
             cp ${{ vars.PROD_PATH }}/deploy/queue-worker.conf /etc/supervisor/conf.d/${{ secrets.USER_NAME }}.conf && \
-            # === если supervisor не запущен, запускаем ===
-            (service supervisor status >/dev/null 2>&1 || service supervisor start) && \
-            supervisorctl reread && \
-            supervisorctl update && \
-            service supervisor restart
+            # === Проверяем, запущен ли supervisor, и если нет — поднимаем вручную ===
+              (service supervisor status >/dev/null 2>&1 || service supervisor start || supervisord -c /etc/supervisord.conf) && \
+              sleep 2 && \
+              supervisorctl reread && \
+              supervisorctl update && \
+              service supervisor restart
 
       - name: executing remote ssh commands as deploy user
         uses: appleboy/ssh-action@v0.1.7
