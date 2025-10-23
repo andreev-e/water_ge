@@ -9,7 +9,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: executing remote ssh commands using password
+      # === 1. Шаг под root: Git + системные операции ===
+      - name: executing remote ssh commands as root
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.HOST }}
@@ -17,7 +18,9 @@ jobs:
           password: ${{ secrets.ROOT_PASSWORD }}
           port: 22
           script: |
+            # Работаем в директории проекта
             cd ${{ vars.PROD_PATH }} \
+            # Выполняем git и очистку от имени пользователя деплоя
             && su - ${{ secrets.USER_NAME }} -c "
               git config --global --add safe.directory '${{ vars.PROD_PATH }}' &&
               cd '${{ vars.PROD_PATH }}' &&
@@ -25,15 +28,17 @@ jobs:
               git reset --hard &&
               git pull &&
               rm composer.lock &&
-              cp deploy/queue-worker.conf /etc/supervisor/conf.d/${{ secrets.USER_NAME }}.conf &&
-              supervisorctl reread &&
-              service supervisor restart &&
               chown -R ${{ secrets.USER_NAME }}:${{ secrets.USER_NAME }} . &&
               truncate -s 0 '${{ vars.PROD_PATH }}/storage/logs/laravel.log' &&
               truncate -s 0 '${{ vars.PROD_PATH }}/storage/logs/queue.log'
-            "
+            " \
+            # После этого системные команды выполняем уже от root
+            && cp ${{ vars.PROD_PATH }}/deploy/queue-worker.conf /etc/supervisor/conf.d/${{ secrets.USER_NAME }}.conf \
+            && supervisorctl reread \
+            && service supervisor restart
 
-      - name: executing remote ssh commands using password
+      # === 2. Шаг под пользователем проекта: Composer + Artisan ===
+      - name: executing remote ssh commands as deploy user
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.HOST }}
