@@ -9,6 +9,7 @@
     ],
     "license": "MIT",
     "require": {
+        "laravel-notification-channels/telegram": "5.x-dev",
         "laravel/framework": "^10.9",
         "laravel/tinker": "^2.8.1",
         "paquettg/php-html-parser": "^2.1",
