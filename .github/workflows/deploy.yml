@@ -23,7 +23,6 @@ jobs:
               git checkout master && \
               git reset --hard && \
               git pull && \
-              rm composer.lock && \
               chown -R ${{ secrets.USER_NAME }}:${{ secrets.USER_NAME }} . && \
               truncate -s 0 '\''${{ vars.PROD_PATH }}/storage/logs/laravel.log'\'' && \
               truncate -s 0 '\''${{ vars.PROD_PATH }}/storage/logs/queue.log'\'' ' && \
