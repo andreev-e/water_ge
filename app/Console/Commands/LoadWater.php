@@ -10,6 +10,7 @@ use App\Notifications\EventNotification;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use PHPHtmlParser\Dom;
 use PHPHtmlParser\Dom\HtmlNode;
@@ -48,12 +49,11 @@ class LoadWater extends Command
 
                     /* @var $child \PHPHtmlParser\Dom\HtmlNode */
                     foreach ($event->find('.panel-body .row .col-sm-12')?->getChildren() as $child) {
-
-                        if (strpos($child->text(), 'წყალმომარაგების შეწყვეტის დრო:')) {
+                        if (strpos(' '.$child->text(), 'წყალმომარაგების შეწყვეტის დრო:')) {
                             $from = trim(explode(': ', $child->text())[1]);
                             continue;
                         }
-                        if (strpos($child->text(), 'წყალმომარაგების აღდგენის დრო:')) {
+                        if (strpos(' '.$child->text(), 'წყალმომარაგების აღდგენის დრო:')) {
                             $to = trim(explode(': ', $child->text())[1]);
                             continue;
                         }
@@ -67,7 +67,8 @@ class LoadWater extends Command
                         }
                     }
 
-                    if (!isset($from) || !isset($to) || count($addresses) === 0) {
+                    if (!isset($from) || !isset($to)) {
+                        $this->error('Skipping event due to missing from or to');
                         continue;
                     }
 
@@ -76,7 +77,7 @@ class LoadWater extends Command
                     $event = Event::query()
                         ->where('service_center_id', $serviceCenter->id)
                         ->where('start', Carbon::createFromFormat('d/m/Y H:i:s', $from))
-                        ->where('finish', Carbon::createFromFormat('d/m/Y H:i:s', $to))
+                        ->where('finish', Carbon::createFromFormat('d/m/Y H:i:s', $to ))
                         ->where('type', EventTypes::water)
                         ->first();
 
