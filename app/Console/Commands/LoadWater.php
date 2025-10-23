@@ -30,8 +30,12 @@ class LoadWater extends Command
      * Execute the console command.
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function handle(Client $client, Dom $dom): void
+    public function handle(Dom $dom): void
     {
+        $client = new Client([
+            'verify' => false,
+        ]);
+
         for ($i = 0; $i < 1; $i++) {
             $url = 'http://water.gov.ge/page/full/107' . ($i * 10 === 0 ? '' : '/' . $i * 10);
             echo $url . PHP_EOL;
