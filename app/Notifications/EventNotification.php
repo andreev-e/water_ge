@@ -80,7 +80,9 @@ class EventNotification extends Notification implements ShouldQueue
     {
         if (
             $exception instanceof CouldNotSendNotification &&
-            str_contains($exception->getMessage(), 'bot was blocked by the user')
+            (str_contains($exception->getMessage(), 'bot was blocked by the user') ||
+                str_contains($exception->getMessage(), 'chat not found'))
+
         ) {
             Subscriptions::query()
                 ->where('bot_user_id', $this->botUserId ?? null)
