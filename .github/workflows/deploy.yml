@@ -21,9 +21,6 @@ jobs:
 
             chown -R ${{ secrets.USER_NAME }}:${{ secrets.USER_NAME }} .
             
-            truncate -s 0 storage/logs/laravel.log || true
-            truncate -s 0 storage/logs/queue.log || true
-            
             su - ${{ secrets.USER_NAME }} -c "
             cd '${{ vars.PROD_PATH }}' &&
             git config --global --add safe.directory '${{ vars.PROD_PATH }}' &&
@@ -57,3 +54,6 @@ jobs:
             /opt/php81/bin/php artisan migrate && \
             /opt/php81/bin/php artisan telegram:delete-webhook && \
             /opt/php81/bin/php artisan telegram:set-webhook
+            
+            truncate -s 0 storage/logs/laravel.log || true
+            truncate -s 0 storage/logs/queue.log || true
