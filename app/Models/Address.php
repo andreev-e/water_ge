@@ -15,7 +15,7 @@ class Address extends Model
 
     public function events(): BelongsToMany
     {
-        return $this->belongsToMany(Event::class)->orderBy('start');
+        return $this->belongsToMany(Event::class)->orderBy('start', SORT_DESC);
     }
 
     public function serviceCenter(): BelongsTo
