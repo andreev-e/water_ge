@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 
 class Event extends Model
@@ -55,7 +56,7 @@ class Event extends Model
     {
         return self::query()
             ->current()
-            ->when($type, function($query) use ($type) {
+            ->when($type, function ($query) use ($type) {
                 $query->where('type', $type->value);
             })
             ->get();
@@ -65,7 +66,7 @@ class Event extends Model
     {
         $subscriptions = Subscriptions::query()
             ->with('botUser')
-            ->when($botUserId, function($query) use ($botUserId) {
+            ->when($botUserId, function ($query) use ($botUserId) {
                 $query->where('bot_user_id', $botUserId);
             })
             ->where('service_center_id', $this->service_center_id)
@@ -74,8 +75,12 @@ class Event extends Model
         $notifiedToday = Cache::get('notified_today', 0);
         foreach ($subscriptions as $subscription) {
             $notifiedToday++;
-            Notification::route('telegram', $subscription->bot_user_id)
-                ->notify(new EventNotification($this, $subscription->botUser->language_code));
+            try {
+                Notification::route('telegram', $subscription->bot_user_id)
+                    ->notify(new EventNotification($this, $subscription->botUser->language_code));
+            } catch (\Exception $exception) {
+                Log::error($exception->getMessage());
+            }
         }
         Cache::put('notified_today', $notifiedToday, now()->setTimezone('Asia/Tbilisi')->endOfDay());
 
