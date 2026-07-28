@@ -74,14 +74,11 @@ class Event extends Model
 
         $notifiedToday = Cache::get('notified_today', 0);
         foreach ($subscriptions as $subscription) {
+            Notification::route('telegram', $subscription->bot_user_id)
+                ->notify(new EventNotification($this, $subscription->botUser->language_code, $subscription->bot_user_id));
             $notifiedToday++;
-            try {
-                Notification::route('telegram', $subscription->bot_user_id)
-                    ->notify(new EventNotification($this, $subscription->botUser->language_code));
-            } catch (\Exception $exception) {
-                Log::error($exception->getMessage());
-            }
         }
+
         Cache::put('notified_today', $notifiedToday, now()->setTimezone('Asia/Tbilisi')->endOfDay());
 
         return count($subscriptions);

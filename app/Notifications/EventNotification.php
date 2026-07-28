@@ -4,10 +4,13 @@ namespace App\Notifications;
 
 use App\Enums\EventTypes;
 use App\Models\Event;
+use App\Models\Subscriptions;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
+use NotificationChannels\Telegram\Exceptions\CouldNotSendNotification;
 use NotificationChannels\Telegram\TelegramMessage;
+use Throwable;
 
 class EventNotification extends Notification implements ShouldQueue
 {
@@ -18,6 +21,7 @@ class EventNotification extends Notification implements ShouldQueue
     public function __construct(
         public Event $event,
         public ?string $languageCode,
+        public int $botUserId,
     ) {
     }
 
@@ -70,5 +74,21 @@ class EventNotification extends Notification implements ShouldQueue
         }
 
         return $message;
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        if (
+            $exception instanceof CouldNotSendNotification &&
+            str_contains($exception->getMessage(), 'bot was blocked by the user')
+        ) {
+            Subscriptions::query()
+                ->where('bot_user_id', $this->botUserId ?? null)
+                ->delete();
+
+            return;
+        }
+
+        report($exception);
     }
 }
