@@ -9,6 +9,7 @@ use App\Support\TelegramFailure;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Cache;
 use NotificationChannels\Telegram\Exceptions\CouldNotSendNotification;
 use NotificationChannels\Telegram\TelegramMessage;
 use Throwable;
@@ -36,6 +37,8 @@ class EventNotification extends Notification implements ShouldQueue
      */
     public function toTelegram($notifiable): TelegramMessage
     {
+        $this->hydrateEventRelations();
+
         $url = url('https://water.andreev-e.ru/event/' . $this->event->id);
 
         $message = TelegramMessage::create()
@@ -75,6 +78,27 @@ class EventNotification extends Notification implements ShouldQueue
         }
 
         return $message;
+    }
+
+    /**
+     * The model is re-fetched from scratch when this queued notification is
+     * unserialized (relations loaded before dispatch don't survive the
+     * queue round-trip), so without this every subscriber's job would repeat
+     * the same serviceCenter/addresses queries for the same event.
+     */
+    private function hydrateEventRelations(): void
+    {
+        $relations = Cache::remember('event_notification_relations_' . $this->event->id, 3600, function () {
+            $this->event->loadMissing(['serviceCenter', 'addresses']);
+
+            return [
+                'serviceCenter' => $this->event->serviceCenter,
+                'addresses' => $this->event->addresses,
+            ];
+        });
+
+        $this->event->setRelation('serviceCenter', $relations['serviceCenter']);
+        $this->event->setRelation('addresses', $relations['addresses']);
     }
 
     public function failed(Throwable $exception): void

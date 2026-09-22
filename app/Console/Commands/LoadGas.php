@@ -46,14 +46,27 @@ class LoadGas extends Command
             $data = json_decode($response->getBody()->getContents(), false);
 
             $serviceCenters = ServiceCenter::all();
+            $serviceCenterNames = $serviceCenters->mapWithKeys(function (ServiceCenter $serviceCenter) {
+                return [$serviceCenter->id => str_replace(
+                    array('ს სერვის ცენტრი', 'ს სერვის ცენთრი', 'აბაშა', 'ყვარელი', ' სერვის ცენთრი'),
+                    array('', '', 'აბაში', 'ყვარლი', ''),
+                    $serviceCenter->name
+                )];
+            });
+
+            $starts = collect($data->items)
+                ->map(fn($item) => Carbon::createFromFormat('Y-m-d\TH:i:sO', $item->start));
+
+            $existingEvents = Event::query()
+                ->where('type', EventTypes::gas)
+                ->whereIn('start', $starts)
+                ->get()
+                ->keyBy(fn(Event $event) => $event->service_center_id . '|' . $event->start->toDateTimeString() . '|' . $event->finish->toDateTimeString());
+
             foreach ($data->items as $item) {
                 $foundedServiceCenter = null;
                 foreach ($serviceCenters as $serviceCenter) {
-                    $nameGe = str_replace(
-                        array('ს სერვის ცენტრი', 'ს სერვის ცენთრი', 'აბაშა', 'ყვარელი', ' სერვის ცენთრი'),
-                        array('', '', 'აბაში', 'ყვარლი', ''),
-                        $serviceCenter->name
-                    );
+                    $nameGe = $serviceCenterNames[$serviceCenter->id];
                     if (stripos($item->detail->notificationTitle, $nameGe) ||
                         stripos($item->detail->notificationTitleEN, $serviceCenter->name_en)) {
                         $foundedServiceCenter = $serviceCenter->id;
@@ -68,19 +81,16 @@ class LoadGas extends Command
                     continue;
                 }
 
-                $event = Event::query()
-                    ->where('service_center_id', $foundedServiceCenter)
-                    ->where('start', Carbon::createFromFormat('Y-m-d\TH:i:sO', $item->start))
-                    ->where('finish', Carbon::createFromFormat('Y-m-d\TH:i:sO', $item->end))
-                    ->where('type', EventTypes::gas)
-                    ->first();
+                $start = Carbon::createFromFormat('Y-m-d\TH:i:sO', $item->start);
+                $finish = Carbon::createFromFormat('Y-m-d\TH:i:sO', $item->end);
+                $key = $foundedServiceCenter . '|' . $start->toDateTimeString() . '|' . $finish->toDateTimeString();
 
-                if (!$event) {
+                if (!$existingEvents->has($key)) {
                     /* @var $event Event */
                     $event = Event::query()->create([
                         'service_center_id' => $foundedServiceCenter,
-                        'start' => Carbon::createFromFormat('Y-m-d\TH:i:sO', $item->start),
-                        'finish' => Carbon::createFromFormat('Y-m-d\TH:i:sO', $item->end),
+                        'start' => $start,
+                        'finish' => $finish,
                         'total_addresses' => 0,
                         'type' => EventTypes::gas,
                         'name' => $item->detail->notificationTitle,
