@@ -32,6 +32,9 @@ class LoadGas extends Command
                         'pageIndex' => $page,
                         'PageSize' => 100,
                     ],
+                    'headers' => [
+                        'Referer' => 'https://www.mygas.ge/',
+                    ],
                     'compress' => true,
                 ]);
             } catch (GuzzleException $e) {
