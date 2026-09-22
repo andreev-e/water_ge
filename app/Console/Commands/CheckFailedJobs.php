@@ -21,28 +21,30 @@ class CheckFailedJobs extends Command
         $failedJobs = FailedJob::query()->limit(100)->get();
 
         foreach ($failedJobs as $failedJob) {
-            Log::error($failedJob->exception);
-            if (strpos($failedJob->exception, 'bot was blocked by the user')
+            $isKnownTelegramFailure = strpos($failedJob->exception, 'bot was blocked by the user')
                 || strpos($failedJob->exception, 'user is deactivated')
-                || strpos($failedJob->exception, 'send messages to bots')
-            ) {
-                $payload = $failedJob->payload;
-                $payload = json_decode($payload, false, 512, JSON_THROW_ON_ERROR);
-                $payload = unserialize($payload->data->command);
-                $botUserId = $payload->notifiables[0]->routes['telegram'];
+                || strpos($failedJob->exception, 'send messages to bots');
 
-                if ($botUserId) {
-                    try {
-                        BotUser::deleteForever($botUserId);
-                    } catch (\Throwable $e) {
-                        echo $e->getMessage() . PHP_EOL;
-                        Log::error($e->getMessage());
-                    }
-
-                }
-
-                $failedJob->delete();
+            if (!$isKnownTelegramFailure) {
+                Log::error($failedJob->exception);
+                continue;
             }
+
+            $payload = $failedJob->payload;
+            $payload = json_decode($payload, false, 512, JSON_THROW_ON_ERROR);
+            $payload = unserialize($payload->data->command);
+            $botUserId = $payload->notifiables[0]->routes['telegram'];
+
+            if ($botUserId) {
+                try {
+                    BotUser::deleteForever($botUserId);
+                } catch (\Throwable $e) {
+                    echo $e->getMessage() . PHP_EOL;
+                    Log::error($e->getMessage());
+                }
+            }
+
+            $failedJob->delete();
         }
     }
 }
