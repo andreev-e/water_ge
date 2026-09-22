@@ -3,22 +3,11 @@
 namespace App\Console\Commands;
 
 use App\Enums\EventTypes;
-use App\Models\BotUser;
 use App\Models\Event;
 use App\Models\ServiceCenter;
-use App\Notifications\EventNotification;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Notification;
-use PHPHtmlParser\Dom;
-use PHPHtmlParser\Dom\HtmlNode;
-use PHPHtmlParser\Exceptions\ChildNotFoundException;
-use PHPHtmlParser\Exceptions\CircularException;
-use PHPHtmlParser\Exceptions\NotLoadedException;
-use PHPHtmlParser\Exceptions\StrictException;
-use PhpTelegramBot\Laravel\Facades\Telegram;
 
 class LoadWater extends Command
 {
@@ -27,96 +16,158 @@ class LoadWater extends Command
     protected $description = 'Load water schedule';
 
     /**
-     * Execute the console command.
+     * water.gov.ge is now a Nuxt SPA; the old #accordion HTML markup is gone.
+     * The planned-works list is embedded as the page's Nuxt SSR payload instead.
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function handle(Dom $dom): void
+    public function handle(Client $client): void
     {
-        $client = new Client([
-            'verify' => false,
-        ]);
+        $response = $client->get('https://water.gov.ge/planned-works');
 
-        for ($i = 0; $i < 1; $i++) {
-            $url = 'http://water.gov.ge/page/full/107' . ($i * 10 === 0 ? '' : '/' . $i * 10);
-            echo $url . PHP_EOL;
-            $response = $client->get($url);
+        if (!preg_match('/<script[^>]*id="__NUXT_DATA__"[^>]*>(.*?)<\/script>/s', $response->getBody()->getContents(), $matches)) {
+            $this->error('Could not find __NUXT_DATA__ payload');
+            return;
+        }
 
-            try {
-                $dom->loadStr($response->getBody()->getContents());
-                $events = $dom->find('#accordion')?->getChildren();
+        $payload = json_decode($matches[1], true);
 
-                /* @var $event \PHPHtmlParser\Dom\HtmlNode */
-                foreach ($events as $event) {
-                    $addresses = [];
-                    $title = $event->find('.panel-title')?->getChildren()[1]->text();
-                    $serviceCenter = explode(' - ', $title)[0];
+        if (!is_array($payload)) {
+            $this->error('Could not decode __NUXT_DATA__ payload');
+            return;
+        }
 
-                    /* @var $child \PHPHtmlParser\Dom\HtmlNode */
-                    foreach ($event->find('.panel-body .row .col-sm-12')?->getChildren() as $child) {
-                        if (strpos(' '.$child->text(), 'წყალმომარაგების შეწყვეტის დრო:')) {
-                            $from = trim(explode(': ', $child->text())[1]);
-                            continue;
-                        }
-                        if (strpos(' '.$child->text(), 'წყალმომარაგების აღდგენის დრო:')) {
-                            $to = trim(explode(': ', $child->text())[1]);
-                            continue;
-                        }
+        foreach ($this->extractProblems($payload) as $item) {
+            if (($item['source'] ?? null) !== 'problem' || empty($item['published_at']) || empty($item['end_date'])) {
+                continue;
+            }
 
-                        if (get_class($child) === HtmlNode::class && $child->hasChildren()) {
-                            foreach ($child->getChildren() as $childChild) {
-                                if (trim($childChild->text) && !$this->isEnding(trim($childChild->text))) {
-                                    $addresses[] = trim($childChild->text);
-                                }
-                            }
-                        }
-                    }
+            $serviceCenterName = trim((string) ($item['contractor'] ?? ''));
 
-                    if (!isset($from) || !isset($to)) {
-                        $this->error('Skipping event due to missing from or to');
-                        continue;
-                    }
+            if ($serviceCenterName === '') {
+                continue;
+            }
 
-                    $serviceCenter = ServiceCenter::query()->firstOrCreate(['name' => $serviceCenter]);
+            $serviceCenter = $this->resolveServiceCenter($serviceCenterName);
+            $addresses = $this->extractAddresses((string) ($item['excerpt'] ?? ''));
 
-                    $event = Event::query()
-                        ->where('service_center_id', $serviceCenter->id)
-                        ->where('start', Carbon::createFromFormat('d/m/Y H:i:s', $from))
-                        ->where('finish', Carbon::createFromFormat('d/m/Y H:i:s', $to ))
-                        ->where('type', EventTypes::water)
-                        ->first();
+            $start = Carbon::createFromFormat('Y-m-d H:i:s', $item['published_at']);
+            $finish = Carbon::createFromFormat('Y-m-d H:i:s', $item['end_date']);
 
-                    if (!$event) {
-                        /* @var $event Event */
-                        $event = Event::query()->create([
-                            'service_center_id' => $serviceCenter->id,
-                            'start' => Carbon::createFromFormat('d/m/Y H:i:s', $from),
-                            'finish' => Carbon::createFromFormat('d/m/Y H:i:s', $to),
-                            'total_addresses' => count($addresses),
-                            'type' => EventTypes::water,
-                        ]);
+            $event = Event::query()
+                ->where('service_center_id', $serviceCenter->id)
+                ->where('start', $start)
+                ->where('finish', $finish)
+                ->where('type', EventTypes::water)
+                ->first();
 
-                        foreach ($addresses as $address) {
-                            /* @var $addressObject \App\Models\Address */
-                            $addressObject = $serviceCenter->addresses()->firstOrCreate(['name' => $address]);
-                            $addressObject->events()->syncWithoutDetaching($event);
-                        }
+            if (!$event) {
+                /* @var $event Event */
+                $event = Event::query()->create([
+                    'service_center_id' => $serviceCenter->id,
+                    'start' => $start,
+                    'finish' => $finish,
+                    'total_addresses' => count($addresses),
+                    'type' => EventTypes::water,
+                ]);
 
-                        $event->notifySubscribed();
-                    }
+                foreach ($addresses as $address) {
+                    /* @var $addressObject \App\Models\Address */
+                    $addressObject = $serviceCenter->addresses()->firstOrCreate(['name' => $address]);
+                    $addressObject->events()->syncWithoutDetaching($event);
                 }
-            } catch (ChildNotFoundException|CircularException|StrictException|NotLoadedException $e) {
+
+                $event->notifySubscribed();
             }
         }
     }
 
-    private function isEnding(string $address): bool
+    /**
+     * Resolves the "planned-works-problems" list of items out of the Nuxt
+     * __NUXT_DATA__ payload, which stores every value as an index into the
+     * flat $data array (devalue format).
+     */
+    private function extractProblems(array $data): array
     {
-        return strpos(' ' . $address, 'წყალმომარაგების შეზღუდვა გამოწვეულია ტექნიკური სამუშაოების გათვალისწინებით') ||
-            strpos(' ' . $address, 'გამორთული მისამართები') ||
-            strpos(' ' . $address,
-                'შ.პ.ს. საქართველოს გაერთიანებული წყალმომარაგების კომპანია ბოდიშს უხდის მომხმარებლებს შექმნილი დისკომფორტის გამო');
+        $rootIdx = $this->unwrapRef($data, 0);
+
+        if (!is_int($rootIdx) || !isset($data[$rootIdx]['data'])) {
+            return [];
+        }
+
+        $dataIdx = $this->unwrapRef($data, $data[$rootIdx]['data']);
+
+        if (!is_int($dataIdx) || !isset($data[$dataIdx]['planned-works-problems'])) {
+            return [];
+        }
+
+        $problems = $this->resolve($data, $data[$dataIdx]['planned-works-problems']);
+
+        return is_array($problems) ? ($problems['items'] ?? []) : [];
+    }
+
+    private function unwrapRef(array $data, mixed $idx): mixed
+    {
+        if (!is_int($idx) || !array_key_exists($idx, $data)) {
+            return $idx;
+        }
+
+        $value = $data[$idx];
+
+        if (is_array($value) && array_is_list($value) && count($value) === 2 &&
+            is_string($value[0]) && in_array($value[0], ['ShallowReactive', 'Reactive', 'ShallowRef', 'Ref'], true)) {
+            return $value[1];
+        }
+
+        return $idx;
+    }
+
+    private function resolve(array $data, mixed $idx): mixed
+    {
+        if (!is_int($idx) || !array_key_exists($idx, $data)) {
+            return $idx;
+        }
+
+        $value = $data[$this->unwrapRef($data, $idx)];
+
+        if (!is_array($value)) {
+            return $value;
+        }
+
+        return array_map(fn ($item) => $this->resolve($data, $item), $value);
+    }
+
+    /**
+     * water.gov.ge exposes only a bare municipality name (e.g. "ხობი"), while
+     * ServiceCenter names elsewhere carry the full genitive + "სერვის ცენტრი"
+     * form (e.g. "ხობის სერვის ცენტრი"). Match against the existing catalog
+     * instead of blindly creating a bare-name duplicate.
+     */
+    private function resolveServiceCenter(string $name): ServiceCenter
+    {
+        $exact = ServiceCenter::query()->where('name', $name)->first();
+
+        if ($exact) {
+            return $exact;
+        }
+
+        $stem = mb_substr($name, 0, -1);
+
+        $fuzzy = ServiceCenter::query()
+            ->where('name', 'LIKE', $name . '%')
+            ->orWhere('name', 'LIKE', $stem . '%')
+            ->orderByRaw('LENGTH(name) ASC')
+            ->first();
+
+        return $fuzzy ?? ServiceCenter::query()->create(['name' => $name]);
+    }
+
+    private function extractAddresses(string $excerpt): array
+    {
+        if (!preg_match('/მისამართები:\s*(.+)$/u', $excerpt, $matches)) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map('trim', explode(',', $matches[1]))));
     }
 }
-
-
-

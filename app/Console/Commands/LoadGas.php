@@ -9,7 +9,9 @@ use App\Models\ServiceCenter;
 use App\Notifications\EventNotification;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 
 class LoadGas extends Command
@@ -18,21 +20,26 @@ class LoadGas extends Command
 
     protected $description = 'Command description';
 
-    /**
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     */
     public function handle(Client $client)
     {
         $page = 1;
         do {
             $url = 'https://utilixwebapi.azurewebsites.net/api/Outage/GetOutagesWithPaging';
-            $response = $client->get($url, [
-                'query' => [
-                    'pageIndex' => $page,
-                    'PageSize' => 100,
-                ],
-                'compress' => true,
-            ]);
+
+            try {
+                $response = $client->get($url, [
+                    'query' => [
+                        'pageIndex' => $page,
+                        'PageSize' => 100,
+                    ],
+                    'compress' => true,
+                ]);
+            } catch (GuzzleException $e) {
+                $this->error('Gas outages API request failed: ' . $e->getMessage());
+                Log::error('Gas outages API request failed: ' . $e->getMessage());
+                return;
+            }
+
             $data = json_decode($response->getBody()->getContents(), false);
 
             $serviceCenters = ServiceCenter::all();
