@@ -5,6 +5,7 @@ namespace App\Notifications;
 use App\Enums\EventTypes;
 use App\Models\Event;
 use App\Models\Subscriptions;
+use App\Support\TelegramFailure;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
@@ -78,12 +79,7 @@ class EventNotification extends Notification implements ShouldQueue
 
     public function failed(Throwable $exception): void
     {
-        if (
-            $exception instanceof CouldNotSendNotification &&
-            (str_contains($exception->getMessage(), 'bot was blocked by the user') ||
-                str_contains($exception->getMessage(), 'chat not found'))
-
-        ) {
+        if ($exception instanceof CouldNotSendNotification && TelegramFailure::isKnown($exception->getMessage())) {
             Subscriptions::query()
                 ->where('bot_user_id', $this->botUserId ?? null)
                 ->delete();

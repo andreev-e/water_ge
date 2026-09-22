@@ -68,9 +68,9 @@ class BotUser extends Model
                     DB::statement("DELETE FROM `bot_chat_member_updated` WHERE `user_id` = $botUserId");
                 }
             }
-
-            self::query()->where('id', $botUserId)->delete();
-            echo $botUserId . ' deleted' . PHP_EOL;
         }
+
+        self::query()->where('id', $botUserId)->delete();
+        echo $botUserId . ' deleted' . PHP_EOL;
     }
 }

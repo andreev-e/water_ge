@@ -5,10 +5,13 @@ namespace App\Notifications;
 use App\Enums\EventTypes;
 use App\Models\Event;
 use App\Models\Mail;
+use App\Support\TelegramFailure;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
+use NotificationChannels\Telegram\Exceptions\CouldNotSendNotification;
 use NotificationChannels\Telegram\TelegramMessage;
+use Throwable;
 
 class MailNotification extends Notification implements ShouldQueue
 {
@@ -33,5 +36,14 @@ class MailNotification extends Notification implements ShouldQueue
             ->options([
                 'parse_mode' => 'html',
             ]);
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        if ($exception instanceof CouldNotSendNotification && TelegramFailure::isKnown($exception->getMessage())) {
+            return;
+        }
+
+        report($exception);
     }
 }
