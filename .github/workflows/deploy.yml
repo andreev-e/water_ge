@@ -17,6 +17,7 @@ jobs:
           password: ${{ secrets.ROOT_PASSWORD }}
           port: 22
           script: |
+            set -e
             cd ${{ vars.PROD_PATH }}
 
             chown -R ${{ secrets.USER_NAME }}:${{ secrets.USER_NAME }} .
@@ -47,23 +48,28 @@ jobs:
           password: ${{ secrets.USER_PASSWORD }}
           port: 22
           script: |
-            cd ${{ vars.PROD_PATH }} && \
-            php -v && \
-            /opt/php81/bin/php /usr/local/bin/composer install --no-dev --optimize-autoloader --ignore-platform-req=ext-http --ignore-platform-req=ext-dom && \
-            /opt/php81/bin/php artisan migrate --force && \
-            /opt/php81/bin/php artisan config:cache && \
-            /opt/php81/bin/php artisan view:cache && \
-            /opt/php81/bin/php artisan event:cache && \
-            /opt/php81/bin/php artisan telegram:delete-webhook && \
+            # ssh-action reports only the exit code of the last command, so stop at the first failure
+            set -e
+            cd ${{ vars.PROD_PATH }}
+
+            # always restart workers so they drop the old autoloader, even if a step below fails
+            trap '/opt/php81/bin/php artisan queue:restart || true' EXIT
+
+            /opt/php81/bin/php -v
+            /opt/php81/bin/php /usr/local/bin/composer install --no-dev --optimize-autoloader --ignore-platform-req=ext-http --ignore-platform-req=ext-dom
+            /opt/php81/bin/php artisan migrate --force
+            /opt/php81/bin/php artisan config:cache
+            /opt/php81/bin/php artisan view:cache
+            /opt/php81/bin/php artisan event:cache
+            /opt/php81/bin/php artisan telegram:delete-webhook
             /opt/php81/bin/php artisan telegram:set-webhook
 
-            # always restart workers so they drop the old autoloader, even if a step above failed
-            /opt/php81/bin/php artisan queue:restart || true
-
+            # keep logs on failure, they are what explains it
             truncate -s 0 storage/logs/laravel.log || true
             truncate -s 0 storage/logs/queue.log || true
 
       - name: restart queue workers after vendor update
+        if: ${{ !cancelled() }}
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.HOST }}
