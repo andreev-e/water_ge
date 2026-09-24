@@ -308,8 +308,8 @@ class Controller extends BaseController
     {
         return Cache::remember('statData', 60 * 60, function() {
             return [
-                'Сервисных центров' => '<a href="' . route('service-centers') . '" class="text-cyan-600">' . ServiceCenter::query()->count() . '</a>',
-                'Адресов в базе' => '<a href="' . route('addresses') . '" class="text-cyan-600">' . Address::query()->count() . '</a>',
+                'Сервисных центров' => '<a href="' . route('service-centers') . '" class="text-cyan-700 hover:underline">' . ServiceCenter::query()->count() . '</a>',
+                'Адресов в базе' => '<a href="' . route('addresses') . '" class="text-cyan-700 hover:underline">' . Address::query()->count() . '</a>',
                 'Событий всего' => Event::query()->count(),
                 'Разослано сегодня' => Cache::get('notified_today', 0),
             ];

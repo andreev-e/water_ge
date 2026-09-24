@@ -1,16 +1,20 @@
-<thead>
-    <tr class="border">
-        <th>
+<thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+    <tr>
+        <th class="px-3 py-2 font-medium whitespace-nowrap">
             Что
-            <a class="text-cyan-600" href="/">х</a>
+            @if(request()->has('type'))
+                <a class="ml-1 normal-case text-cyan-700 hover:underline" href="{{ request()->fullUrlWithoutQuery('type') }}" title="Сбросить фильтр">✕</a>
+            @endif
         </th>
-        <th>
+        <th class="px-3 py-2 font-medium whitespace-nowrap">
             Где
-            <a class="text-cyan-600" href="/">х</a>
+            @if(request()->has('service_center_id'))
+                <a class="ml-1 normal-case text-cyan-700 hover:underline" href="{{ request()->fullUrlWithoutQuery('service_center_id') }}" title="Сбросить фильтр">✕</a>
+            @endif
         </th>
-        <th>Адресов / потребителей</th>
-        <th>Когда отключение</th>
-        <th>Когда включат</th>
-        <th>Период</th>
+        <th class="px-3 py-2 font-medium whitespace-nowrap">Адресов / потребителей</th>
+        <th class="px-3 py-2 font-medium whitespace-nowrap">Отключение</th>
+        <th class="px-3 py-2 font-medium whitespace-nowrap">Включат</th>
+        <th class="px-3 py-2 font-medium whitespace-nowrap">Период</th>
     </tr>
 </thead>

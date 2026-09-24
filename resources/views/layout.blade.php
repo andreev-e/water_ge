@@ -14,14 +14,19 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
-<div class="px-2 py-3 w-full">
-    <h1 class="text-4xl text-center my-5">@yield('title')</h1>
-    <div class="text-center my-5">
-        <a target="_blank" class="text-2xl text-center  text-cyan-600" href="https://t.me/WaterGeorgia_bot">
-            @WaterGeorgia_bot
-        </a>
-    </div>
+<body class="bg-slate-50 text-slate-800 antialiased">
+<div class="max-w-6xl mx-auto px-4 py-6">
+    <header class="mb-6 text-center">
+        <h1 class="text-2xl md:text-3xl font-semibold tracking-tight">@yield('title')</h1>
+        <nav class="mt-4 flex flex-wrap justify-center gap-2 text-sm">
+            <a href="{{ route('index') }}" class="px-3 py-1 rounded-full bg-white border border-slate-200 hover:border-cyan-600 hover:text-cyan-700">Все отключения</a>
+            <a href="{{ route('service-centers') }}" class="px-3 py-1 rounded-full bg-white border border-slate-200 hover:border-cyan-600 hover:text-cyan-700">Сервис центры</a>
+            <a href="{{ route('addresses') }}" class="px-3 py-1 rounded-full bg-white border border-slate-200 hover:border-cyan-600 hover:text-cyan-700">Адреса</a>
+            <a target="_blank" href="https://t.me/WaterGeorgia_bot" class="px-3 py-1 rounded-full bg-cyan-700 text-white hover:bg-cyan-800">
+                Telegram-бот @WaterGeorgia_bot
+            </a>
+        </nav>
+    </header>
     @yield('content')
 </div>
 <!-- Yandex.Metrika counter -->

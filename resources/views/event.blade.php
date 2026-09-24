@@ -10,19 +10,21 @@
 
 @section('content')
     @include('partial.stats', ['stat' => $stat])
-    <table class="table-auto w-full text-left overflow-x-scroll">
-        @include('table_head', ['withLink' => false])
-        <tbody>
-            @include('table_row', ['event' => $event, 'withLink' => false])
-        </tbody>
-    </table>
-    <h2 class="text-3xl text-center my-5">
-        Затронуто
-    </h2>
+    <div class="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+        <table class="w-full text-sm text-left">
+            @include('table_head', ['withLink' => false])
+            <tbody>
+                @include('table_row', ['event' => $event, 'withLink' => false])
+            </tbody>
+        </table>
+    </div>
+    @include('partial.section_title', ['title' => 'Затронуто'])
     @if ($event->type === EventTypes::gas)
-        <p>{{$event->name_ru}}</p>
-        <p>{{$event->name}}</p>
-        <p>{{$event->nam_en}}</p>
+        <div class="bg-white rounded-xl border border-slate-200 px-4 py-3 space-y-2 text-sm">
+            @foreach(array_filter([$event->name_ru, $event->name, $event->name_en]) as $text)
+                <p>{{ $text }}</p>
+            @endforeach
+        </div>
     @else
         @include('partial.addresses_list', ['addresses' => $event->addresses, 'withSC' => false])
     @endif

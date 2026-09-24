@@ -9,27 +9,29 @@
 
 @section('content')
     @include('partial.stats', ['stat' => $stat])
-    <table class="table-auto w-full text-left overflow-x-scroll">
-        <thead>
-            <tr class="border">
-                <th>Сервис центр</th>
-                <th>Отключений</th>
-                <th>Подписчиков</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($serviceCenters as $serviceCenter)
-                <tr class="border">
-                    <td>
-                        <a class="text-cyan-600" href="{{ route('index', ['service_center_id' => $serviceCenter->id]) }}">
-                            {{ $serviceCenter->name_ru  }}
-                        </a>
-                    </td>
-                    <td>{{ $serviceCenter->total_events  }}</td>
-                    <td>{{ $serviceCenter->subscriptions_count  }}</td>
+    <div class="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+        <table class="w-full text-sm text-left">
+            <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                <tr>
+                    <th class="px-3 py-2 font-medium">Сервис центр</th>
+                    <th class="px-3 py-2 font-medium text-right">Отключений</th>
+                    <th class="px-3 py-2 font-medium text-right">Подписчиков</th>
                 </tr>
-            @endforeach
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach($serviceCenters as $serviceCenter)
+                    <tr class="border-t border-slate-100 hover:bg-slate-50">
+                        <td class="px-3 py-2">
+                            <a class="text-cyan-700 hover:underline" href="{{ route('index', ['service_center_id' => $serviceCenter->id]) }}">
+                                {{ $serviceCenter->name_ru }}
+                            </a>
+                        </td>
+                        <td class="px-3 py-2 text-right tabular-nums">{{ $serviceCenter->total_events }}</td>
+                        <td class="px-3 py-2 text-right tabular-nums">{{ $serviceCenter->subscriptions_count }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
 @endsection
 

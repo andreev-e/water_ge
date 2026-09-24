@@ -1,5 +1,5 @@
-<h2 class="text-3xl text-center my-5">{{ $graphData['title']  }}</h2>
-<div style="height: 600px">
+@include('partial.section_title', ['title' => $graphData['title']])
+<div class="bg-white rounded-xl border border-slate-200 p-3 h-[420px] md:h-[560px]">
     <canvas id="eventsChart"></canvas>
 </div>
 <script>
@@ -19,8 +19,7 @@
             maintainAspectRatio: false,
             plugins: {
                 title: {
-                    text: '{{ $graphData['title'] }}',
-                    display: true,
+                    display: false,
                 },
             },
             scales: {
