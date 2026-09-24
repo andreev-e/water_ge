@@ -40,6 +40,8 @@ class LoadGwp extends Command
                     'connect_timeout' => 10,
                     'timeout' => 30,
                     'proxy' => config('services.gwp.proxy'),
+                    // Prod runs Debian 10 whose CA bundle predates gwp.ge's Sectigo R46 root.
+                    'verify' => resource_path('certs/sectigo-r46.pem'),
                 ]));
             } catch (GuzzleException $e) {
                 $this->error('GWP API request failed: ' . $e->getMessage());
