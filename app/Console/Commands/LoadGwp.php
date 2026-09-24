@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 /**
  * Tbilisi (and Rustavi) water is served by GWP, not by water.gov.ge,
  * so those outages come from GWP's own public API.
+ * gwp.ge is reachable only from Georgian IPs, see services.gwp.proxy.
  */
 class LoadGwp extends Command
 {
@@ -35,7 +36,11 @@ class LoadGwp extends Command
 
         foreach (self::ENDPOINTS as $url) {
             try {
-                $response = $client->get($url, ['timeout' => 30]);
+                $response = $client->get($url, array_filter([
+                    'connect_timeout' => 10,
+                    'timeout' => 30,
+                    'proxy' => config('services.gwp.proxy'),
+                ]));
             } catch (GuzzleException $e) {
                 $this->error('GWP API request failed: ' . $e->getMessage());
                 Log::error('GWP API request failed: ' . $e->getMessage());

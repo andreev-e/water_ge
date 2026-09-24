@@ -19,7 +19,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         $schedule->command(LoadWater::class)->everyFiveMinutes();
-        $schedule->command(LoadGwp::class)->everyFiveMinutes();
+        $schedule->command(LoadGwp::class)->everyFiveMinutes()->withoutOverlapping(10)->runInBackground();
         $schedule->command(LoadEnergy::class)->everyFiveMinutes();
         $schedule->command(LoadGas::class)->everyFiveMinutes();
 //        $schedule->command(Translate::class)->everyMinute();

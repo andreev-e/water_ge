@@ -34,4 +34,10 @@ return [
     'telegram-bot-api' => [
         'token' => env('TELEGRAM_API_TOKEN')
     ],
+
+    'gwp' => [
+        // gwp.ge drops connections from outside Georgia, so prod needs a Georgian egress,
+        // e.g. http://user:pass@host:port or socks5h://host:port
+        'proxy' => env('GWP_PROXY'),
+    ],
 ];
