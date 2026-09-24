@@ -25,6 +25,7 @@ class Event extends Model
         'name',
         'name_en',
         'name_ru',
+        'external_id',
     ];
 
     protected $casts = [
