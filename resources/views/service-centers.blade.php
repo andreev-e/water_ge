@@ -8,13 +8,7 @@
 @section('title', 'Сервис центры')
 
 @section('content')
-    <table class="table-auto w-full text-center">
-        <tr>
-            @foreach($stat as $name => $datum)
-                <td>{{ $name }}: {!! $datum !!}</td>
-            @endforeach
-        </tr>
-    </table>
+    @include('partial.stats', ['stat' => $stat])
     <table class="table-auto w-full text-left overflow-x-scroll">
         <thead>
             <tr class="border">

@@ -7,6 +7,7 @@ use App\Models\BotUser;
 use App\Models\Event;
 use App\Models\ServiceCenter;
 use App\Notifications\EventNotification;
+use App\Support\SourceStatus;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
@@ -100,6 +101,8 @@ class LoadGas extends Command
                     $event->notifySubscribed();
                 }
             }
+
+            SourceStatus::markUpdated(SourceStatus::GAS);
 
             $page++;
             echo $page . PHP_EOL;

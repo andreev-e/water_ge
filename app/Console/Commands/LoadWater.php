@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Enums\EventTypes;
 use App\Models\Event;
 use App\Models\ServiceCenter;
+use App\Support\SourceStatus;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use Illuminate\Console\Command;
@@ -80,6 +81,8 @@ class LoadWater extends Command
                 $event->notifySubscribed();
             }
         }
+
+        SourceStatus::markUpdated(SourceStatus::WATER);
     }
 
     /**

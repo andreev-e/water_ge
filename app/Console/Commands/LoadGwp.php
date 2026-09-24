@@ -6,6 +6,7 @@ use App\Enums\EventTypes;
 use App\Models\Event;
 use App\Models\ServiceCenter;
 use App\Support\GwpDisconnectParser;
+use App\Support\SourceStatus;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
@@ -121,6 +122,8 @@ class LoadGwp extends Command
 
             $event->notifySubscribed();
         }
+
+        SourceStatus::markUpdated(SourceStatus::GWP);
     }
 
     /**

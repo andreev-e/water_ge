@@ -7,6 +7,7 @@ use App\Models\BotUser;
 use App\Models\Event;
 use App\Models\ServiceCenter;
 use App\Notifications\EventNotification;
+use App\Support\SourceStatus;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use Illuminate\Console\Command;
@@ -74,6 +75,8 @@ class LoadEnergy extends Command
                     $event->notifySubscribed();
                 }
             }
+
+            SourceStatus::markUpdated(SourceStatus::ENERGY);
         }
     }
 }
