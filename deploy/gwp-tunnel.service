@@ -1,0 +1,24 @@
+# Reverse SOCKS tunnel for LoadGwp: gwp.ge accepts only Georgian IPs, so prod
+# reaches it through a machine in Georgia (GWP_PROXY=socks5h://127.0.0.1:1080).
+# Runs on that Georgian machine as a systemd user unit:
+#   ~/.ssh/gwp_tunnel             - key allowed on the server only to listen on 127.0.0.1:1080
+#   ~/.config/gwp-tunnel.env      - GWP_TUNNEL_TARGET=user@water.andreev-e.ru
+#   cp deploy/gwp-tunnel.service ~/.config/systemd/user/
+#   systemctl --user enable --now gwp-tunnel && loginctl enable-linger
+[Unit]
+Description=Reverse SOCKS tunnel to water.andreev-e.ru for gwp.ge
+
+[Service]
+ExecStart=/usr/bin/ssh -N -i %h/.ssh/gwp_tunnel \
+    -o BatchMode=yes \
+    -o ExitOnForwardFailure=yes \
+    -o ServerAliveInterval=30 \
+    -o ServerAliveCountMax=3 \
+    -R 127.0.0.1:1080 \
+    ${GWP_TUNNEL_TARGET}
+EnvironmentFile=%h/.config/gwp-tunnel.env
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target
