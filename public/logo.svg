@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#0e7490"/>
+  <g fill="#fff">
+    <!-- water -->
+    <path transform="translate(44 158) scale(1.3)" d="M50 0C43 18 0 60 0 100a50 50 0 0 0 100 0C100 60 57 18 50 0Z"/>
+    <!-- gas -->
+    <path transform="translate(191 158) scale(1.3)" d="M58 0c-4 30 38 52 40 94 2 34-22 56-48 56S0 130 2 100c2-24 16-38 22-58 8 16 12 30 12 42 12-8 18-22 18-40 0-16-2-30 4-44Z"/>
+    <!-- energy -->
+    <path transform="translate(338 158) scale(1.3)" d="M66 0 2 88h46l-14 62 66-92H54L66 0Z"/>
+  </g>
+</svg>

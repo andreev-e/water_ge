@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
     <title>@yield('title')</title>
+    <link rel="icon" type="image/svg+xml" href="/logo.svg">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -17,7 +18,10 @@
 <body class="bg-slate-50 text-slate-800 antialiased">
 <div class="max-w-6xl mx-auto px-4 py-6">
     <header class="mb-6 text-center">
-        <h1 class="text-2xl md:text-3xl font-semibold tracking-tight">@yield('title')</h1>
+        <div class="flex items-center justify-center gap-3">
+            <a href="{{ route('index') }}" class="shrink-0"><img src="/logo.svg" alt="WaterGeorgia" class="w-10 h-10 md:w-12 md:h-12"></a>
+            <h1 class="text-2xl md:text-3xl font-semibold tracking-tight text-left">@yield('title')</h1>
+        </div>
         <nav class="mt-4 flex flex-wrap justify-center gap-2 text-sm">
             <a href="{{ route('index') }}" class="px-3 py-1 rounded-full bg-white border border-slate-200 hover:border-cyan-600 hover:text-cyan-700">Все отключения</a>
             <a href="{{ route('service-centers') }}" class="px-3 py-1 rounded-full bg-white border border-slate-200 hover:border-cyan-600 hover:text-cyan-700">Сервис центры</a>
