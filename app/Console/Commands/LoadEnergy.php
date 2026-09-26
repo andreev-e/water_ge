@@ -73,6 +73,7 @@ class LoadEnergy extends Command
                     }
 
                     $event->notifySubscribed();
+                    $event->publishToFacebook();
                 }
             }
 

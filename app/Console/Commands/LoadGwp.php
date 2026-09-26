@@ -121,6 +121,7 @@ class LoadGwp extends Command
             }
 
             $event->notifySubscribed();
+            $event->publishToFacebook();
         }
 
         SourceStatus::markUpdated(SourceStatus::GWP);

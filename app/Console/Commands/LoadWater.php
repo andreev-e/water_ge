@@ -79,6 +79,7 @@ class LoadWater extends Command
                 }
 
                 $event->notifySubscribed();
+                $event->publishToFacebook();
             }
         }
 

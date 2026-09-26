@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\EventTypes;
+use App\Jobs\PublishEventToFacebook;
 use App\Notifications\EventNotification;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -83,6 +84,19 @@ class Event extends Model
         Cache::put('notified_today', $notifiedToday, now()->setTimezone('Asia/Tbilisi')->endOfDay());
 
         return count($subscriptions);
+    }
+
+    public function publishToFacebook(): void
+    {
+        if (!config('services.facebook.page_id') || !config('services.facebook.page_token')) {
+            return;
+        }
+
+        if ($this->finish->isPast()) {
+            return;
+        }
+
+        PublishEventToFacebook::dispatch($this);
     }
 
     public function getFromToAttribute(): string

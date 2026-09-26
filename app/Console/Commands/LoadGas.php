@@ -99,6 +99,7 @@ class LoadGas extends Command
                     ]);
 
                     $event->notifySubscribed();
+                    $event->publishToFacebook();
                 }
             }
 

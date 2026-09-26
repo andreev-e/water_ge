@@ -35,6 +35,14 @@ return [
         'token' => env('TELEGRAM_API_TOKEN')
     ],
 
+    'facebook' => [
+        // One shared Page for all service centers; posts are told apart by hashtags.
+        // Groups can't be posted to: Meta removed the Groups API in April 2024.
+        'page_id' => env('FACEBOOK_PAGE_ID'),
+        'page_token' => env('FACEBOOK_PAGE_TOKEN'),
+        'graph_version' => env('FACEBOOK_GRAPH_VERSION', 'v26.0'),
+    ],
+
     'gwp' => [
         // gwp.ge drops connections from outside Georgia, so prod needs a Georgian egress,
         // e.g. http://user:pass@host:port or socks5h://host:port
