@@ -114,123 +114,128 @@ class Controller extends BaseController
         return view('event', compact('event', 'stat'));
     }
 
+    private const SERIES_COLORS = [
+        EventTypes::water->value => '#2a78d6',
+        EventTypes::energy->value => '#eb6834',
+    ];
+
+    private const SERIES_LABELS = [
+        EventTypes::water->value => 'Вода',
+        EventTypes::energy->value => 'Электричество',
+    ];
+
     /**
-     * @throws \Exception
+     * Share of the service center's addresses cut off on each day, split by
+     * outage type. An event counts on every day between its start and finish,
+     * and an address hit by several events of one type on a day counts once.
      */
-    private function randColor(): string
-    {
-        return '#' . str_pad(dechex(random_int(0, 0xFFFFFF)), 6, '0', STR_PAD_LEFT);
-    }
-
-    private function hexInvert(string $color): string
-    {
-        $color = trim($color);
-        $prependHash = false;
-        if (str_contains($color, '#')) {
-            $prependHash = true;
-            $color = str_replace('#', '', $color);
-        }
-        $len = strlen($color);
-        if ($len === 3 || $len === 6) {
-            if ($len === 3) {
-                $color = preg_replace('/(.)(.)(.)/', "\\1\\1\\2\\2\\3\\3", $color);
-            }
-        } else {
-            throw new \RuntimeException("Недопустимая длина HEX кода ($len). Длина должна быть 3 или 6 символов.");
-        }
-        if (!preg_match('/^[a-f0-9]{6}$/i', $color)) {
-            throw new \RuntimeException(sprintf('Неверная hex строка #%s', htmlspecialchars($color, ENT_QUOTES)));
-        }
-
-        $r = dechex(255 - hexdec(substr($color, 0, 2)));
-        $r = (strlen($r) > 1) ? $r : '0' . $r;
-        $g = dechex(255 - hexdec(substr($color, 2, 2)));
-        $g = (strlen($g) > 1) ? $g : '0' . $g;
-        $b = dechex(255 - hexdec(substr($color, 4, 2)));
-        $b = (strlen($b) > 1) ? $b : '0' . $b;
-
-        return ($prependHash ? '#' : '') . $r . $g . $b;
-    }
-
     private function getEventsGraphData(ServiceCenter $serviceCenter, Address $address = null): array
     {
-        return Cache::remember('graphData_id_' . $serviceCenter->id . '-' . $address?->id, 60 * 60,
+        return Cache::remember('eventsGraph_' . $serviceCenter->id . '-' . $address?->id, 60 * 60,
             function() use ($serviceCenter, $address) {
-                $dist = 120;
-                $fromDate = now()->subDays($dist);
+                $types = [EventTypes::water, EventTypes::energy];
+                $firstDay = now()->subDays(120)->startOfDay();
+                $lastDay = now()->addDays(5)->startOfDay();
 
                 $events = Event::query()
-                    ->with(['serviceCenter', 'addresses'])
-                    ->where('start', '>=', $fromDate)
-                    ->whereIn('type', [EventTypes::water, EventTypes::energy])
+                    ->with('addresses:id')
+                    ->where('finish', '>=', $firstDay)
+                    ->where('start', '<', $lastDay->copy()->addDay())
+                    ->whereIn('type', $types)
                     ->where('service_center_id', $serviceCenter->id)
-                    ->orderBy('start')
                     ->get();
 
-                $graphData = [];
-                $graphData['labels'] = [];
-                $graphData['datasets'] = [];
-
-                while ($fromDate->lessThan(now()->addDays(5))) {
-                    $graphData['labels'][] = $fromDate->format('d.m.Y');
-                    $fromDate->addDay();
+                $labels = [];
+                $affected = [];
+                for ($day = $firstDay->copy(); $day->lte($lastDay); $day->addDay()) {
+                    $labels[] = $day->format('d.m.Y');
+                    foreach ($types as $type) {
+                        $affected[$type->value][$day->format('d.m.Y')] = [];
+                    }
                 }
 
-                $color = $this->randColor();
-                $graphData['datasets'][$serviceCenter->id]['label'] = $serviceCenter->name_ru;
-                $graphData['datasets'][$serviceCenter->id]['backgroundColor'] = $color;
-                $graphData['datasets'][$serviceCenter->id]['borderColor'] = $color;
-                $graphData['datasets'][$serviceCenter->id]['fill'] = false;
+                $addressDays = [];
+                foreach ($events as $event) {
+                    $day = $event->start->copy()->startOfDay()->max($firstDay)->copy();
+                    $until = $event->finish->copy()->startOfDay()->min($lastDay)->copy();
+                    $ids = $event->addresses->pluck('id')->all();
+                    for (; $day->lte($until); $day->addDay()) {
+                        $date = $day->format('d.m.Y');
+                        $affected[$event->type->value][$date] += array_fill_keys($ids, true);
+                        if ($address && in_array($address->id, $ids, true)) {
+                            $addressDays[$date][] = self::SERIES_LABELS[$event->type->value];
+                        }
+                    }
+                }
+
+                $total = max($serviceCenter->total_addresses, 1);
+                $datasets = [];
+                $dayTotals = array_fill_keys($labels, 0);
+                foreach ($types as $type) {
+                    $counts = array_map('count', array_values($affected[$type->value]));
+                    foreach ($labels as $i => $date) {
+                        $dayTotals[$date] += $counts[$i];
+                    }
+                    $datasets[] = [
+                        'type' => 'bar',
+                        'label' => self::SERIES_LABELS[$type->value],
+                        'backgroundColor' => self::SERIES_COLORS[$type->value],
+                        'data' => array_map(fn($count) => min(round($count / $total * 100, 1), 100), $counts),
+                        'counts' => $counts,
+                        'stack' => 'outages',
+                        'order' => 2,
+                    ];
+                }
 
                 if ($address) {
-                    $color = $this->hexInvert($color);
-                    $graphData['datasets']['addr_' . $address->id]['label'] = $address->translit;
-                    $graphData['datasets']['addr_' . $address->id]['backgroundColor'] = $color;
-                    $graphData['datasets']['addr_' . $address->id]['borderColor'] = $color;
-                    $graphData['datasets']['addr_' . $address->id]['fill'] = false;
+                    $datasets[] = [
+                        'type' => 'line',
+                        'showLine' => false,
+                        'label' => 'Отключение по адресу ' . $address->translit,
+                        'backgroundColor' => '#1e293b',
+                        'borderColor' => '#ffffff',
+                        'borderWidth' => 2,
+                        'pointStyle' => 'triangle',
+                        'pointRadius' => 7,
+                        'pointHoverRadius' => 9,
+                        // Sits on top of that day's bar.
+                        'data' => array_map(
+                            fn($i, $date) => isset($addressDays[$date])
+                                ? array_sum(array_map(fn($dataset) => $dataset['data'][$i], $datasets))
+                                : null,
+                            array_keys($labels),
+                            $labels,
+                        ),
+                        'kinds' => array_map(fn($date) => implode(', ', array_unique($addressDays[$date] ?? [])), $labels),
+                        'order' => 1,
+                    ];
                 }
 
-                foreach ($graphData['labels'] as $date) {
-                    $found = false;
-                    foreach ($events as $event) {
-                        if ($date === $event->start->format('d.m.Y')) {
-                            if ($serviceCenter->id === $event->serviceCenter->id) {
-                                $found = $event;
-                                $number = round(($serviceCenter->total_addresses - $event->total_addresses) / $serviceCenter->total_addresses * 100, 2);
-                                $graphData['datasets'][$serviceCenter->id]['data'][] = $number;
-                            }
-                        }
-                    }
+                $daysWithOutages = count(array_filter($dayTotals));
+                $pastDays = array_slice($dayTotals, 0, count($labels) - 5, true);
+                $worst = $pastDays ? array_keys($pastDays, max($pastDays))[0] : null;
 
-                    if (!$found) {
-                        $graphData['datasets'][$serviceCenter->id]['data'][] = 100;
-                    } else {
-                        $events = $events->filter(function($event) use ($found) {
-                            return $event->id = $found->id;
-                        });
-                    }
-
-                    if ($address) {
-                        $found = false;
-                        foreach ($address->events as $event) {
-                            if ($address && $date === $event->start->format('d.m.Y') && $address->service_center_id === $event->service_center_id) {
-                                $found = $event;
-                                $graphData['datasets']['addr_' . $address->id]['data'][] = 0;
-                            }
-                        }
-                        if (!$found) {
-                            $graphData['datasets']['addr_' . $address->id]['data'][] = 100;
-                        }
-                    }
+                $summary = [
+                    'Дней с отключениями' => $daysWithOutages . ' из ' . count($labels),
+                    'Худший день' => $worst && $pastDays[$worst]
+                        ? substr($worst, 0, 5) . ' — ' . min(round($pastDays[$worst] / $total * 100), 100) . '%'
+                        : '—',
+                    'Адресов в центре' => $serviceCenter->total_addresses,
+                ];
+                if ($address) {
+                    $summary['Отключений по адресу'] = count($addressDays) . ' дн.';
                 }
 
-                $graphData['datasets'] = array_values($graphData['datasets']);
-
-                $graphData['title'] = 'Статистика отключений (только вода и электроэнергия)';
-                $graphData['xTitle'] = 'Даты';
-                $graphData['yTitle'] = '% адресов за вычетом отключенных';
-
-                return $graphData;
+                return [
+                    'type' => 'bar',
+                    'title' => 'Статистика отключений за 4 месяца (вода и электричество)',
+                    'labels' => $labels,
+                    'datasets' => $datasets,
+                    'summary' => $summary,
+                    'yTitle' => '% адресов без услуги',
+                    'yUnit' => '%',
+                    'todayIndex' => count($labels) - 6,
+                ];
             });
     }
 
@@ -266,13 +271,13 @@ class Controller extends BaseController
                     $fromDate->addDay();
                 }
 
-                $color = $this->randColor();
+                $color = '#2a78d6';
                 $graphData['datasets'][1]['label'] = 'Пользователи';
                 $graphData['datasets'][1]['backgroundColor'] = $color;
                 $graphData['datasets'][1]['borderColor'] = $color;
                 $graphData['datasets'][1]['fill'] = false;
 
-                $color = $this->hexInvert($color);
+                $color = '#eb6834';
                 $graphData['datasets'][2]['label'] = 'Подписки';
                 $graphData['datasets'][2]['backgroundColor'] = $color;
                 $graphData['datasets'][2]['borderColor'] = $color;
