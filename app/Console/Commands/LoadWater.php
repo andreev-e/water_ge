@@ -17,6 +17,20 @@ class LoadWater extends Command
 
     protected $description = 'Load water schedule';
 
+    private const BORJOMI = 'ბორჯომის სერვის ცენტრი';
+
+    private const BAKURIANI = 'ბაკურიანის სერვის ცენტრი';
+
+    /**
+     * Contractors whose bare name doesn't prefix their center's: Georgian
+     * declension drops a vowel (გარდაბანი -> გარდაბნის), and one contractor
+     * covers the whole Borjomi municipality.
+     */
+    private const CONTRACTOR_CENTERS = [
+        'გარდაბანი' => 'გარდაბნის სერვის ცენტრი',
+        'ბორჯომი დ. ბაკურიანი' => self::BORJOMI,
+    ];
+
     /**
      * water.gov.ge is now a Nuxt SPA; the old #accordion HTML markup is gone.
      * The planned-works list is embedded as the page's Nuxt SSR payload instead.
@@ -96,8 +110,8 @@ class LoadWater extends Command
             return false;
         }
 
-        $serviceCenter = $this->resolveServiceCenter($serviceCenterName);
         $addresses = $this->extractAddresses((string) ($item['excerpt'] ?? ''));
+        $serviceCenter = $this->resolveServiceCenter($serviceCenterName, $addresses);
 
         $start = Carbon::createFromFormat('Y-m-d H:i:s', $item['published_at']);
         $finish = Carbon::createFromFormat('Y-m-d H:i:s', $item['end_date']);
@@ -230,8 +244,15 @@ class LoadWater extends Command
      * form (e.g. "ხობის სერვის ცენტრი"). Match against the existing catalog
      * instead of blindly creating a bare-name duplicate.
      */
-    private function resolveServiceCenter(string $name): ServiceCenter
+    private function resolveServiceCenter(string $name, array $addresses): ServiceCenter
     {
+        $name = self::CONTRACTOR_CENTERS[$name] ?? $name;
+
+        // Bakuriani has its own center inside the Borjomi contractor's area.
+        if ($name === self::BORJOMI && $addresses && !array_filter($addresses, fn($address) => !str_contains($address, 'ბაკურიან'))) {
+            $name = self::BAKURIANI;
+        }
+
         $exact = ServiceCenter::query()->where('name', $name)->first();
 
         if ($exact) {
