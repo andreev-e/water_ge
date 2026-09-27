@@ -134,7 +134,7 @@ class Controller extends BaseController
         return Cache::remember('eventsGraph_' . $serviceCenter->id . '-' . $address?->id, 60 * 60,
             function() use ($serviceCenter, $address) {
                 $types = [EventTypes::water, EventTypes::energy];
-                $firstDay = now()->subDays(120)->startOfDay();
+                $firstDay = now()->subYear()->startOfDay();
                 $lastDay = now()->addDays(5)->startOfDay();
 
                 $events = Event::query()
@@ -228,7 +228,7 @@ class Controller extends BaseController
 
                 return [
                     'type' => 'bar',
-                    'title' => 'Статистика отключений за 4 месяца (вода и электричество)',
+                    'title' => 'Статистика отключений за год (вода и электричество)',
                     'labels' => $labels,
                     'datasets' => $datasets,
                     'summary' => $summary,
