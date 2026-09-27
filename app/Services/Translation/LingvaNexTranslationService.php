@@ -19,6 +19,8 @@ class LingvaNexTranslationService implements TranslationInterface
 
         $this->client = new Client([
             'base_uri' => $config['uri'],
+            // called inline by the gas loader, so a hung API must not stall the schedule
+            'timeout' => 15,
         ]);
 
         $this->token = $config['token'];

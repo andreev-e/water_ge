@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\EventTypes;
 use App\Jobs\PublishEventToFacebook;
 use App\Notifications\EventNotification;
+use App\Services\Translation\TranslationInterface;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
+use Throwable;
 
 class Event extends Model
 {
@@ -84,6 +86,32 @@ class Event extends Model
         Cache::put('notified_today', $notifiedToday, now()->setTimezone('Asia/Tbilisi')->endOfDay());
 
         return count($subscriptions);
+    }
+
+    /**
+     * Translates the whole title in one request, from the English version when
+     * the source provides one: it reads better than the word-by-word Georgian
+     * dictionary in translate:all. A failure leaves name_ru empty, and readers
+     * fall back to name_en.
+     */
+    public function translateName(): void
+    {
+        if ($this->name_ru !== null) {
+            return;
+        }
+
+        [$text, $from] = $this->name_en ? [$this->name_en, 'en_GB'] : [$this->name, 'ka_GE'];
+
+        if (!$text) {
+            return;
+        }
+
+        try {
+            $this->name_ru = app(TranslationInterface::class)->translate($text, $from, 'ru');
+            $this->save();
+        } catch (Throwable $e) {
+            report($e);
+        }
     }
 
     public function publishToFacebook(): void

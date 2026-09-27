@@ -98,6 +98,7 @@ class LoadGas extends Command
                         'name_en' => $item->detail->notificationTitleEN,
                     ]);
 
+                    $event->translateName();
                     $event->notifySubscribed();
                     $event->publishToFacebook();
                 }
