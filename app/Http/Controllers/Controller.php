@@ -115,13 +115,13 @@ class Controller extends BaseController
     }
 
     private const SERIES_COLORS = [
-        EventTypes::water->value => '#2a78d6',
-        EventTypes::energy->value => '#eb6834',
+        'water' => '#2a78d6',
+        'energy' => '#eb6834',
     ];
 
     private const SERIES_LABELS = [
-        EventTypes::water->value => 'Вода',
-        EventTypes::energy->value => 'Электричество',
+        'water' => 'Вода',
+        'energy' => 'Электричество',
     ];
 
     /**
