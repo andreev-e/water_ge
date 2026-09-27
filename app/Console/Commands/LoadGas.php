@@ -17,12 +17,18 @@ use Illuminate\Support\Facades\Notification;
 
 class LoadGas extends Command
 {
-    protected $signature = 'load-gas';
+    protected $signature = 'load-gas {--from= : Import the archive since this date, without notifying anyone}';
 
     protected $description = 'Command description';
 
+    /**
+     * Normally reads only the first page: the newest outages. With --from it
+     * walks the archive, newest first, until a whole page ends before that date.
+     */
     public function handle(Client $client)
     {
+        $from = $this->option('from') ? Carbon::parse($this->option('from')) : null;
+
         $page = 1;
         do {
             $url = 'https://utilixwebapi.azurewebsites.net/api/Outage/GetOutagesWithPaging';
@@ -45,78 +51,98 @@ class LoadGas extends Command
             }
 
             $data = json_decode($response->getBody()->getContents(), false);
+            $created = $this->store($data->items, !$from);
 
-            $serviceCenters = ServiceCenter::all();
-            $serviceCenterNames = $serviceCenters->mapWithKeys(function (ServiceCenter $serviceCenter) {
-                return [$serviceCenter->id => str_replace(
-                    array('ს სერვის ცენტრი', 'ს სერვის ცენთრი', 'აბაშა', 'ყვარელი', ' სერვის ცენთრი'),
-                    array('', '', 'აბაში', 'ყვარლი', ''),
-                    $serviceCenter->name
-                )];
-            });
+            if (!$from) {
+                SourceStatus::markUpdated(SourceStatus::GAS);
+                return;
+            }
 
-            $starts = collect($data->items)
-                ->map(fn($item) => Carbon::createFromFormat('Y-m-d\TH:i:sO', $item->start));
+            $this->line('page ' . $page . ': ' . $created . ' new');
+            $recent = collect($data->items)->contains(fn($item) => Carbon::createFromFormat('Y-m-d\TH:i:sO', $item->end)->gte($from));
+            $page++;
+            usleep(200_000);
+        } while ($recent && $data->hasNext);
+    }
 
-            $existingEvents = Event::query()
-                ->where('type', EventTypes::gas)
-                ->whereIn('start', $starts)
-                ->get()
-                ->keyBy(fn(Event $event) => $event->service_center_id . '|' . $event->start->toDateTimeString() . '|' . $event->finish->toDateTimeString());
+    /**
+     * @return int how many new events were created
+     */
+    private function store(array $items, bool $notify): int
+    {
+        $serviceCenters = ServiceCenter::all();
+        $serviceCenterNames = $serviceCenters->mapWithKeys(function (ServiceCenter $serviceCenter) {
+            return [$serviceCenter->id => str_replace(
+                array('ს სერვის ცენტრი', 'ს სერვის ცენთრი', 'აბაშა', 'ყვარელი', ' სერვის ცენთრი'),
+                array('', '', 'აბაში', 'ყვარლი', ''),
+                $serviceCenter->name
+            )];
+        });
 
-            foreach ($data->items as $item) {
-                $foundedServiceCenter = null;
-                foreach ($serviceCenters as $serviceCenter) {
-                    $nameGe = $serviceCenterNames[$serviceCenter->id];
-                    if (stripos($item->detail->notificationTitle, $nameGe) ||
-                        stripos($item->detail->notificationTitleEN, $serviceCenter->name_en)) {
-                        $foundedServiceCenter = $serviceCenter->id;
-                    }
-                }
+        $starts = collect($items)
+            ->map(fn($item) => Carbon::createFromFormat('Y-m-d\TH:i:sO', $item->start));
 
-                if (!$foundedServiceCenter) {
-                    $foundedServiceCenter = $this->findCorrupt($item);
-                }
+        $existingEvents = Event::query()
+            ->where('type', EventTypes::gas)
+            ->whereIn('start', $starts)
+            ->get()
+            ->keyBy(fn(Event $event) => $event->service_center_id . '|' . $event->start->toDateTimeString() . '|' . $event->finish->toDateTimeString());
 
-                if (!$foundedServiceCenter) {
-                    continue;
-                }
-
-                $start = Carbon::createFromFormat('Y-m-d\TH:i:sO', $item->start);
-                $finish = Carbon::createFromFormat('Y-m-d\TH:i:sO', $item->end);
-                $key = $foundedServiceCenter . '|' . $start->toDateTimeString() . '|' . $finish->toDateTimeString();
-                $planned = $item->type === 'Planned';
-
-                if ($existingEvents->has($key)) {
-                    $event = $existingEvents->get($key);
-                    if ($event->planned === null) {
-                        $event->update(['planned' => $planned]);
-                    }
-                } else {
-                    /* @var $event Event */
-                    $event = Event::query()->create([
-                        'service_center_id' => $foundedServiceCenter,
-                        'start' => $start,
-                        'finish' => $finish,
-                        'total_addresses' => 0,
-                        'type' => EventTypes::gas,
-                        'name' => $item->detail->notificationTitle,
-                        'name_en' => $item->detail->notificationTitleEN,
-                        'planned' => $planned,
-                    ]);
-
-                    $event->translateName();
-                    $event->notifySubscribed();
-                    $event->publishToFacebook();
+        $created = 0;
+        foreach ($items as $item) {
+            $foundedServiceCenter = null;
+            foreach ($serviceCenters as $serviceCenter) {
+                $nameGe = $serviceCenterNames[$serviceCenter->id];
+                if (stripos($item->detail->notificationTitle, $nameGe) ||
+                    stripos($item->detail->notificationTitleEN, $serviceCenter->name_en)) {
+                    $foundedServiceCenter = $serviceCenter->id;
                 }
             }
 
-            SourceStatus::markUpdated(SourceStatus::GAS);
+            if (!$foundedServiceCenter) {
+                $foundedServiceCenter = $this->findCorrupt($item);
+            }
 
-            $page++;
-            echo $page . PHP_EOL;
-            return;
-        } while ($data->hasNext);
+            if (!$foundedServiceCenter) {
+                continue;
+            }
+
+            $start = Carbon::createFromFormat('Y-m-d\TH:i:sO', $item->start);
+            $finish = Carbon::createFromFormat('Y-m-d\TH:i:sO', $item->end);
+            $key = $foundedServiceCenter . '|' . $start->toDateTimeString() . '|' . $finish->toDateTimeString();
+            $planned = $item->type === 'Planned';
+
+            if ($existingEvents->has($key)) {
+                $event = $existingEvents->get($key);
+                if ($event->planned === null) {
+                    $event->update(['planned' => $planned]);
+                }
+                continue;
+            }
+
+            /* @var $event Event */
+            $event = Event::query()->create([
+                'service_center_id' => $foundedServiceCenter,
+                'start' => $start,
+                'finish' => $finish,
+                'total_addresses' => 0,
+                'type' => EventTypes::gas,
+                'name' => $item->detail->notificationTitle,
+                'name_en' => $item->detail->notificationTitleEN,
+                'planned' => $planned,
+            ]);
+            $existingEvents->put($key, $event);
+            $created++;
+
+            // Archive imports skip the paid translation too: readers fall back to name_en.
+            if ($notify) {
+                $event->translateName();
+                $event->notifySubscribed();
+                $event->publishToFacebook();
+            }
+        }
+
+        return $created;
     }
 
     private function findCorrupt(mixed $item): ?int

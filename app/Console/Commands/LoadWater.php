@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Enums\EventTypes;
+use App\Models\Address;
 use App\Models\Event;
 use App\Models\ServiceCenter;
 use App\Support\SourceStatus;
@@ -12,7 +13,7 @@ use Illuminate\Console\Command;
 
 class LoadWater extends Command
 {
-    protected $signature = 'load-schedule';
+    protected $signature = 'load-schedule {--from= : Import the archive since this date, without notifying anyone}';
 
     protected $description = 'Load water schedule';
 
@@ -24,6 +25,11 @@ class LoadWater extends Command
      */
     public function handle(Client $client): void
     {
+        if ($this->option('from')) {
+            $this->importArchive($client, Carbon::parse($this->option('from')));
+            return;
+        }
+
         $response = $client->get('https://water.gov.ge/planned-works');
 
         if (!preg_match('/<script[^>]*id="__NUXT_DATA__"[^>]*>(.*?)<\/script>/s', $response->getBody()->getContents(), $matches)) {
@@ -39,56 +45,128 @@ class LoadWater extends Command
         }
 
         foreach ($this->extractProblems($payload) as $item) {
-            if (($item['source'] ?? null) !== 'problem' || empty($item['published_at']) || empty($item['end_date'])) {
-                continue;
-            }
-
-            $serviceCenterName = trim((string) ($item['contractor'] ?? ''));
-
-            if ($serviceCenterName === '') {
-                continue;
-            }
-
-            $serviceCenter = $this->resolveServiceCenter($serviceCenterName);
-            $addresses = $this->extractAddresses((string) ($item['excerpt'] ?? ''));
-
-            $start = Carbon::createFromFormat('Y-m-d H:i:s', $item['published_at']);
-            $finish = Carbon::createFromFormat('Y-m-d H:i:s', $item['end_date']);
-            // Titles end with "გეგმური სამუშაოების გამო" or "არაგეგმური სამუშაოების გამო".
-            $planned = !str_contains((string) ($item['title'] ?? ''), 'არაგეგმ');
-
-            $event = Event::query()
-                ->where('service_center_id', $serviceCenter->id)
-                ->where('start', $start)
-                ->where('finish', $finish)
-                ->where('type', EventTypes::water)
-                ->first();
-
-            if (!$event) {
-                /* @var $event Event */
-                $event = Event::query()->create([
-                    'service_center_id' => $serviceCenter->id,
-                    'start' => $start,
-                    'finish' => $finish,
-                    'total_addresses' => count($addresses),
-                    'type' => EventTypes::water,
-                    'planned' => $planned,
-                ]);
-
-                foreach ($addresses as $address) {
-                    /* @var $addressObject \App\Models\Address */
-                    $addressObject = $serviceCenter->addresses()->firstOrCreate(['name' => $address]);
-                    $addressObject->events()->syncWithoutDetaching($event);
-                }
-
-                $event->notifySubscribed();
-                $event->publishToFacebook();
-            } elseif ($event->planned === null) {
-                $event->update(['planned' => $planned]);
-            }
+            $this->store($item, true);
         }
 
         SourceStatus::markUpdated(SourceStatus::WATER);
+    }
+
+    /**
+     * The page only renders the latest items; the site's JSON API behind it
+     * pages through the whole archive by date.
+     */
+    private function importArchive(Client $client, Carbon $from): void
+    {
+        $page = 1;
+        do {
+            $response = $client->get('https://water.gov.ge/api/v1/site/planned-works', [
+                'query' => [
+                    'date_from' => $from->toDateString(),
+                    'date_to' => now()->toDateString(),
+                    'page' => $page,
+                    'page_size' => 100,
+                ],
+                'timeout' => 60,
+            ]);
+            $data = json_decode($response->getBody()->getContents(), true);
+            $pages = (int) ceil(($data['total'] ?? 0) / 100);
+
+            $created = 0;
+            foreach ($data['items'] ?? [] as $item) {
+                $created += (int) $this->store($item, false);
+            }
+
+            $this->line('page ' . $page . ' of ' . $pages . ': ' . $created . ' new');
+            $page++;
+        } while ($page <= $pages);
+    }
+
+    /**
+     * @return bool whether a new event was created
+     */
+    private function store(array $item, bool $notify): bool
+    {
+        if (($item['source'] ?? null) !== 'problem' || empty($item['published_at']) || empty($item['end_date'])) {
+            return false;
+        }
+
+        $serviceCenterName = trim((string) ($item['contractor'] ?? ''));
+
+        if ($serviceCenterName === '') {
+            return false;
+        }
+
+        $serviceCenter = $this->resolveServiceCenter($serviceCenterName);
+        $addresses = $this->extractAddresses((string) ($item['excerpt'] ?? ''));
+
+        $start = Carbon::createFromFormat('Y-m-d H:i:s', $item['published_at']);
+        $finish = Carbon::createFromFormat('Y-m-d H:i:s', $item['end_date']);
+        // Titles end with "გეგმური სამუშაოების გამო" or "არაგეგმური სამუშაოების გამო".
+        $planned = !str_contains((string) ($item['title'] ?? ''), 'არაგეგმ');
+
+        $event = Event::query()
+            ->where('service_center_id', $serviceCenter->id)
+            ->where('start', $start)
+            ->where('finish', $finish)
+            ->where('type', EventTypes::water)
+            ->first();
+
+        if (!$event) {
+            /* @var $event Event */
+            $event = Event::query()->create([
+                'service_center_id' => $serviceCenter->id,
+                'start' => $start,
+                'finish' => $finish,
+                'total_addresses' => count($addresses),
+                'type' => EventTypes::water,
+                'planned' => $planned,
+            ]);
+
+            $this->attachAddresses($serviceCenter, $event, $addresses);
+
+            if ($notify) {
+                $event->notifySubscribed();
+                $event->publishToFacebook();
+            }
+
+            return true;
+        }
+
+        if ($event->planned === null) {
+            $event->update(['planned' => $planned]);
+        }
+
+        return false;
+    }
+
+    /**
+     * A few queries per event rather than a few per address: the archive
+     * import creates thousands of events against a remote database.
+     */
+    private function attachAddresses(ServiceCenter $serviceCenter, Event $event, array $addresses): void
+    {
+        $names = array_values(array_unique($addresses));
+
+        if (!$names) {
+            return;
+        }
+
+        $ids = fn() => $serviceCenter->addresses()->whereIn('name', $names)->pluck('id', 'name');
+        $existing = $ids();
+        $missing = array_diff($names, $existing->keys()->all());
+
+        if ($missing) {
+            $now = now();
+            Address::query()->insert(array_map(fn($name) => [
+                'service_center_id' => $serviceCenter->id,
+                'name' => $name,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ], array_values($missing)));
+            $existing = $ids();
+        }
+
+        $event->addresses()->syncWithoutDetaching($existing->values()->all());
     }
 
     /**
