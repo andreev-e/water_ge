@@ -10,7 +10,7 @@
     </div>
 @endisset
 @isset($graphData['variants'])
-    <div id="eventsChartKinds" class="flex gap-1 mb-3 text-sm" role="group" aria-label="Вид отключений">
+    <div id="{{ $graphData['id'] ?? 'eventsChart' }}Kinds" class="flex gap-1 mb-3 text-sm" role="group" aria-label="Вид отключений">
         @foreach($graphData['variants'] as $kind => $variant)
             <button
                 type="button"
@@ -21,8 +21,9 @@
         @endforeach
     </div>
 @endisset
+@php($chartId = $graphData['id'] ?? 'eventsChart')
 <div class="bg-white rounded-xl border border-slate-200 p-3 h-[360px] md:h-[460px]">
-    <canvas id="eventsChart" role="img" aria-label="{{ $graphData['title'] }}"></canvas>
+    <canvas id="{{ $chartId }}" role="img" aria-label="{{ $graphData['title'] }}"></canvas>
 </div>
 <script>
     (() => {
@@ -75,7 +76,7 @@
             },
         };
 
-        const chart = new Chart(document.getElementById('eventsChart'), {
+        const chart = new Chart(document.getElementById('{{ $chartId }}'), {
             type: graph.type ?? 'line',
             data: {labels: graph.labels, datasets: graph.datasets},
             plugins: [todayLine],
@@ -126,7 +127,7 @@
             },
         });
 
-        document.querySelectorAll('#eventsChartKinds button').forEach((button, _, buttons) => {
+        document.querySelectorAll('#{{ $chartId }}Kinds button').forEach((button, _, buttons) => {
             button.addEventListener('click', () => {
                 buttons.forEach((other) => other.setAttribute('aria-pressed', String(other === button)));
                 chart.data.datasets = graph.variants[button.dataset.kind].datasets;

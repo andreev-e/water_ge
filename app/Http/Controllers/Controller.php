@@ -58,6 +58,7 @@ class Controller extends BaseController
         } else {
             $addresses = [];
             $graphData = $this->getSubscribesGraphData();
+            $overview = $this->getOverviewGraphData();
         }
 
         $stat = $this->getStatData();
@@ -68,7 +69,7 @@ class Controller extends BaseController
             'graphData',
             'stat',
             'addresses',
-        ]));
+        ]) + ['overview' => $overview ?? null]);
     }
 
     public function serviceCenters(): View
@@ -117,11 +118,13 @@ class Controller extends BaseController
     private const SERIES_COLORS = [
         'water' => '#2a78d6',
         'energy' => '#eb6834',
+        'gas' => '#1baf7a',
     ];
 
     private const SERIES_LABELS = [
         'water' => 'Вода',
         'energy' => 'Электричество',
+        'gas' => 'Газ',
     ];
 
     private const KIND_LABELS = [
@@ -280,6 +283,102 @@ class Controller extends BaseController
         }
 
         return $datasets;
+    }
+
+    /**
+     * Country-wide overview for the home page: outages started on each day by
+     * type, with the same All / Planned / Emergency variants as a center's
+     * chart, and the last 30 days summed up against the 30 before.
+     */
+    private function getOverviewGraphData(): array
+    {
+        return Cache::remember('overviewGraph', 60 * 60, function() {
+            $types = [EventTypes::water, EventTypes::energy, EventTypes::gas];
+            $firstDay = now()->subDays(90)->startOfDay();
+            $lastDay = now()->addDays(5)->startOfDay();
+            $monthAgo = now()->subDays(30);
+            $twoMonthsAgo = now()->subDays(60);
+
+            $events = Event::query()
+                ->where('start', '>=', $firstDay)
+                ->where('start', '<', $lastDay->copy()->addDay())
+                ->get();
+
+            $labels = [];
+            for ($day = $firstDay->copy(); $day->lte($lastDay); $day->addDay()) {
+                $labels[] = $day->format('d.m.Y');
+            }
+            $empty = array_fill_keys($labels, 0);
+            $counts = [];
+            foreach (array_keys(self::KIND_LABELS) as $kind) {
+                foreach ($types as $type) {
+                    $counts[$kind][$type->value] = $empty;
+                }
+            }
+
+            $lastMonth = $events->filter(fn(Event $event) => $event->start->between($monthAgo, now()));
+            foreach ($events as $event) {
+                $date = $event->start->format('d.m.Y');
+                $counts['all'][$event->type->value][$date]++;
+                if ($event->planned !== null) {
+                    $counts[$event->planned ? 'planned' : 'emergency'][$event->type->value][$date]++;
+                }
+            }
+
+            $variants = [];
+            foreach (self::KIND_LABELS as $kind => $kindLabel) {
+                $variants[$kind] = [
+                    'label' => $kindLabel,
+                    'datasets' => array_map(fn(EventTypes $type) => [
+                        'type' => 'bar',
+                        'label' => self::SERIES_LABELS[$type->value],
+                        'backgroundColor' => self::SERIES_COLORS[$type->value],
+                        'data' => array_values($counts[$kind][$type->value]),
+                        'stack' => 'outages',
+                    ], $types),
+                ];
+            }
+
+            $previous = $events->filter(fn(Event $event) => $event->start->between($twoMonthsAgo, $monthAgo))->count();
+            $change = $previous ? round(($lastMonth->count() - $previous) / $previous * 100) : null;
+
+            $known = $lastMonth->whereNotNull('planned');
+            $emergency = $known->where('planned', false)->count();
+
+            $hours = $lastMonth
+                ->map(fn(Event $event) => $event->start->diffInMinutes($event->finish) / 60)
+                ->sort()
+                ->values();
+
+            $topCenter = $lastMonth->countBy('service_center_id')->sortDesc();
+            $topCenterName = $topCenter->isNotEmpty()
+                ? ServiceCenter::query()->find($topCenter->keys()->first())
+                : null;
+
+            return [
+                'id' => 'overviewChart',
+                'type' => 'bar',
+                'title' => 'Отключения по Грузии за 90 дней',
+                'labels' => $labels,
+                'datasets' => $variants['all']['datasets'],
+                'variants' => $variants,
+                'summary' => [
+                    'За 30 дней' => $lastMonth->count()
+                        . ($change !== null ? ' (' . ($change > 0 ? '+' : '') . $change . '%)' : ''),
+                    'Аварийных' => $known->isNotEmpty()
+                        ? round($emergency / $known->count() * 100) . '% из ' . $known->count()
+                        : '—',
+                    'Длятся (медиана)' => $hours->isNotEmpty()
+                        ? round($hours[intdiv($hours->count(), 2)], 1) . ' ч'
+                        : '—',
+                    'Чаще всего' => $topCenterName
+                        ? ($topCenterName->name_ru ?: $topCenterName->name) . ' — ' . $topCenter->first()
+                        : '—',
+                ],
+                'yTitle' => 'Отключений в день',
+                'todayIndex' => count($labels) - 6,
+            ];
+        });
     }
 
     private function getSubscribesGraphData(): array
