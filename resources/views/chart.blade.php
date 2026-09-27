@@ -9,6 +9,18 @@
         @endforeach
     </div>
 @endisset
+@isset($graphData['variants'])
+    <div id="eventsChartKinds" class="flex gap-1 mb-3 text-sm" role="group" aria-label="Вид отключений">
+        @foreach($graphData['variants'] as $kind => $variant)
+            <button
+                type="button"
+                data-kind="{{ $kind }}"
+                aria-pressed="{{ $loop->first ? 'true' : 'false' }}"
+                class="px-3 py-1 rounded-full border border-slate-200 bg-white text-slate-600 hover:border-cyan-600 aria-pressed:bg-cyan-700 aria-pressed:border-cyan-700 aria-pressed:text-white"
+            >{{ $variant['label'] }}</button>
+        @endforeach
+    </div>
+@endisset
 <div class="bg-white rounded-xl border border-slate-200 p-3 h-[360px] md:h-[460px]">
     <canvas id="eventsChart" role="img" aria-label="{{ $graphData['title'] }}"></canvas>
 </div>
@@ -20,7 +32,7 @@
         const ink = '#475569';
         const grid = '#e2e8f0';
 
-        graph.datasets.forEach((dataset) => {
+        const style = (dataset) => {
             if (dataset.type === 'bar') {
                 Object.assign(dataset, {
                     borderColor: '#ffffff',
@@ -33,7 +45,9 @@
             } else if (!dataset.type) {
                 Object.assign(dataset, {borderWidth: 2, pointRadius: 0, pointHoverRadius: 5, tension: 0.2});
             }
-        });
+        };
+        graph.datasets.forEach(style);
+        Object.values(graph.variants ?? {}).forEach((variant) => variant.datasets.forEach(style));
 
         // A dashed line at today's column separates history from announced outages.
         const todayLine = {
@@ -61,7 +75,7 @@
             },
         };
 
-        new Chart(document.getElementById('eventsChart'), {
+        const chart = new Chart(document.getElementById('eventsChart'), {
             type: graph.type ?? 'line',
             data: {labels: graph.labels, datasets: graph.datasets},
             plugins: [todayLine],
@@ -110,6 +124,14 @@
                     },
                 },
             },
+        });
+
+        document.querySelectorAll('#eventsChartKinds button').forEach((button, _, buttons) => {
+            button.addEventListener('click', () => {
+                buttons.forEach((other) => other.setAttribute('aria-pressed', String(other === button)));
+                chart.data.datasets = graph.variants[button.dataset.kind].datasets;
+                chart.update();
+            });
         });
     })();
 </script>

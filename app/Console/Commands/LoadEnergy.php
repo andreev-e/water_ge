@@ -45,6 +45,8 @@ class LoadEnergy extends Command
                 }
 
                 $addresses = explode(', ', $rawEvent->disconnectionArea);
+                // my.energo-pro.ge labels taskType "1" as planned and any other as unplanned.
+                $planned = (string) $rawEvent->taskType === '1';
 
                 $event = Event::query()
                     ->where('service_center_id', $serviceCenter->id)
@@ -62,6 +64,7 @@ class LoadEnergy extends Command
                         'total_addresses' => count($addresses),
                         'type' => EventTypes::energy,
                         'effected_customers' => $rawEvent->scEffectedCustomers,
+                        'planned' => $planned,
                     ]);
 
                     foreach ($addresses as $address) {
@@ -74,6 +77,8 @@ class LoadEnergy extends Command
 
                     $event->notifySubscribed();
                     $event->publishToFacebook();
+                } elseif ($event->planned === null) {
+                    $event->update(['planned' => $planned]);
                 }
             }
 

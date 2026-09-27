@@ -47,7 +47,7 @@ class EventNotification extends Notification implements ShouldQueue
                 'disable_web_page_preview' => true,
             ])
             ->content('🚫<b>' . $this->event->type->getIcon() . $this->event->serviceCenter->name_ru . '</b>: ')
-            ->line('<b>' . $this->event->from_to . '</b>');
+            ->line('<b>' . $this->event->from_to . '</b>' . ($this->event->kind ? ' (' . mb_strtolower($this->event->kind) . ')' : ''));
 
         if ($this->event->type === EventTypes::gas) {
             $message->line(($this->event->name_ru ?? $this->event->name_en));

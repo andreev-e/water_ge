@@ -54,6 +54,8 @@ class LoadWater extends Command
 
             $start = Carbon::createFromFormat('Y-m-d H:i:s', $item['published_at']);
             $finish = Carbon::createFromFormat('Y-m-d H:i:s', $item['end_date']);
+            // Titles end with "გეგმური სამუშაოების გამო" or "არაგეგმური სამუშაოების გამო".
+            $planned = !str_contains((string) ($item['title'] ?? ''), 'არაგეგმ');
 
             $event = Event::query()
                 ->where('service_center_id', $serviceCenter->id)
@@ -70,6 +72,7 @@ class LoadWater extends Command
                     'finish' => $finish,
                     'total_addresses' => count($addresses),
                     'type' => EventTypes::water,
+                    'planned' => $planned,
                 ]);
 
                 foreach ($addresses as $address) {
@@ -80,6 +83,8 @@ class LoadWater extends Command
 
                 $event->notifySubscribed();
                 $event->publishToFacebook();
+            } elseif ($event->planned === null) {
+                $event->update(['planned' => $planned]);
             }
         }
 

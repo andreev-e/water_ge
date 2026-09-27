@@ -124,17 +124,26 @@ class Controller extends BaseController
         'energy' => 'Электричество',
     ];
 
+    private const KIND_LABELS = [
+        'all' => 'Все',
+        'planned' => 'Плановые',
+        'emergency' => 'Аварийные',
+    ];
+
     /**
      * Share of the service center's addresses cut off on each day, split by
      * outage type. An event counts on every day between its start and finish,
      * and an address hit by several events of one type on a day counts once.
+     * Planned and emergency outages get their own variant of the datasets;
+     * events of unknown kind (loaded before the sources were told apart) show
+     * up only among all of them.
      */
     private function getEventsGraphData(ServiceCenter $serviceCenter, Address $address = null): array
     {
-        return Cache::remember('eventsGraph_' . $serviceCenter->id . '-' . $address?->id, 60 * 60,
+        return Cache::remember('eventsGraphKinds_' . $serviceCenter->id . '-' . $address?->id, 60 * 60,
             function() use ($serviceCenter, $address) {
                 $types = [EventTypes::water, EventTypes::energy];
-                $firstDay = now()->subYear()->startOfDay();
+                $firstDay = now()->subMonths(6)->startOfDay();
                 $lastDay = now()->addDays(5)->startOfDay();
 
                 $events = Event::query()
@@ -149,66 +158,50 @@ class Controller extends BaseController
                 $affected = [];
                 for ($day = $firstDay->copy(); $day->lte($lastDay); $day->addDay()) {
                     $labels[] = $day->format('d.m.Y');
-                    foreach ($types as $type) {
-                        $affected[$type->value][$day->format('d.m.Y')] = [];
+                    foreach (array_keys(self::KIND_LABELS) as $kind) {
+                        foreach ($types as $type) {
+                            $affected[$kind][$type->value][$day->format('d.m.Y')] = [];
+                        }
                     }
                 }
 
-                $addressDays = [];
+                $addressDays = array_fill_keys(array_keys(self::KIND_LABELS), []);
+                $kindCounts = ['planned' => 0, 'emergency' => 0];
                 foreach ($events as $event) {
+                    $kinds = ['all'];
+                    if ($event->planned !== null) {
+                        $kinds[] = $event->planned ? 'planned' : 'emergency';
+                        $kindCounts[$kinds[1]]++;
+                    }
                     $day = $event->start->copy()->startOfDay()->max($firstDay)->copy();
                     $until = $event->finish->copy()->startOfDay()->min($lastDay)->copy();
                     $ids = $event->addresses->pluck('id')->all();
+                    $hitsAddress = $address && in_array($address->id, $ids, true);
                     for (; $day->lte($until); $day->addDay()) {
                         $date = $day->format('d.m.Y');
-                        $affected[$event->type->value][$date] += array_fill_keys($ids, true);
-                        if ($address && in_array($address->id, $ids, true)) {
-                            $addressDays[$date][] = self::SERIES_LABELS[$event->type->value];
+                        foreach ($kinds as $kind) {
+                            $affected[$kind][$event->type->value][$date] += array_fill_keys($ids, true);
+                            if ($hitsAddress) {
+                                $addressDays[$kind][$date][] = self::SERIES_LABELS[$event->type->value];
+                            }
                         }
                     }
                 }
 
                 $total = max($serviceCenter->total_addresses, 1);
-                $datasets = [];
-                $dayTotals = array_fill_keys($labels, 0);
-                foreach ($types as $type) {
-                    $counts = array_map('count', array_values($affected[$type->value]));
-                    foreach ($labels as $i => $date) {
-                        $dayTotals[$date] += $counts[$i];
-                    }
-                    $datasets[] = [
-                        'type' => 'bar',
-                        'label' => self::SERIES_LABELS[$type->value],
-                        'backgroundColor' => self::SERIES_COLORS[$type->value],
-                        'data' => array_map(fn($count) => min(round($count / $total * 100, 1), 100), $counts),
-                        'counts' => $counts,
-                        'stack' => 'outages',
-                        'order' => 2,
+                $variants = [];
+                foreach (self::KIND_LABELS as $kind => $kindLabel) {
+                    $variants[$kind] = [
+                        'label' => $kindLabel,
+                        'datasets' => $this->buildOutageDatasets($types, $labels, $affected[$kind], $total, $address, $addressDays[$kind]),
                     ];
                 }
 
-                if ($address) {
-                    $datasets[] = [
-                        'type' => 'line',
-                        'showLine' => false,
-                        'label' => 'Отключение по адресу ' . $address->translit,
-                        'backgroundColor' => '#1e293b',
-                        'borderColor' => '#ffffff',
-                        'borderWidth' => 2,
-                        'pointStyle' => 'triangle',
-                        'pointRadius' => 7,
-                        'pointHoverRadius' => 9,
-                        // Sits on top of that day's bar.
-                        'data' => array_map(
-                            fn($i, $date) => isset($addressDays[$date])
-                                ? array_sum(array_map(fn($dataset) => $dataset['data'][$i], $datasets))
-                                : null,
-                            array_keys($labels),
-                            $labels,
-                        ),
-                        'kinds' => array_map(fn($date) => implode(', ', array_unique($addressDays[$date] ?? [])), $labels),
-                        'order' => 1,
-                    ];
+                $dayTotals = array_fill_keys($labels, 0);
+                foreach ($types as $type) {
+                    foreach ($affected['all'][$type->value] as $date => $ids) {
+                        $dayTotals[$date] += count($ids);
+                    }
                 }
 
                 $daysWithOutages = count(array_filter($dayTotals));
@@ -220,23 +213,73 @@ class Controller extends BaseController
                     'Худший день' => $worst && $pastDays[$worst]
                         ? substr($worst, 0, 5) . ' — ' . min(round($pastDays[$worst] / $total * 100), 100) . '%'
                         : '—',
+                    'Плановых / аварийных' => $kindCounts['planned'] . ' / ' . $kindCounts['emergency'],
                     'Адресов в центре' => $serviceCenter->total_addresses,
                 ];
                 if ($address) {
-                    $summary['Отключений по адресу'] = count($addressDays) . ' дн.';
+                    $summary['Отключений по адресу'] = count($addressDays['all']) . ' дн.';
                 }
 
                 return [
                     'type' => 'bar',
-                    'title' => 'Статистика отключений за год (вода и электричество)',
+                    'title' => 'Статистика отключений за полгода (вода и электричество)',
                     'labels' => $labels,
-                    'datasets' => $datasets,
+                    'datasets' => $variants['all']['datasets'],
+                    'variants' => $variants,
                     'summary' => $summary,
                     'yTitle' => '% адресов без услуги',
                     'yUnit' => '%',
                     'todayIndex' => count($labels) - 6,
                 ];
             });
+    }
+
+    /**
+     * @param EventTypes[] $types
+     * @param array<string, array<string, array<int, true>>> $affected type => date => set of address ids
+     * @param array<string, string[]> $addressDays date => types that cut the address off
+     */
+    private function buildOutageDatasets(array $types, array $labels, array $affected, int $total, ?Address $address, array $addressDays): array
+    {
+        $datasets = [];
+        foreach ($types as $type) {
+            $counts = array_map('count', array_values($affected[$type->value]));
+            $datasets[] = [
+                'type' => 'bar',
+                'label' => self::SERIES_LABELS[$type->value],
+                'backgroundColor' => self::SERIES_COLORS[$type->value],
+                'data' => array_map(fn($count) => min(round($count / $total * 100, 1), 100), $counts),
+                'counts' => $counts,
+                'stack' => 'outages',
+                'order' => 2,
+            ];
+        }
+
+        if ($address) {
+            $datasets[] = [
+                'type' => 'line',
+                'showLine' => false,
+                'label' => 'Отключение по адресу ' . $address->translit,
+                'backgroundColor' => '#1e293b',
+                'borderColor' => '#ffffff',
+                'borderWidth' => 2,
+                'pointStyle' => 'triangle',
+                'pointRadius' => 7,
+                'pointHoverRadius' => 9,
+                // Sits on top of that day's bar.
+                'data' => array_map(
+                    fn($i, $date) => isset($addressDays[$date])
+                        ? array_sum(array_map(fn($dataset) => $dataset['data'][$i], $datasets))
+                        : null,
+                    array_keys($labels),
+                    $labels,
+                ),
+                'kinds' => array_map(fn($date) => implode(', ', array_unique($addressDays[$date] ?? [])), $labels),
+                'order' => 1,
+            ];
+        }
+
+        return $datasets;
     }
 
     private function getSubscribesGraphData(): array

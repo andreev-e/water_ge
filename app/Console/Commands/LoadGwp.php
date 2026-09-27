@@ -24,9 +24,10 @@ class LoadGwp extends Command
 
     protected $description = 'Load GWP (Tbilisi water) disconnects';
 
+    /** Endpoint => whether its outages are planned. */
     private const ENDPOINTS = [
-        'https://www.gwp.ge/api/Disconnect',
-        'https://www.gwp.ge/api/Disconnect/ListPlanAsync',
+        'https://www.gwp.ge/api/Disconnect' => false,
+        'https://www.gwp.ge/api/Disconnect/ListPlanAsync' => true,
     ];
 
     private const DEFAULT_SERVICE_CENTER = 'თბილისი';
@@ -35,7 +36,7 @@ class LoadGwp extends Command
     {
         $items = [];
 
-        foreach (self::ENDPOINTS as $url) {
+        foreach (self::ENDPOINTS as $url => $planned) {
             try {
                 $response = $client->get($url, array_filter([
                     'connect_timeout' => 10,
@@ -59,7 +60,7 @@ class LoadGwp extends Command
 
             foreach ($data as $item) {
                 if (!empty($item['code'])) {
-                    $items[$item['code']] = $item;
+                    $items[$item['code']] = $item + ['planned' => $planned];
                 }
             }
         }
@@ -88,6 +89,7 @@ class LoadGwp extends Command
                 if ($start) {
                     $event->start = $start;
                 }
+                $event->planned ??= $item['planned'];
                 $event->save();
                 continue;
             }
@@ -112,6 +114,7 @@ class LoadGwp extends Command
                 'type' => EventTypes::water,
                 'name' => $text,
                 'external_id' => $code,
+                'planned' => $item['planned'],
             ]);
 
             foreach ($addresses as $address) {

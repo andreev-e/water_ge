@@ -29,12 +29,14 @@ class Event extends Model
         'name_en',
         'name_ru',
         'external_id',
+        'planned',
     ];
 
     protected $casts = [
         'start' => 'datetime',
         'finish' => 'datetime',
         'type' => EventTypes::class,
+        'planned' => 'boolean',
     ];
 
     public function addresses(): BelongsToMany
@@ -125,6 +127,15 @@ class Event extends Model
         }
 
         PublishEventToFacebook::dispatch($this);
+    }
+
+    public function getKindAttribute(): ?string
+    {
+        return match ($this->planned) {
+            true => 'Плановое',
+            false => 'Аварийное',
+            null => null,
+        };
     }
 
     public function getFromToAttribute(): string

@@ -85,8 +85,14 @@ class LoadGas extends Command
                 $start = Carbon::createFromFormat('Y-m-d\TH:i:sO', $item->start);
                 $finish = Carbon::createFromFormat('Y-m-d\TH:i:sO', $item->end);
                 $key = $foundedServiceCenter . '|' . $start->toDateTimeString() . '|' . $finish->toDateTimeString();
+                $planned = $item->type === 'Planned';
 
-                if (!$existingEvents->has($key)) {
+                if ($existingEvents->has($key)) {
+                    $event = $existingEvents->get($key);
+                    if ($event->planned === null) {
+                        $event->update(['planned' => $planned]);
+                    }
+                } else {
                     /* @var $event Event */
                     $event = Event::query()->create([
                         'service_center_id' => $foundedServiceCenter,
@@ -96,6 +102,7 @@ class LoadGas extends Command
                         'type' => EventTypes::gas,
                         'name' => $item->detail->notificationTitle,
                         'name_en' => $item->detail->notificationTitleEN,
+                        'planned' => $planned,
                     ]);
 
                     $event->translateName();
