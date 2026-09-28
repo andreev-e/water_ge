@@ -78,10 +78,20 @@ class Event extends Model
             ->where('service_center_id', $this->service_center_id)
             ->get();
 
+        if ($subscriptions->contains(fn(Subscriptions $subscription) => $subscription->street_filter)) {
+            $this->load('addresses');
+            $subscriptions = $subscriptions->filter(fn(Subscriptions $subscription) => $subscription->matches($this));
+        }
+
         $notifiedToday = Cache::get('notified_today', 0);
         foreach ($subscriptions as $subscription) {
             Notification::route('telegram', $subscription->bot_user_id)
-                ->notify(new EventNotification($this, $subscription->botUser->language_code, $subscription->bot_user_id));
+                ->notify(new EventNotification(
+                    $this,
+                    $subscription->botUser->language_code,
+                    $subscription->bot_user_id,
+                    $subscription->street_filter,
+                ));
             $notifiedToday++;
         }
 

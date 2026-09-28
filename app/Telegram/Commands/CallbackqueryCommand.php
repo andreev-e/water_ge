@@ -21,6 +21,7 @@ class CallbackqueryCommand extends SystemCommand
 
         return match ($callback_data['command'] ?? null) {
             'subscribe' => SubscribeCommand::handleCallbackQuery($callback_query, $callback_data),
+            'filter' => FilterCommand::handleCallbackQuery($callback_query, $callback_data),
             default => $callback_query->answer(),
         };
     }

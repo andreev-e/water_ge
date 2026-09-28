@@ -3,12 +3,14 @@
 namespace App\Notifications;
 
 use App\Enums\EventTypes;
+use App\Models\Address;
 use App\Models\Event;
 use App\Models\Subscriptions;
 use App\Support\TelegramFailure;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use NotificationChannels\Telegram\Exceptions\CouldNotSendNotification;
 use NotificationChannels\Telegram\TelegramMessage;
@@ -24,6 +26,7 @@ class EventNotification extends Notification implements ShouldQueue
         public Event $event,
         public ?string $languageCode,
         public int $botUserId,
+        public ?string $streetFilter = null,
     ) {
     }
 
@@ -63,7 +66,7 @@ class EventNotification extends Notification implements ShouldQueue
             }
         }
 
-        foreach ($this->event->addresses->slice(0, self::SHOW_IN_MESSAGE) as $address) {
+        foreach ($this->addressesToShow()->slice(0, self::SHOW_IN_MESSAGE) as $address) {
             $message->line($address->translit);
         }
 
@@ -78,6 +81,23 @@ class EventNotification extends Notification implements ShouldQueue
         }
 
         return $message;
+    }
+
+    /**
+     * With a street filter the subscriber's streets go first, otherwise they
+     * may be hidden behind the first SHOW_IN_MESSAGE addresses.
+     */
+    private function addressesToShow(): Collection
+    {
+        // ?? keeps notifications queued before streetFilter existed working.
+        $terms = Subscriptions::parseStreetFilter($this->streetFilter ?? null);
+        if (!$terms) {
+            return $this->event->addresses;
+        }
+
+        return $this->event->addresses
+            ->sortByDesc(fn(Address $address) => Subscriptions::containsAny($address->name . ' ' . $address->translit, $terms))
+            ->values();
     }
 
     /**
