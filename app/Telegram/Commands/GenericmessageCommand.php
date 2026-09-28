@@ -3,7 +3,7 @@
 namespace App\Telegram\Commands;
 
 use App\Models\Event;
-use App\Models\ServiceCenter;
+use App\Models\Subscriptions;
 use Longman\TelegramBot\Commands\SystemCommand;
 use Longman\TelegramBot\Entities\ServerResponse;
 use Longman\TelegramBot\Telegram;
@@ -30,11 +30,18 @@ class GenericmessageCommand extends SystemCommand
 
         $events = Event::getCurrent();
 
-        $cities = ServiceCenter::query()
-            ->whereHas('subscriptions', function($query) use ($chatId) {
-                $query->where('bot_user_id', $chatId);
-            })
-            ->get()->pluck('name_ru')->join(', ');
+        $cities = Subscriptions::query()
+            ->with('serviceCenter')
+            ->where('bot_user_id', $chatId)
+            ->get()
+            ->sortBy('serviceCenter.name_ru')
+            ->map(fn(Subscriptions $subscription) => $subscription->street_filter
+                ? __('telegram.city_with_filter', [
+                    'city' => $subscription->serviceCenter->name_ru,
+                    'streets' => $subscription->street_filter,
+                ], $languageCode)
+                : $subscription->serviceCenter->name_ru)
+            ->join(', ');
 
         $totalEvents = 0;
         foreach ($events as $event) {
@@ -50,6 +57,7 @@ class GenericmessageCommand extends SystemCommand
 
         return $this->replyToChat(
             __('telegram.you_are_subscribed', ['cities' => $cities], $languageCode) . ' ' .
-            __('telegram.no_shutdowns', locale: $languageCode));
+            __('telegram.no_shutdowns', locale: $languageCode) . ' ' .
+            __('telegram.change_filter', locale: $languageCode));
     }
 }

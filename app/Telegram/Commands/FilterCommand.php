@@ -3,6 +3,7 @@
 
 namespace App\Telegram\Commands;
 
+use App\Models\Address;
 use App\Models\Subscriptions;
 use Illuminate\Support\Facades\Cache;
 use Longman\TelegramBot\Commands\UserCommand;
@@ -23,6 +24,7 @@ class FilterCommand extends UserCommand
     protected $version = '1.0.0';
 
     const CLEAR = '-';
+    const SHOW_MATCHES = 20;
 
     public function execute(): ServerResponse
     {
@@ -116,9 +118,38 @@ class FilterCommand extends UserCommand
         $terms = trim($text) === self::CLEAR ? [] : Subscriptions::parseStreetFilter($text);
         $subscription->update(['street_filter' => $terms ? mb_substr(implode(', ', $terms), 0, 255) : null]);
 
-        return $terms
-            ? __('telegram.filter_saved', ['city' => $subscription->serviceCenter->name_ru, 'streets' => $subscription->street_filter], $languageCode)
-            : __('telegram.filter_cleared', ['city' => $subscription->serviceCenter->name_ru], $languageCode);
+        if (!$terms) {
+            return __('telegram.filter_cleared', ['city' => $subscription->serviceCenter->name_ru], $languageCode);
+        }
+
+        return __('telegram.filter_saved', ['city' => $subscription->serviceCenter->name_ru, 'streets' => $subscription->street_filter], $languageCode)
+            . "\n\n" . self::describeMatches($subscription, $terms, $languageCode);
+    }
+
+    /**
+     * Addresses of the service center's past outages that the filter catches,
+     * so a misspelled street shows up right away.
+     */
+    private static function describeMatches(Subscriptions $subscription, array $terms, ?string $languageCode): string
+    {
+        $matches = $subscription->serviceCenter->addresses()
+            ->get(['id', 'name'])
+            ->filter(fn(Address $address) => Subscriptions::containsAny($address->name . ' ' . $address->translit, $terms))
+            ->map(fn(Address $address) => $address->translit)
+            ->unique()
+            ->sort()
+            ->values();
+
+        if ($matches->isEmpty()) {
+            return __('telegram.filter_no_matches', locale: $languageCode);
+        }
+
+        $text = __('telegram.filter_matches', ['addresses' => $matches->take(self::SHOW_MATCHES)->implode("\n")], $languageCode);
+        if ($matches->count() > self::SHOW_MATCHES) {
+            $text .= "\n" . __('telegram.filter_matches_more', ['count' => $matches->count() - self::SHOW_MATCHES], $languageCode);
+        }
+
+        return $text;
     }
 
     private static function pendingKey(int $chatId): string

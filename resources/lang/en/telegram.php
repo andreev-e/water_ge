@@ -3,6 +3,7 @@
 return [
     'shutdown' => 'Shutdown',
     'you_are_subscribed' => 'You are subscribed to shutdown notifications in :cities.',
+    'city_with_filter' => ':city (streets: :streets)',
     'no_shutdowns' => 'No actual shutdowns. Check your subscriptions /subscribe',
     'default_answer' => 'Can\'t help you.',
     'change_subscriptions' => 'Change subscriptions /subscribe',
@@ -21,6 +22,9 @@ return [
     'filter_none' => 'none, every outage is sent',
     'filter_saved' => ':city: notifications only for :streets. Change /filter',
     'filter_cleared' => ':city: filter removed, every outage is sent. Change /filter',
+    'filter_matches' => "Addresses from past outages that match the filter:\n:addresses",
+    'filter_matches_more' => '…and :count more',
+    'filter_no_matches' => 'No addresses with such a street in past outages of this city — check the spelling. You will still be notified if the street shows up.',
     'mail_not_subscribed' => 'You are not subscribed to any city. Please press /subscribe and select cities you want to receive notifications about upcoming shutdowns.',
     'promo' => '',
 ];
