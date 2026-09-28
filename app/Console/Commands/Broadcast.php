@@ -20,7 +20,7 @@ class Broadcast extends Command
     protected $signature = 'app:broadcast
         {message : Key of telegram.php (e.g. news_filter) or plain HTML text}
         {--to=all : all, subscribed, not-subscribed or comma-separated chat ids}
-        {--test : Send only to the admin, in every language}';
+        {--test : Send only to the admin, in their language}';
 
     protected $description = 'Sends a message to bot users';
 
@@ -31,13 +31,10 @@ class Broadcast extends Command
         $isKey = Lang::has($key, 'en', false);
 
         if ($this->option('test')) {
-            $texts = $isKey
-                ? collect(['ru', 'en'])->map(fn(string $locale) => __($key, locale: $locale))
-                : collect([$message]);
-            foreach ($texts as $text) {
-                $this->queue($text, [self::ADMIN_ID]);
-            }
-            $this->info('Queued ' . $texts->count() . ' test message(s) to ' . self::ADMIN_ID);
+            // The admin gets it the way every user will: in their own language.
+            $locale = BotUser::query()->whereKey(self::ADMIN_ID)->value('language_code');
+            $this->queue($isKey ? __($key, locale: $locale) : $message, [self::ADMIN_ID]);
+            $this->info('Queued a test message to ' . self::ADMIN_ID . ($isKey ? ' (' . ($locale ?? 'en') . ')' : ''));
 
             return self::SUCCESS;
         }
