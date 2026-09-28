@@ -30,10 +30,6 @@
         @include('chart', ['graphData' => $graphData])
     @endif
 
-    @if ($streetFilter)
-        @include('chart', ['graphData' => $streetFilter])
-    @endif
-
     @if ($addresses)
         @include('partial.section_title', ['title' => 'Часто отключаемые адреса'])
         @include('partial.addresses_list', ['addresses' => $addresses, 'withSC' => false])

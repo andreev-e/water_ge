@@ -123,6 +123,17 @@
                         title: {display: true, text: graph.yTitle, color: ink},
                         ticks: {color: ink, callback: (value) => value + unit},
                     },
+                    ...(graph.y1Title && {
+                        y1: {
+                            position: 'right',
+                            beginAtZero: true,
+                            suggestedMax: 10,
+                            grid: {display: false},
+                            border: {display: false},
+                            title: {display: true, text: graph.y1Title, color: ink},
+                            ticks: {color: ink, precision: 0},
+                        },
+                    }),
                 },
             },
         });

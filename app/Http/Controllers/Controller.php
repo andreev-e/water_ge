@@ -59,7 +59,6 @@ class Controller extends BaseController
             $addresses = [];
             $graphData = $this->getSubscribesGraphData();
             $overview = $this->getOverviewGraphData();
-            $streetFilter = $this->getStreetFilterGraphData();
         }
 
         $stat = $this->getStatData();
@@ -70,7 +69,7 @@ class Controller extends BaseController
             'graphData',
             'stat',
             'addresses',
-        ]) + ['overview' => $overview ?? null, 'streetFilter' => $streetFilter ?? null]);
+        ]) + ['overview' => $overview ?? null]);
     }
 
     public function serviceCenters(): View
@@ -384,7 +383,7 @@ class Controller extends BaseController
 
     private function getSubscribesGraphData(): array
     {
-        return Cache::remember('graphData_users', 60 * 60,
+        return Cache::remember('graphData_users_v2', 60 * 60,
             function() {
                 $dist = 30;
                 $fromDate = now()->subDays($dist);
@@ -403,6 +402,18 @@ class Controller extends BaseController
 
                 $totalSubscriptions = Subscriptions::query()
                     ->where('created_at', '<', $fromDate)
+                    ->count();
+
+                // There is no filter history: a filter counts from its last edit
+                // (only /filter touches updated_at), and cleared ones drop out.
+                $filtered = Subscriptions::query()
+                    ->whereNotNull('street_filter')
+                    ->where('updated_at', '>=', $fromDate)
+                    ->get();
+
+                $totalFiltered = Subscriptions::query()
+                    ->whereNotNull('street_filter')
+                    ->where('updated_at', '<', $fromDate)
                     ->count();
 
                 $graphData = [];
@@ -426,6 +437,14 @@ class Controller extends BaseController
                 $graphData['datasets'][2]['borderColor'] = $color;
                 $graphData['datasets'][2]['fill'] = false;
 
+                // A few dozen filters would lie flat on the users' scale.
+                $color = '#1baa7a';
+                $graphData['datasets'][3]['label'] = 'С фильтром по улицам';
+                $graphData['datasets'][3]['backgroundColor'] = $color;
+                $graphData['datasets'][3]['borderColor'] = $color;
+                $graphData['datasets'][3]['fill'] = false;
+                $graphData['datasets'][3]['yAxisID'] = 'y1';
+
                 foreach ($graphData['labels'] as $date) {
                     foreach ($users as $user) {
                         if ($date === $user->created_at->format('d.m.Y')) {
@@ -440,6 +459,13 @@ class Controller extends BaseController
                         }
                     }
                     $graphData['datasets'][2]['data'][] = $totalSubscriptions;
+
+                    foreach ($filtered as $subscription) {
+                        if ($date === $subscription->updated_at->format('d.m.Y')) {
+                            $totalFiltered++;
+                        }
+                    }
+                    $graphData['datasets'][3]['data'][] = $totalFiltered;
                 }
 
                 $graphData['datasets'] = array_values($graphData['datasets']);
@@ -447,56 +473,10 @@ class Controller extends BaseController
                 $graphData['title'] = 'Число пользователей бота';
                 $graphData['xTitle'] = 'Даты';
                 $graphData['yTitle'] = 'Пользователи';
+                $graphData['y1Title'] = 'С фильтром по улицам';
 
                 return $graphData;
             });
-    }
-
-    /**
-     * There is no filter history: a filter counts from its last edit (only
-     * /filter touches updated_at), and cleared filters drop out entirely.
-     */
-    private function getStreetFilterGraphData(): array
-    {
-        return Cache::remember('graphData_street_filter', 60 * 60, function() {
-            $fromDate = now()->subDays(30)->startOfDay();
-
-            $days = Subscriptions::query()
-                ->whereNotNull('street_filter')
-                ->where('updated_at', '>=', $fromDate)
-                ->get(['updated_at'])
-                ->countBy(fn(Subscriptions $subscription) => $subscription->updated_at->format('d.m.Y'));
-
-            $total = Subscriptions::query()
-                ->whereNotNull('street_filter')
-                ->where('updated_at', '<', $fromDate)
-                ->count();
-
-            $labels = [];
-            $data = [];
-            for ($date = $fromDate->copy(); $date->lessThan(now()); $date->addDay()) {
-                $label = $date->format('d.m.Y');
-                $total += $days[$label] ?? 0;
-                $labels[] = $label;
-                $data[] = $total;
-            }
-
-            $color = '#1baa7a';
-
-            return [
-                'id' => 'streetFilterChart',
-                'title' => 'Подписки с фильтром по улицам',
-                'yTitle' => 'Подписки',
-                'labels' => $labels,
-                'datasets' => [[
-                    'label' => 'С фильтром по улицам',
-                    'backgroundColor' => $color,
-                    'borderColor' => $color,
-                    'fill' => false,
-                    'data' => $data,
-                ]],
-            ];
-        });
     }
 
     private function getStatData(): array
