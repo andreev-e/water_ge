@@ -437,13 +437,11 @@ class Controller extends BaseController
                 $graphData['datasets'][2]['borderColor'] = $color;
                 $graphData['datasets'][2]['fill'] = false;
 
-                // A few dozen filters would lie flat on the users' scale.
                 $color = '#1baa7a';
                 $graphData['datasets'][3]['label'] = 'С фильтром по улицам';
                 $graphData['datasets'][3]['backgroundColor'] = $color;
                 $graphData['datasets'][3]['borderColor'] = $color;
                 $graphData['datasets'][3]['fill'] = false;
-                $graphData['datasets'][3]['yAxisID'] = 'y1';
 
                 foreach ($graphData['labels'] as $date) {
                     foreach ($users as $user) {
@@ -473,7 +471,6 @@ class Controller extends BaseController
                 $graphData['title'] = 'Число пользователей бота';
                 $graphData['xTitle'] = 'Даты';
                 $graphData['yTitle'] = 'Пользователи';
-                $graphData['y1Title'] = 'С фильтром по улицам';
 
                 return $graphData;
             });
