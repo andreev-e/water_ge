@@ -383,7 +383,7 @@ class Controller extends BaseController
 
     private function getSubscribesGraphData(): array
     {
-        return Cache::remember('graphData_users_v2', 60 * 60,
+        return Cache::remember('graphData_users_v3', 60 * 60,
             function() {
                 $dist = 30;
                 $fromDate = now()->subDays($dist);
