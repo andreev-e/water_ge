@@ -29,7 +29,13 @@
             <a target="_blank" href="https://t.me/WaterGeorgia_bot" class="px-3 py-1 rounded-full bg-cyan-700 text-white hover:bg-cyan-800">
                 Telegram-бот @WaterGeorgia_bot
             </a>
+            <a target="_blank" href="https://www.facebook.com/profile.php?id=61594858257140" class="px-3 py-1 rounded-full bg-blue-600 text-white hover:bg-blue-700">
+                Facebook
+            </a>
         </nav>
+        <p class="mt-2 text-xs text-slate-500">
+            В Telegram-боте можно подписаться на любой сервисный центр (город) или адрес и получать уведомления об отключениях
+        </p>
     </header>
     @yield('content')
 </div>
