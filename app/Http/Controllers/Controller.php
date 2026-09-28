@@ -59,6 +59,7 @@ class Controller extends BaseController
             $addresses = [];
             $graphData = $this->getSubscribesGraphData();
             $overview = $this->getOverviewGraphData();
+            $streetFilter = $this->getStreetFilterGraphData();
         }
 
         $stat = $this->getStatData();
@@ -69,7 +70,7 @@ class Controller extends BaseController
             'graphData',
             'stat',
             'addresses',
-        ]) + ['overview' => $overview ?? null]);
+        ]) + ['overview' => $overview ?? null, 'streetFilter' => $streetFilter ?? null]);
     }
 
     public function serviceCenters(): View
@@ -449,6 +450,53 @@ class Controller extends BaseController
 
                 return $graphData;
             });
+    }
+
+    /**
+     * There is no filter history: a filter counts from its last edit (only
+     * /filter touches updated_at), and cleared filters drop out entirely.
+     */
+    private function getStreetFilterGraphData(): array
+    {
+        return Cache::remember('graphData_street_filter', 60 * 60, function() {
+            $fromDate = now()->subDays(30)->startOfDay();
+
+            $days = Subscriptions::query()
+                ->whereNotNull('street_filter')
+                ->where('updated_at', '>=', $fromDate)
+                ->get(['updated_at'])
+                ->countBy(fn(Subscriptions $subscription) => $subscription->updated_at->format('d.m.Y'));
+
+            $total = Subscriptions::query()
+                ->whereNotNull('street_filter')
+                ->where('updated_at', '<', $fromDate)
+                ->count();
+
+            $labels = [];
+            $data = [];
+            for ($date = $fromDate->copy(); $date->lessThan(now()); $date->addDay()) {
+                $label = $date->format('d.m.Y');
+                $total += $days[$label] ?? 0;
+                $labels[] = $label;
+                $data[] = $total;
+            }
+
+            $color = '#1baa7a';
+
+            return [
+                'id' => 'streetFilterChart',
+                'title' => 'Подписки с фильтром по улицам',
+                'yTitle' => 'Подписки',
+                'labels' => $labels,
+                'datasets' => [[
+                    'label' => 'С фильтром по улицам',
+                    'backgroundColor' => $color,
+                    'borderColor' => $color,
+                    'fill' => false,
+                    'data' => $data,
+                ]],
+            ];
+        });
     }
 
     private function getStatData(): array

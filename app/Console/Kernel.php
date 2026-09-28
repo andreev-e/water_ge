@@ -26,7 +26,7 @@ class Kernel extends ConsoleKernel
         $schedule->command(CountStats::class)->hourly();
         $schedule->command(CheckFailedJobs::class)->hourly();
         $schedule->command(MakeMailNotSubscribed::class)->dailyAt('11:00');
-        $schedule->command(SendMail::class)->everyMinute();
+        $schedule->command(SendMail::class)->everyMinute()->withoutOverlapping(10);
     }
 
     protected function commands(): void
