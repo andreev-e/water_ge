@@ -40,7 +40,7 @@ class SourceStatus
 
         foreach (array_keys(self::LABELS) as $source) {
             $timestamp = Cache::get(self::key($source));
-            $result[$source] = $timestamp ? Carbon::createFromTimestamp($timestamp) : null;
+            $result[$source] = $timestamp ? Carbon::createFromTimestamp($timestamp, config('app.timezone')) : null;
         }
 
         return $result;

@@ -52,22 +52,25 @@ jobs:
             set -e
             cd ${{ vars.PROD_PATH }}
 
-            # always restart workers so they drop the old autoloader, even if a step below fails
-            trap '/opt/php81/bin/php artisan queue:restart || true' EXIT
+            # Laravel 12 needs PHP >= 8.2
+            PHP=/opt/php84/bin/php
 
-            /opt/php81/bin/php -v
-            /opt/php81/bin/php /usr/local/bin/composer install --no-dev --optimize-autoloader --ignore-platform-req=ext-http --ignore-platform-req=ext-dom
-            /opt/php81/bin/php artisan migrate --force
+            # always restart workers so they drop the old autoloader, even if a step below fails
+            trap '$PHP artisan queue:restart || true' EXIT
+
+            $PHP -v
+            $PHP /usr/local/bin/composer install --no-dev --optimize-autoloader --ignore-platform-req=ext-http --ignore-platform-req=ext-dom
+            $PHP artisan migrate --force
             # drop compiled views/config/events from the previous release before rebuilding them;
             # not optimize:clear - it also runs cache:clear and would wipe runtime data kept in the app cache
-            /opt/php81/bin/php artisan view:clear
-            /opt/php81/bin/php artisan config:clear
-            /opt/php81/bin/php artisan event:clear
-            /opt/php81/bin/php artisan config:cache
-            /opt/php81/bin/php artisan view:cache
-            /opt/php81/bin/php artisan event:cache
-            /opt/php81/bin/php artisan telegram:delete-webhook
-            /opt/php81/bin/php artisan telegram:set-webhook
+            $PHP artisan view:clear
+            $PHP artisan config:clear
+            $PHP artisan event:clear
+            $PHP artisan config:cache
+            $PHP artisan view:cache
+            $PHP artisan event:cache
+            $PHP artisan telegram:delete-webhook
+            $PHP artisan telegram:set-webhook
 
             # keep logs on failure, they are what explains it
             truncate -s 0 storage/logs/laravel.log || true

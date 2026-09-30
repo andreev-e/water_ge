@@ -1,0 +1,44 @@
+name: Quality
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  schedule:
+    # new advisories appear without any change in the repo, so check daily
+    - cron: '0 6 * * *'
+
+jobs:
+  security:
+    name: Vulnerable packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          coverage: none
+
+      - name: Audit composer.lock
+        run: composer audit --locked --no-interaction
+
+  insights:
+    name: PHP Insights
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist --no-scripts
+
+      - name: Run PHP Insights
+        run: ./vendor/bin/phpinsights --config-path="./config/insights.php" --no-interaction --format=github-action
