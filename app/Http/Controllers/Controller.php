@@ -5,10 +5,9 @@ namespace App\Http\Controllers;
 use App\Enums\EventTypes;
 use App\Http\Requests\EventRequest;
 use App\Models\Address;
-use App\Models\BotUser;
 use App\Models\Event;
 use App\Models\ServiceCenter;
-use App\Models\Subscriptions;
+use App\Models\UserStat;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Http\Request;
@@ -381,98 +380,50 @@ class Controller extends BaseController
         });
     }
 
+    /**
+     * Totals from the daily snapshots, so deletions show up as drops instead of
+     * rewriting the past. Days without a snapshot are left as gaps.
+     */
     private function getSubscribesGraphData(): array
     {
-        return Cache::remember('graphData_users_v3', 60 * 60,
+        return Cache::remember('graphData_users_v4', 60 * 60,
             function() {
-                $dist = 30;
-                $fromDate = now()->subDays($dist);
+                $fromDate = now()->subDays(30)->startOfDay();
 
-                $users = BotUser::query()
-                    ->where('created_at', '>=', $fromDate)
-                    ->whereNot('is_bot')->get();
+                $stats = UserStat::query()
+                    ->where('date', '>=', $fromDate->toDateString())
+                    ->get()
+                    ->keyBy(fn(UserStat $stat) => $stat->date->format('d.m.Y'));
 
-                $subscriptions = Subscriptions::query()
-                    ->where('created_at', '>=', $fromDate)
-                    ->get();
-
-                $totalUsers = BotUser::query()
-                    ->where('created_at', '<', $fromDate)
-                    ->whereNot('is_bot')->count();
-
-                $totalSubscriptions = Subscriptions::query()
-                    ->where('created_at', '<', $fromDate)
-                    ->count();
-
-                // There is no filter history: a filter counts from its last edit
-                // (only /filter touches updated_at), and cleared ones drop out.
-                $filtered = Subscriptions::query()
-                    ->whereNotNull('street_filter')
-                    ->where('updated_at', '>=', $fromDate)
-                    ->get();
-
-                $totalFiltered = Subscriptions::query()
-                    ->whereNotNull('street_filter')
-                    ->where('updated_at', '<', $fromDate)
-                    ->count();
-
-                $graphData = [];
-                $graphData['labels'] = [];
-                $graphData['datasets'] = [];
-
-                while ($fromDate->lessThan(now())) {
-                    $graphData['labels'][] = $fromDate->format('d.m.Y');
-                    $fromDate->addDay();
+                $labels = [];
+                for ($day = $fromDate->copy(); $day->lte(today()); $day->addDay()) {
+                    $labels[] = $day->format('d.m.Y');
                 }
 
-                $color = '#2a78d6';
-                $graphData['datasets'][1]['label'] = 'Пользователи';
-                $graphData['datasets'][1]['backgroundColor'] = $color;
-                $graphData['datasets'][1]['borderColor'] = $color;
-                $graphData['datasets'][1]['fill'] = false;
+                $series = [
+                    'users' => ['Пользователи', '#2a78d6'],
+                    'subscriptions' => ['Подписки', '#eb6834'],
+                    'filtered' => ['С фильтром по улицам', '#1baa7a'],
+                ];
 
-                $color = '#eb6834';
-                $graphData['datasets'][2]['label'] = 'Подписки';
-                $graphData['datasets'][2]['backgroundColor'] = $color;
-                $graphData['datasets'][2]['borderColor'] = $color;
-                $graphData['datasets'][2]['fill'] = false;
-
-                $color = '#1baa7a';
-                $graphData['datasets'][3]['label'] = 'С фильтром по улицам';
-                $graphData['datasets'][3]['backgroundColor'] = $color;
-                $graphData['datasets'][3]['borderColor'] = $color;
-                $graphData['datasets'][3]['fill'] = false;
-
-                foreach ($graphData['labels'] as $date) {
-                    foreach ($users as $user) {
-                        if ($date === $user->created_at->format('d.m.Y')) {
-                            $totalUsers++;
-                        }
-                    }
-                    $graphData['datasets'][1]['data'][] = $totalUsers;
-
-                    foreach ($subscriptions as $subscription) {
-                        if ($date === $subscription->created_at->format('d.m.Y')) {
-                            $totalSubscriptions++;
-                        }
-                    }
-                    $graphData['datasets'][2]['data'][] = $totalSubscriptions;
-
-                    foreach ($filtered as $subscription) {
-                        if ($date === $subscription->updated_at->format('d.m.Y')) {
-                            $totalFiltered++;
-                        }
-                    }
-                    $graphData['datasets'][3]['data'][] = $totalFiltered;
+                $datasets = [];
+                foreach ($series as $column => [$label, $color]) {
+                    $datasets[] = [
+                        'label' => $label,
+                        'backgroundColor' => $color,
+                        'borderColor' => $color,
+                        'fill' => false,
+                        'data' => array_map(fn($date) => $stats->get($date)?->$column, $labels),
+                    ];
                 }
 
-                $graphData['datasets'] = array_values($graphData['datasets']);
-
-                $graphData['title'] = 'Число пользователей бота';
-                $graphData['xTitle'] = 'Даты';
-                $graphData['yTitle'] = 'Пользователи';
-
-                return $graphData;
+                return [
+                    'labels' => $labels,
+                    'datasets' => $datasets,
+                    'title' => 'Число пользователей бота',
+                    'xTitle' => 'Даты',
+                    'yTitle' => 'Пользователи',
+                ];
             });
     }
 
