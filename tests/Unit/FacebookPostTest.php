@@ -29,7 +29,7 @@ class FacebookPostTest extends TestCase
         $event = $this->makeEvent(EventTypes::water, ['name' => 'ბათუმი', 'name_ru' => 'Батуми'], ['ჭავჭავაძე 1', 'რუსთაველი 5']);
 
         $this->assertSame(
-            "🚫💧Батуми: Сегодня 14:00 - 18:00\n\nchavchavadze 1\nrustaveli 5\n\n#Батуми #вода #отключения",
+            "🚫💧Батуми: 24.09.2026 14:00 - 18:00\n\nchavchavadze 1\nrustaveli 5\n\n#Батуми #вода #отключения",
             FacebookPost::text($event),
         );
     }
@@ -51,7 +51,7 @@ class FacebookPostTest extends TestCase
         $event = $this->makeEvent(EventTypes::gas, ['name' => 'ზესტაფონი'], [], ['name_en' => 'Gas works on Main st']);
 
         $this->assertSame(
-            "🚫🔥ზესტაფონი: Сегодня 14:00 - 18:00\nGas works on Main st\n\n#ზესტაფონი #газ #отключения",
+            "🚫🔥ზესტაფონი: 24.09.2026 14:00 - 18:00\nGas works on Main st\n\n#ზესტაფონი #газ #отключения",
             FacebookPost::text($event),
         );
     }

@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\EventTypes;
-use App\Jobs\PublishEventToFacebook;
 use App\Notifications\EventNotification;
 use App\Services\Translation\TranslationInterface;
 use Carbon\Carbon;
@@ -136,7 +135,9 @@ class Event extends Model
             return;
         }
 
-        PublishEventToFacebook::dispatch($this);
+        // Not dispatched right away: facebook:publish-pending posts the whole
+        // backlog ordered by start, whatever order the loaders found it in.
+        $this->forceFill(['facebook_pending' => true])->save();
     }
 
     public function getKindAttribute(): ?string
@@ -165,6 +166,19 @@ class Event extends Model
 
         if ($this->start->format('m.Y') === $this->finish->format('m.Y')) {
             return $this->start->format('d.m H:i') . ' - ' . $this->finish->format('d.m H:i');
+        }
+
+        return $this->start->format('d.m.Y H:i') . ' - ' . $this->finish->format('d.m.Y H:i');
+    }
+
+    /**
+     * Like from_to, but without "Сегодня"/"Завтра": a Facebook post stays on
+     * the page long after the day it was written.
+     */
+    public function getAbsoluteFromToAttribute(): string
+    {
+        if ($this->start->format('d.m.Y') === $this->finish->format('d.m.Y')) {
+            return $this->start->format('d.m.Y H:i') . ' - ' . $this->finish->format('H:i');
         }
 
         return $this->start->format('d.m.Y H:i') . ' - ' . $this->finish->format('d.m.Y H:i');

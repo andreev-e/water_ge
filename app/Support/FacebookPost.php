@@ -20,7 +20,7 @@ class FacebookPost
         $serviceCenterName = $serviceCenter->name_ru ?? $serviceCenter->name_en ?? $serviceCenter->name;
 
         $lines = [
-            '🚫' . $event->type->getIcon() . $serviceCenterName . ': ' . $event->from_to,
+            '🚫' . $event->type->getIcon() . $serviceCenterName . ': ' . $event->absolute_from_to,
         ];
 
         if ($event->type === EventTypes::gas) {

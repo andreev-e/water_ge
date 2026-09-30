@@ -9,6 +9,7 @@ use App\Console\Commands\LoadGas;
 use App\Console\Commands\LoadGwp;
 use App\Console\Commands\LoadWater;
 use App\Console\Commands\MakeMailNotSubscribed;
+use App\Console\Commands\PublishPendingToFacebook;
 use App\Console\Commands\SendMail;
 use App\Console\Commands\Translate;
 use Illuminate\Console\Scheduling\Schedule;
@@ -22,6 +23,7 @@ class Kernel extends ConsoleKernel
         $schedule->command(LoadGwp::class)->everyFiveMinutes()->withoutOverlapping(10)->runInBackground();
         $schedule->command(LoadEnergy::class)->everyFiveMinutes();
         $schedule->command(LoadGas::class)->everyFiveMinutes();
+        $schedule->command(PublishPendingToFacebook::class)->everyMinute()->withoutOverlapping(10);
 //        $schedule->command(Translate::class)->everyMinute();
         $schedule->command(CountStats::class)->hourly();
         $schedule->command(CheckFailedJobs::class)->hourly();
