@@ -22,9 +22,13 @@
         @if($withLink)
             <a
                 href="{{ route('event', ['event' => $event->id]) }}"
-                class="ml-1 px-2 py-0.5 rounded-full bg-slate-100 text-xs text-slate-500 hover:bg-cyan-50 hover:text-cyan-700 whitespace-nowrap"
+                class="ml-1 inline-flex items-center justify-center w-5 h-5 align-middle rounded-full bg-slate-100 text-slate-500 hover:bg-cyan-50 hover:text-cyan-700"
+                title="Подробнее"
+                aria-label="Подробнее"
             >
-                подробнее
+                <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M7.2 14.8a.75.75 0 0 1 0-1.06L10.94 10 7.2 6.26a.75.75 0 1 1 1.06-1.06l4.27 4.27a.75.75 0 0 1 0 1.06L8.26 14.8a.75.75 0 0 1-1.06 0Z" clip-rule="evenodd"/>
+                </svg>
             </a>
         @endif
     </td>
@@ -33,7 +37,7 @@
             <span class="text-slate-500">{{ $event->from_to }}</span>
         @else
             <div
-                class="event-progress relative flex items-center justify-center h-6 min-w-[14rem] px-2 overflow-hidden rounded border border-slate-300 bg-slate-100 text-xs"
+                class="event-progress relative flex items-center justify-center h-6 min-w-[20rem] px-2 overflow-hidden rounded border border-slate-300 bg-slate-100 text-xs"
                 data-start="{{ $event->start->valueOf() }}"
                 data-finish="{{ $event->finish->valueOf() }}"
             >
