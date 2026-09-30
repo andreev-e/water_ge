@@ -7,22 +7,18 @@
     $progress = round(min(1, max(0, $event->start->diffInSeconds(Carbon::now(), false) / max(1, $event->start->diffInSeconds($event->finish)))) * 100, 2) . '%';
 @endphp
 <tr id="{{$event->id}}" class="border-t border-slate-100 hover:bg-slate-50 {{ $active ? 'bg-amber-50/60' : '' }}">
-    <td class="px-3 py-2 whitespace-nowrap">
-        <span
-            class="inline-block w-2 h-2 rounded-full align-middle {{ $active ? 'bg-amber-500' : 'bg-slate-300' }}"
-            title="{{ $active ? 'Идёт сейчас' : 'Запланировано' }}"
-        ></span>
-        <a class="ml-1" href="/?type={{ $event->type->value }}" title="Только этот тип">
+    <td class="px-3 py-2 w-px whitespace-nowrap">
+        <a href="/?type={{ $event->type->value }}" title="Только этот тип">
             {!! $event->type->getIcon() !!}
         </a>
-        @if ($event->planned === false)
-            <span class="ml-1 px-1.5 py-0.5 rounded bg-red-50 text-xs text-red-700" title="Аварийное отключение">авария</span>
-        @endif
     </td>
     <td class="px-3 py-2">
         <a class="text-cyan-700 hover:underline" href="/?service_center_id={{ $event->serviceCenter->id }}">
             {{ $event->serviceCenter->name_ru }}
         </a>
+        @if ($event->planned === false)
+            <span class="ml-1 px-1.5 py-0.5 rounded bg-red-50 text-xs text-red-700 whitespace-nowrap" title="Аварийное отключение">авария</span>
+        @endif
         @if($withLink)
             <a
                 href="{{ route('event', ['event' => $event->id]) }}"
@@ -37,7 +33,7 @@
             <span class="text-slate-500">{{ $event->from_to }}</span>
         @else
             <div
-                class="event-progress relative flex items-center justify-center h-6 min-w-[9rem] px-2 overflow-hidden rounded border border-slate-300 bg-slate-100 text-xs"
+                class="event-progress relative flex items-center justify-center h-6 min-w-[14rem] px-2 overflow-hidden rounded border border-slate-300 bg-slate-100 text-xs"
                 data-start="{{ $event->start->valueOf() }}"
                 data-finish="{{ $event->finish->valueOf() }}"
             >
