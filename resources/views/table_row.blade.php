@@ -17,7 +17,15 @@
             {{ $event->serviceCenter->name_ru }}
         </a>
         @if ($event->planned === false)
-            <span class="ml-1 px-1.5 py-0.5 rounded bg-red-50 text-xs text-red-700 whitespace-nowrap" title="Аварийное отключение">авария</span>
+            <span
+                class="ml-1 inline-flex items-center justify-center w-5 h-5 align-middle rounded-full bg-red-50 text-red-600 cursor-help"
+                title="Аварийное отключение"
+                aria-label="Аварийное отключение"
+            >
+                <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M8.49 2.87c.67-1.16 2.35-1.16 3.02 0l6.28 10.88c.67 1.16-.17 2.62-1.51 2.62H3.72c-1.34 0-2.18-1.46-1.51-2.62L8.49 2.87ZM10 6.5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 6.5Zm0 7.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd"/>
+                </svg>
+            </span>
         @endif
         @if($withLink)
             <a
