@@ -40,70 +40,64 @@
     @yield('content')
 </div>
 <script>
-    // Draws every outage on one shared timeline: "now" is at the same x in every row,
+    // Draws the outages of each table on a shared timeline: "now" is at the same x in every row,
     // and bar length is proportional to the outage duration.
     (function () {
-        if (!document.querySelector('.event-progress')) {
-            return;
-        }
-
-        const HOUR = 3600000;
-        const NOW_AT = 0.25; // share of the bar width left of "now"
-        const MIN_SPAN = 2 * HOUR;
-        const MAX_SPAN = 48 * HOUR;
-
         const pad = (n) => String(n).padStart(2, '0');
         const formatLeft = (ms) => {
             const minutes = Math.ceil(ms / 60000);
             return Math.floor(minutes / 60) + ':' + pad(minutes % 60);
         };
-        const clamp = (x) => Math.min(1, Math.max(0, x));
         const percent = (x) => (x * 100).toFixed(3) + '%';
 
         function update() {
             const now = Date.now();
             // Queried on every tick: live refresh adds and removes rows.
-            const bars = [...document.querySelectorAll('.event-progress')].map((bar) => ({
-                bar,
-                start: +bar.dataset.start,
-                finish: +bar.dataset.finish,
-            }));
-
-            // One scale for the whole page, wide enough to fit the visible outages.
-            let span = MIN_SPAN;
-            bars.forEach(({start, finish}) => {
-                span = Math.max(span, (now - start) / NOW_AT, (finish - now) / (1 - NOW_AT));
+            // Each table gets its own scale, so tomorrow's planned outages don't squash the current ones.
+            const tables = new Map();
+            document.querySelectorAll('.event-progress').forEach((bar) => {
+                const table = bar.closest('table');
+                if (!tables.has(table)) {
+                    tables.set(table, []);
+                }
+                tables.get(table).push({bar, start: +bar.dataset.start, finish: +bar.dataset.finish});
             });
-            span = Math.min(span, MAX_SPAN);
-            const from = now - span * NOW_AT;
-            const x = (t) => clamp((t - from) / span);
 
-            bars.forEach(({bar, start, finish}) => {
-                const running = now >= start && now < finish;
-                const left = x(start);
-                const right = x(finish);
-                const spanEl = bar.querySelector('.event-progress-span');
-                const fill = bar.querySelector('.event-progress-fill');
+            tables.forEach((bars) => {
+                // The window spans from the earliest start to the latest finish: nothing is cut off.
+                const from = Math.min(...bars.map((b) => b.start));
+                const span = Math.max(...bars.map((b) => b.finish)) - from || 1;
+                const x = (t) => Math.min(1, Math.max(0, (t - from) / span));
+                const nowAt = (now - from) / span;
 
-                spanEl.style.left = percent(left);
-                spanEl.style.width = percent(right - left);
-                // Cut edges hint that the outage continues beyond the visible window.
-                spanEl.classList.toggle('rounded-l', start >= from);
-                spanEl.classList.toggle('rounded-r', finish <= from + span);
-                fill.style.left = percent(left);
-                fill.style.width = percent(Math.max(0, x(Math.min(now, finish)) - left));
-                bar.querySelector('.event-progress-marker').style.left = percent(NOW_AT);
-                bar.querySelector('.animate-ping').classList.toggle('hidden', !running);
-                bar.title = now < start
-                    ? 'Начнётся через ' + formatLeft(start - now)
-                    : running
-                        ? Math.floor((now - start) / (finish - start) * 100) + '% · осталось ' + formatLeft(finish - now)
-                        : 'Завершено';
+                bars.forEach(({bar, start, finish}) => {
+                    const running = now >= start && now < finish;
+                    const left = x(start);
+                    const spanEl = bar.querySelector('.event-progress-span');
+                    const fill = bar.querySelector('.event-progress-fill');
+                    const marker = bar.querySelector('.event-progress-marker');
+
+                    spanEl.style.left = percent(left);
+                    spanEl.style.width = percent(x(finish) - left);
+                    fill.style.left = percent(left);
+                    fill.style.width = percent(Math.max(0, x(Math.min(now, finish)) - left));
+                    // Upcoming outages may all be ahead of "now": then the marker is off the timeline.
+                    marker.style.left = percent(nowAt);
+                    marker.classList.toggle('hidden', nowAt < 0 || nowAt > 1);
+                    bar.querySelector('.animate-ping').classList.toggle('hidden', !running);
+                    bar.title = now < start
+                        ? 'Начнётся через ' + formatLeft(start - now)
+                        : running
+                            ? Math.floor((now - start) / (finish - start) * 100) + '% · осталось ' + formatLeft(finish - now)
+                            : 'Завершено';
+                });
             });
         }
 
         update();
         setInterval(update, 1000);
+        // Position rows added by live refresh right away instead of on the next tick.
+        document.addEventListener('live-events:updated', update);
     })();
 </script>
 <script>
@@ -259,6 +253,7 @@
                         updateSection(section, freshSection);
                     }
                 });
+                document.dispatchEvent(new Event('live-events:updated'));
             } catch (e) {
                 // Network hiccup: try again on the next tick.
             } finally {

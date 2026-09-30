@@ -50,7 +50,7 @@
             >
                 <div class="event-progress-span absolute inset-y-0 bg-amber-200/80 transition-[left,width] duration-1000 ease-linear" style="left: 0; width: 0"></div>
                 <div class="event-progress-fill absolute inset-y-0 bg-amber-400/70 transition-[left,width] duration-1000 ease-linear" style="left: 0; width: 0"></div>
-                <div class="event-progress-marker absolute inset-y-0 w-0.5 -ml-px bg-amber-600" style="left: 25%">
+                <div class="event-progress-marker absolute inset-y-0 w-0.5 -ml-px bg-amber-600 transition-[left] duration-1000 ease-linear">
                     <span class="absolute inset-0 bg-amber-500 animate-ping"></span>
                 </div>
                 <span class="relative z-10">{{ $event->from_to }}</span>
