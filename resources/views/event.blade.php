@@ -10,7 +10,7 @@
 
 @section('content')
     @include('partial.stats', ['stat' => $stat])
-    <div class="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+    <div class="bg-white rounded-xl border border-slate-200 overflow-x-auto overflow-y-hidden">
         <table class="w-full text-sm text-left">
             @include('table_head', ['withLink' => false])
             <tbody>

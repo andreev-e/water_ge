@@ -32,6 +32,23 @@
             </a>
         @endif
     </td>
+    <td class="px-3 py-2 whitespace-nowrap text-slate-600">
+        @if ($event->finish->isPast())
+            <span class="text-slate-500">{{ $event->from_to }}</span>
+        @else
+            <div
+                class="event-progress relative flex items-center justify-center h-6 min-w-[9rem] px-2 overflow-hidden rounded border border-slate-300 bg-slate-100 text-xs"
+                data-start="{{ $event->start->valueOf() }}"
+                data-finish="{{ $event->finish->valueOf() }}"
+            >
+                <div class="event-progress-fill absolute inset-y-0 left-0 bg-amber-300/70 transition-[width] duration-1000 ease-linear" style="width: {{ $progress }}"></div>
+                <div class="event-progress-marker absolute inset-y-0 w-0.5 -ml-px bg-amber-600 transition-[left] duration-1000 ease-linear" style="left: {{ $progress }}">
+                    <span class="absolute inset-0 bg-amber-500 animate-ping"></span>
+                </div>
+                <span class="relative z-10">{{ $event->from_to }}</span>
+            </div>
+        @endif
+    </td>
     <td class="px-3 py-2 whitespace-nowrap">
         @if ($event->serviceCenter->total_addresses && $event->type !== EventTypes::gas)
             <span class="font-semibold">{{ $event->total_addresses }}</span>
@@ -45,19 +62,4 @@
     </td>
     <td class="px-3 py-2 whitespace-nowrap {{ $active ? 'text-amber-700' : '' }}">{{ $event->start->diffForHumans() }}</td>
     <td class="px-3 py-2 whitespace-nowrap">{{ $active ? $event->finish->diffForHumans() : $event->finish->diffForHumans($event->start) }}</td>
-    <td class="px-3 py-2 whitespace-nowrap text-slate-500">
-        <span>{{ $event->from_to }}</span>
-        @if (! $event->finish->isPast())
-            <div
-                class="event-progress relative mt-1.5 h-2 min-w-[8rem] rounded-sm border border-slate-300 bg-slate-100"
-                data-start="{{ $event->start->valueOf() }}"
-                data-finish="{{ $event->finish->valueOf() }}"
-            >
-                <div class="event-progress-fill absolute inset-y-0 left-0 rounded-sm bg-amber-300/70 transition-[width] duration-1000 ease-linear" style="width: {{ $progress }}"></div>
-                <div class="event-progress-marker absolute -top-1 -bottom-1 w-1 -ml-0.5 rounded-full bg-amber-600 transition-[left] duration-1000 ease-linear" style="left: {{ $progress }}">
-                    <span class="absolute inset-0 rounded-full bg-amber-500 animate-ping"></span>
-                </div>
-            </div>
-        @endif
-    </td>
 </tr>

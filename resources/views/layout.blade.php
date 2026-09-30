@@ -105,7 +105,8 @@
         async function animateOut(row) {
             row.dataset.leaving = '';
             await row.animate(
-                [{opacity: 1, transform: 'none'}, {opacity: 0, transform: 'translateX(24px)'}],
+                // Fade only: a horizontal shift would overflow the table and flash a scrollbar.
+                [{opacity: 1}, {opacity: 0}],
                 {duration: duration(500), easing: 'ease-in', fill: 'forwards'}
             ).finished;
 
