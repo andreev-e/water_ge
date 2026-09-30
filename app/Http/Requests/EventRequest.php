@@ -13,6 +13,7 @@ class EventRequest extends FormRequest
         return [
             'service_center_id' => ['sometimes', 'integer'],
             'type' => ['sometimes', new Enum(EventTypes::class)],
+            'live' => ['sometimes', 'boolean'],
         ];
     }
 }

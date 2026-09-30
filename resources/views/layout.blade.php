@@ -39,6 +39,215 @@
     </header>
     @yield('content')
 </div>
+<script>
+    // Moves the marker along each outage's period bar in real time.
+    (function () {
+        if (!document.querySelector('.event-progress')) {
+            return;
+        }
+
+        const pad = (n) => String(n).padStart(2, '0');
+        const formatLeft = (ms) => {
+            const minutes = Math.ceil(ms / 60000);
+            return Math.floor(minutes / 60) + ':' + pad(minutes % 60);
+        };
+
+        function update() {
+            const now = Date.now();
+            // Queried on every tick: live refresh adds and removes rows.
+            document.querySelectorAll('.event-progress').forEach((bar) => {
+                const start = +bar.dataset.start;
+                const finish = +bar.dataset.finish;
+                const progress = Math.min(1, Math.max(0, (now - start) / (finish - start || 1)));
+                const percent = (progress * 100).toFixed(2) + '%';
+                const running = now >= start && now < finish;
+
+                bar.querySelector('.event-progress-fill').style.width = percent;
+                bar.querySelector('.event-progress-marker').style.left = percent;
+                bar.querySelector('.animate-ping').classList.toggle('hidden', !running);
+                bar.title = now < start
+                    ? 'Ещё не началось'
+                    : running
+                        ? Math.floor(progress * 100) + '% · осталось ' + formatLeft(finish - now)
+                        : 'Завершено';
+            });
+        }
+
+        update();
+        setInterval(update, 1000);
+    })();
+</script>
+<script>
+    // Refreshes the current events block: finished rows fade out, new ones fade in.
+    (function () {
+        const root = document.getElementById('live-events');
+        if (!root) {
+            return;
+        }
+
+        const INTERVAL = 60000;
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const duration = (ms) => reduceMotion ? 0 : ms;
+        let lastRefresh = Date.now();
+        let busy = false;
+
+        function animateIn(row) {
+            row.animate(
+                [{opacity: 0, transform: 'translateY(-6px)'}, {opacity: 1, transform: 'none'}],
+                {duration: duration(500), easing: 'ease-out'}
+            );
+            row.animate(
+                {backgroundColor: ['#cffafe', getComputedStyle(row).backgroundColor]},
+                {duration: duration(3000), easing: 'ease-in'}
+            );
+        }
+
+        async function animateOut(row) {
+            row.dataset.leaving = '';
+            await row.animate(
+                [{opacity: 1, transform: 'none'}, {opacity: 0, transform: 'translateX(24px)'}],
+                {duration: duration(500), easing: 'ease-in', fill: 'forwards'}
+            ).finished;
+
+            // Table rows can't animate height directly: collapse each cell's content and padding.
+            await Promise.all([...row.cells].map((cell) => {
+                const wrap = document.createElement('div');
+                wrap.style.overflow = 'hidden';
+                wrap.append(...cell.childNodes);
+                cell.append(wrap);
+                const style = getComputedStyle(cell);
+                return Promise.all([
+                    wrap.animate({height: [wrap.offsetHeight + 'px', '0px']}, {duration: duration(300), fill: 'forwards'}).finished,
+                    cell.animate(
+                        {paddingTop: [style.paddingTop, '0px'], paddingBottom: [style.paddingBottom, '0px']},
+                        {duration: duration(300), fill: 'forwards'}
+                    ).finished,
+                ]);
+            }));
+            row.remove();
+        }
+
+        function updateRow(row, fresh) {
+            row.className = fresh.className;
+            [...fresh.cells].forEach((freshCell, i) => {
+                const cell = row.cells[i];
+                if (!cell) {
+                    return;
+                }
+                // Keep the running progress bar so its marker doesn't restart.
+                const bar = cell.querySelector('.event-progress');
+                const freshBar = freshCell.querySelector('.event-progress');
+                if (bar && freshBar) {
+                    Object.assign(bar.dataset, freshBar.dataset);
+                    freshBar.replaceWith(bar);
+                }
+                cell.className = freshCell.className;
+                cell.replaceChildren(...freshCell.childNodes);
+            });
+        }
+
+        function updateSection(section, fresh) {
+            const body = section.querySelector('[data-live-rows]');
+            const freshBody = fresh.querySelector('[data-live-rows]');
+            const freshRows = [...freshBody.rows];
+            const freshIds = new Set(freshRows.map((row) => row.id));
+            const list = section.querySelector('[data-live-list]');
+            const empty = section.querySelector('[data-live-empty]');
+
+            const count = section.querySelector('[data-live-count]');
+            if (count && count.textContent !== String(freshRows.length)) {
+                count.textContent = freshRows.length;
+                count.animate([{color: '#0e7490', transform: 'scale(1.3)'}, {}], {duration: duration(600)});
+            }
+
+            if (freshRows.length) {
+                section.classList.remove('hidden');
+                list?.classList.remove('hidden');
+                empty?.classList.add('hidden');
+            }
+
+            // Rows are matched within this section: a row moving from "upcoming" to "active"
+            // fades out of one table and into the other.
+            const current = new Map(
+                [...body.rows].filter((row) => !('leaving' in row.dataset)).map((row) => [row.id, row])
+            );
+            const leaving = [...current.values()].filter((row) => !freshIds.has(row.id)).map(animateOut);
+            const added = [];
+
+            let cursor = null;
+            freshRows.forEach((freshRow) => {
+                let row = current.get(freshRow.id);
+                if (row) {
+                    updateRow(row, freshRow);
+                } else {
+                    row = freshRow;
+                    added.push(row);
+                }
+                // Rows still fading out keep their place; don't shuffle around them.
+                let ref = cursor ? cursor.nextElementSibling : body.firstElementChild;
+                while (ref && 'leaving' in ref.dataset) {
+                    ref = ref.nextElementSibling;
+                }
+                if (ref !== row) {
+                    body.insertBefore(row, ref);
+                }
+                cursor = row;
+            });
+            added.forEach(animateIn);
+
+            Promise.all(leaving).then(() => {
+                if (body.rows.length) {
+                    return;
+                }
+                list?.classList.add('hidden');
+                empty?.classList.remove('hidden');
+                if ('liveHideEmpty' in section.dataset) {
+                    section.classList.add('hidden');
+                }
+            });
+        }
+
+        async function refresh() {
+            if (busy) {
+                return;
+            }
+            busy = true;
+            lastRefresh = Date.now();
+            try {
+                const response = await fetch(root.dataset.liveUrl, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+                if (!response.ok) {
+                    return;
+                }
+                const html = await response.text();
+                const fresh = new DOMParser().parseFromString(html, 'text/html').getElementById('live-events');
+                if (!fresh) {
+                    return;
+                }
+                root.querySelectorAll('[data-live-section]').forEach((section) => {
+                    const freshSection = fresh.querySelector(`[data-live-section="${section.dataset.liveSection}"]`);
+                    if (freshSection) {
+                        updateSection(section, freshSection);
+                    }
+                });
+            } catch (e) {
+                // Network hiccup: try again on the next tick.
+            } finally {
+                busy = false;
+            }
+        }
+
+        setInterval(() => {
+            if (!document.hidden) {
+                refresh();
+            }
+        }, INTERVAL);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && Date.now() - lastRefresh > INTERVAL) {
+                refresh();
+            }
+        });
+    })();
+</script>
 <!-- Yandex.Metrika counter -->
 <script type="text/javascript">
     (function (m, e, t, r, i, k, a) {

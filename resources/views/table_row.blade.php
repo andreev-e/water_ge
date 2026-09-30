@@ -3,6 +3,8 @@
     use \Carbon\Carbon;
 
     $active = $event->start < Carbon::now();
+    // Initial bar position, so rows inserted by live refresh don't jump from zero.
+    $progress = round(min(1, max(0, $event->start->diffInSeconds(Carbon::now(), false) / max(1, $event->start->diffInSeconds($event->finish)))) * 100, 2) . '%';
 @endphp
 <tr id="{{$event->id}}" class="border-t border-slate-100 hover:bg-slate-50 {{ $active ? 'bg-amber-50/60' : '' }}">
     <td class="px-3 py-2 whitespace-nowrap">
@@ -43,5 +45,19 @@
     </td>
     <td class="px-3 py-2 whitespace-nowrap {{ $active ? 'text-amber-700' : '' }}">{{ $event->start->diffForHumans() }}</td>
     <td class="px-3 py-2 whitespace-nowrap">{{ $active ? $event->finish->diffForHumans() : $event->finish->diffForHumans($event->start) }}</td>
-    <td class="px-3 py-2 whitespace-nowrap text-slate-500">{{ $event->from_to }}</td>
+    <td class="px-3 py-2 whitespace-nowrap text-slate-500">
+        <span>{{ $event->from_to }}</span>
+        @if (! $event->finish->isPast())
+            <div
+                class="event-progress relative mt-1.5 h-2 min-w-[8rem] rounded-sm border border-slate-300 bg-slate-100"
+                data-start="{{ $event->start->valueOf() }}"
+                data-finish="{{ $event->finish->valueOf() }}"
+            >
+                <div class="event-progress-fill absolute inset-y-0 left-0 rounded-sm bg-amber-300/70 transition-[width] duration-1000 ease-linear" style="width: {{ $progress }}"></div>
+                <div class="event-progress-marker absolute -top-1 -bottom-1 w-1 -ml-0.5 rounded-full bg-amber-600 transition-[left] duration-1000 ease-linear" style="left: {{ $progress }}">
+                    <span class="absolute inset-0 rounded-full bg-amber-500 animate-ping"></span>
+                </div>
+            </div>
+        @endif
+    </td>
 </tr>

@@ -32,6 +32,11 @@ class Controller extends BaseController
             })
             ->get();
 
+        // Live refresh on the page only needs the current events block.
+        if ($request->boolean('live')) {
+            return view('partial.current_events', compact('currentEvents'));
+        }
+
         $title = 'Отключения воды, электричества и газа в Грузии';
 
         if ($request->has('service_center_id')) {

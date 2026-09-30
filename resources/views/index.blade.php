@@ -9,18 +9,7 @@
 
 @section('content')
     @include('partial.stats', ['stat' => $stat])
-    @if (request()->has('service_center_id'))
-        @include('partial.section_title', ['title' => 'Актуальные отключения', 'count' => count($currentEvents)])
-        @include('partial.events_list', ['events' => $currentEvents])
-    @else
-        @php
-            [$activeEvents, $upcomingEvents] = $currentEvents->partition(fn($event) => $event->start < Carbon::now());
-        @endphp
-        @include('partial.events_details', ['title' => 'Идут сейчас', 'events' => $activeEvents, 'open' => true, 'empty' => 'Сейчас отключений нет.'])
-        @if ($upcomingEvents->isNotEmpty())
-            @include('partial.events_details', ['title' => 'Будущие отключения', 'events' => $upcomingEvents])
-        @endif
-    @endif
+    @include('partial.current_events', ['currentEvents' => $currentEvents])
 
     @if ($overview)
         @include('chart', ['graphData' => $overview])
