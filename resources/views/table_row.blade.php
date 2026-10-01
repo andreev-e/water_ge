@@ -1,10 +1,16 @@
 @php
     use App\Enums\EventTypes;
     use \Carbon\Carbon;
+    use \Carbon\CarbonInterface;
 
     $active = $event->start < Carbon::now();
 @endphp
-<tr id="{{$event->id}}" class="border-t border-slate-100 hover:bg-slate-50 {{ $active ? 'bg-amber-50/60' : '' }}">
+<tr
+    id="{{$event->id}}"
+    class="border-t border-slate-100 hover:bg-slate-50 {{ $active ? 'bg-amber-50/60' : '' }}"
+    data-start="{{ $event->start->valueOf() }}"
+    data-finish="{{ $event->finish->valueOf() }}"
+>
     <td class="px-3 py-2 w-px whitespace-nowrap">
         <a href="/?type={{ $event->type->value }}" title="Только этот тип">
             {!! $event->type->getIcon() !!}
@@ -68,6 +74,12 @@
             <span class="text-slate-400">—</span>
         @endif
     </td>
-    <td class="px-3 py-2 whitespace-nowrap {{ $active ? 'text-amber-700' : '' }}">{{ $event->start->diffForHumans() }}</td>
-    <td class="px-3 py-2 whitespace-nowrap">{{ $active ? $event->finish->diffForHumans() : $event->finish->diffForHumans($event->start) }}</td>
+    {{-- data-countdown: under a minute to go, the text turns into a live seconds countdown. --}}
+    <td class="px-3 py-2 whitespace-nowrap {{ $active ? 'text-amber-700' : '' }}" data-countdown="start">{{ $event->start->diffForHumans() }}</td>
+    <td
+        class="px-3 py-2 whitespace-nowrap"
+        data-countdown="finish"
+        {{-- Shown once the outage starts and the row moves to the current ones without a reload. --}}
+        @unless($active) data-active-text="{{ $event->finish->diffForHumans($event->start, CarbonInterface::DIFF_RELATIVE_TO_NOW) }}" @endunless
+    >{{ $active ? $event->finish->diffForHumans() : $event->finish->diffForHumans($event->start) }}</td>
 </tr>

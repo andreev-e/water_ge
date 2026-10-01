@@ -92,6 +92,24 @@
                             : 'Завершено';
                 });
             });
+
+            // Under a minute to go, the relative time turns into a live seconds countdown.
+            document.querySelectorAll('[data-countdown]').forEach((cell) => {
+                const row = cell.closest('tr');
+                const start = +row.dataset.start;
+                // The finish only counts down once the outage is running.
+                if (cell.dataset.countdown === 'finish' && now < start) {
+                    return;
+                }
+                const left = (cell.dataset.countdown === 'start' ? start : +row.dataset.finish) - now;
+                if (left > 0 && left <= 60000) {
+                    cell.textContent = 'через ' + Math.ceil(left / 1000) + ' сек';
+                    cell.dataset.counting = '';
+                } else if (left <= 0 && 'counting' in cell.dataset) {
+                    cell.textContent = 'только что';
+                    delete cell.dataset.counting;
+                }
+            });
         }
 
         update();
@@ -170,31 +188,122 @@
             });
         }
 
-        function updateSection(section, fresh) {
-            const body = section.querySelector('[data-live-rows]');
-            const freshBody = fresh.querySelector('[data-live-rows]');
-            const freshRows = [...freshBody.rows];
-            const freshIds = new Set(freshRows.map((row) => row.id));
-            const list = section.querySelector('[data-live-list]');
-            const empty = section.querySelector('[data-live-empty]');
+        const sectionOf = (parent, key) => parent.querySelector(`[data-live-section="${key}"]`);
+        const liveRows = (section) => [...section.querySelector('[data-live-rows]').rows]
+            .filter((row) => !('leaving' in row.dataset));
 
+        function setCount(section) {
             const count = section.querySelector('[data-live-count]');
-            if (count && count.textContent !== String(freshRows.length)) {
-                count.textContent = freshRows.length;
+            const total = String(liveRows(section).length);
+            if (count && count.textContent !== total) {
+                count.textContent = total;
                 count.animate([{color: '#0e7490', transform: 'scale(1.3)'}, {}], {duration: duration(600)});
             }
+        }
+
+        function showList(section) {
+            section.classList.remove('hidden');
+            section.querySelector('[data-live-list]')?.classList.remove('hidden');
+            section.querySelector('[data-live-empty]')?.classList.add('hidden');
+        }
+
+        // Once the last rows have faded out, show the empty state.
+        function settle(section, leaving) {
+            Promise.all(leaving).then(() => {
+                if (section.querySelector('[data-live-rows]').rows.length) {
+                    return;
+                }
+                section.querySelector('[data-live-list]')?.classList.add('hidden');
+                section.querySelector('[data-live-empty]')?.classList.remove('hidden');
+                if ('liveHideEmpty' in section.dataset) {
+                    section.classList.add('hidden');
+                }
+                // Nothing is going on right now: show what's coming instead.
+                if (section.dataset.liveSection === 'active') {
+                    const upcoming = sectionOf(root, 'upcoming');
+                    if (upcoming) {
+                        upcoming.open = true;
+                    }
+                }
+            });
+        }
+
+        // Restyles an upcoming row the way the server renders a running one.
+        function makeActive(row) {
+            row.classList.add('bg-amber-50/60');
+            const start = row.querySelector('[data-countdown="start"]');
+            start.classList.add('text-amber-700');
+            start.textContent = 'только что';
+            delete start.dataset.counting;
+            const finish = row.querySelector('[data-countdown="finish"]');
+            if (finish.dataset.activeText) {
+                finish.textContent = finish.dataset.activeText;
+                delete finish.dataset.activeText;
+            }
+        }
+
+        // Keeps the server's order by start; rows fading out don't count.
+        function insertByStart(body, row) {
+            const next = [...body.rows].find((other) => !('leaving' in other.dataset) && +other.dataset.start > +row.dataset.start);
+            body.insertBefore(row, next ?? null);
+        }
+
+        // Upcoming outages that have already started by the browser's clock.
+        const startedRows = (upcoming) => liveRows(upcoming).filter((row) => +row.dataset.start <= Date.now());
+
+        // Outages that have already finished by the browser's clock.
+        const finishedRows = (section) => liveRows(section).filter((row) => +row.dataset.finish <= Date.now());
+
+        // Fades out outages that have just finished without waiting for the next refresh.
+        function removeFinished() {
+            root.querySelectorAll('[data-live-section]').forEach((section) => {
+                const finished = finishedRows(section);
+                if (!finished.length) {
+                    return;
+                }
+                const leaving = finished.map(animateOut);
+                setCount(section);
+                settle(section, leaving);
+            });
+        }
+
+        // Moves outages that have just started into "active" without waiting for the next refresh.
+        function promoteStarted() {
+            const upcoming = sectionOf(root, 'upcoming');
+            const active = sectionOf(root, 'active');
+            const started = upcoming && active ? startedRows(upcoming) : [];
+            if (!started.length) {
+                return;
+            }
+            const body = active.querySelector('[data-live-rows]');
+            const leaving = started.map((row) => {
+                const moved = row.cloneNode(true);
+                makeActive(moved);
+                // The fading copy gives up its id so it isn't matched by the next refresh.
+                row.removeAttribute('id');
+                insertByStart(body, moved);
+                animateIn(moved);
+                return animateOut(row);
+            });
+            showList(active);
+            setCount(active);
+            setCount(upcoming);
+            settle(upcoming, leaving);
+            document.dispatchEvent(new Event('live-events:updated'));
+        }
+
+        function updateSection(section, fresh) {
+            const body = section.querySelector('[data-live-rows]');
+            const freshRows = [...fresh.querySelector('[data-live-rows]').rows];
+            const freshIds = new Set(freshRows.map((row) => row.id));
 
             if (freshRows.length) {
-                section.classList.remove('hidden');
-                list?.classList.remove('hidden');
-                empty?.classList.add('hidden');
+                showList(section);
             }
 
             // Rows are matched within this section: a row moving from "upcoming" to "active"
             // fades out of one table and into the other.
-            const current = new Map(
-                [...body.rows].filter((row) => !('leaving' in row.dataset)).map((row) => [row.id, row])
-            );
+            const current = new Map(liveRows(section).map((row) => [row.id, row]));
             const leaving = [...current.values()].filter((row) => !freshIds.has(row.id)).map(animateOut);
             const added = [];
 
@@ -219,16 +328,8 @@
             });
             added.forEach(animateIn);
 
-            Promise.all(leaving).then(() => {
-                if (body.rows.length) {
-                    return;
-                }
-                list?.classList.add('hidden');
-                empty?.classList.remove('hidden');
-                if ('liveHideEmpty' in section.dataset) {
-                    section.classList.add('hidden');
-                }
-            });
+            setCount(section);
+            settle(section, leaving);
         }
 
         async function refresh() {
@@ -246,6 +347,19 @@
                 const fresh = new DOMParser().parseFromString(html, 'text/html').getElementById('live-events');
                 if (!fresh) {
                     return;
+                }
+                // The server may not have noticed yet that an outage finished or started:
+                // don't bring it back or move it back.
+                fresh.querySelectorAll('[data-live-section]').forEach((section) => {
+                    finishedRows(section).forEach((row) => row.remove());
+                });
+                const freshUpcoming = sectionOf(fresh, 'upcoming');
+                const freshActive = sectionOf(fresh, 'active');
+                if (freshUpcoming && freshActive) {
+                    startedRows(freshUpcoming).forEach((row) => {
+                        makeActive(row);
+                        insertByStart(freshActive.querySelector('[data-live-rows]'), row);
+                    });
                 }
                 root.querySelectorAll('[data-live-section]').forEach((section) => {
                     const freshSection = fresh.querySelector(`[data-live-section="${section.dataset.liveSection}"]`);
@@ -266,6 +380,11 @@
                 refresh();
             }
         }, INTERVAL);
+        setInterval(() => {
+            // Finished first: an outage that started and ended between ticks just goes away.
+            removeFinished();
+            promoteStarted();
+        }, 1000);
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden && Date.now() - lastRefresh > INTERVAL) {
                 refresh();
