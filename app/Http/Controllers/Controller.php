@@ -391,7 +391,7 @@ class Controller extends BaseController
      */
     private function getSubscribesGraphData(): array
     {
-        return Cache::remember('graphData_users_v4', 60 * 60,
+        return Cache::remember('graphData_users_v5', 60 * 60,
             function() {
                 $fromDate = now()->subDays(30)->startOfDay();
 
@@ -428,6 +428,7 @@ class Controller extends BaseController
                     'title' => 'Число пользователей бота',
                     'xTitle' => 'Даты',
                     'yTitle' => 'Пользователи',
+                    'partialIndex' => count($labels) - 1,
                 ];
             });
     }

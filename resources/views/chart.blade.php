@@ -45,6 +45,10 @@
                 });
             } else if (!dataset.type) {
                 Object.assign(dataset, {borderWidth: 2, pointRadius: 0, pointHoverRadius: 5, tension: 0.2});
+                // Points from partialIndex on are still accumulating, so the line into them is dashed.
+                if (graph.partialIndex !== undefined) {
+                    dataset.segment = {borderDash: (ctx) => ctx.p1DataIndex >= graph.partialIndex ? [6, 4] : undefined};
+                }
             }
         };
         graph.datasets.forEach(style);
