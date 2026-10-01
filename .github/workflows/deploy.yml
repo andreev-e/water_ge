@@ -65,6 +65,8 @@ jobs:
             $PHP artisan view:clear
             $PHP artisan config:clear
             $PHP artisan event:clear
+            # routes are not cached on deploy: a stale route cache hides every new route
+            $PHP artisan route:clear
             $PHP artisan config:cache
             $PHP artisan view:cache
             $PHP artisan event:cache
