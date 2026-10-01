@@ -68,7 +68,7 @@ class EventFinishedNotification extends Notification implements ShouldQueue
         return $message
             ->line('')
             ->line(__('telegram.donate_ask', [], $locale))
-            ->button(__('telegram.details', [], $locale), url('https://water.andreev-e.ru' . Locale::webPrefix($locale) . '/event/' . $this->event->id))
+            ->button(__('telegram.details', [], $locale), url('https://water.andreev-e.ru' . Locale::webPrefix(Locale::web($this->languageCode ?? null)) . '/event/' . $this->event->id))
             ->buttonWithCallback(__('telegram.donate_button', [], $locale), 'command=donate');
     }
 

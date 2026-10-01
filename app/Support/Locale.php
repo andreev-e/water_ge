@@ -41,6 +41,17 @@ class Locale
     }
 
     /**
+     * The site language for a Telegram user: their own one when the site has it
+     * ('en', 'en-us' → 'en'), Russian otherwise.
+     */
+    public static function web(?string $languageCode): string
+    {
+        $language = strtolower(strtok((string)$languageCode, '-_'));
+
+        return in_array($language, self::WEB, true) ? $language : self::WEB_DEFAULT;
+    }
+
+    /**
      * Path prefix of the site in that language: '' for Russian, '/ka' for Georgian.
      */
     public static function webPrefix(string $locale): string
