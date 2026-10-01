@@ -1,3 +1,9 @@
+@php
+    use App\Support\Locale;
+    use Illuminate\Support\Arr;
+
+    $scriptTranslations = Arr::only(__('web'), ['starts_in', 'progress_left', 'finished', 'in_seconds', 'just_now']);
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -11,6 +17,10 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="manifest" href="/site.webmanifest">
     <meta name="theme-color" content="#0e7490">
+    @foreach(Locale::WEB as $locale)
+        <link rel="alternate" hreflang="{{ $locale }}" href="{{ Locale::switchUrl($locale) }}">
+    @endforeach
+    <link rel="alternate" hreflang="x-default" href="{{ Locale::switchUrl(Locale::WEB_DEFAULT) }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -19,23 +29,32 @@
 <div class="max-w-6xl mx-auto px-4 py-6">
     <header class="mb-6 text-center">
         <div class="flex items-center justify-center gap-3">
-            <a href="{{ route('index') }}" class="shrink-0"><img src="/logo.svg" alt="WaterGeorgia" class="w-10 h-10 md:w-12 md:h-12"></a>
+            <a href="{{ Locale::route('index') }}" class="shrink-0"><img src="/logo.svg" alt="WaterGeorgia" class="w-10 h-10 md:w-12 md:h-12"></a>
             <h1 class="text-2xl md:text-3xl font-semibold tracking-tight text-left">@yield('title')</h1>
         </div>
         <nav class="mt-4 flex flex-wrap justify-center gap-2 text-sm">
-            <a href="{{ route('index') }}" class="px-3 py-1 rounded-full bg-white border border-slate-200 hover:border-cyan-600 hover:text-cyan-700">Все отключения</a>
-            <a href="{{ route('service-centers') }}" class="px-3 py-1 rounded-full bg-white border border-slate-200 hover:border-cyan-600 hover:text-cyan-700">Сервис центры</a>
-            <a href="{{ route('addresses') }}" class="px-3 py-1 rounded-full bg-white border border-slate-200 hover:border-cyan-600 hover:text-cyan-700">Адреса</a>
+            <a href="{{ Locale::route('index') }}" class="px-3 py-1 rounded-full bg-white border border-slate-200 hover:border-cyan-600 hover:text-cyan-700">{{ __('web.nav_all') }}</a>
+            <a href="{{ Locale::route('service-centers') }}" class="px-3 py-1 rounded-full bg-white border border-slate-200 hover:border-cyan-600 hover:text-cyan-700">{{ __('web.nav_centers') }}</a>
+            <a href="{{ Locale::route('addresses') }}" class="px-3 py-1 rounded-full bg-white border border-slate-200 hover:border-cyan-600 hover:text-cyan-700">{{ __('web.nav_addresses') }}</a>
             <a target="_blank" href="https://t.me/WaterGeorgia_bot" class="px-3 py-1 rounded-full bg-cyan-700 text-white hover:bg-cyan-800">
-                Telegram-бот @WaterGeorgia_bot
+                {{ __('web.nav_bot') }}
             </a>
             <a target="_blank" href="https://www.facebook.com/profile.php?id=61594858257140" class="px-3 py-1 rounded-full bg-blue-600 text-white hover:bg-blue-700">
                 Facebook
             </a>
         </nav>
         <p class="mt-2 text-xs text-slate-500">
-            В Telegram-боте можно подписаться на любой сервисный центр (город) или адрес и получать уведомления об отключениях
+            {{ __('web.bot_hint') }}
         </p>
+        <nav class="mt-3 flex justify-center gap-1 text-xs" aria-label="{{ __('web.language') }}">
+            @foreach(Locale::WEB_NAMES as $locale => $name)
+                @if($locale === app()->getLocale())
+                    <span class="px-2 py-0.5 rounded-full bg-cyan-700 text-white" aria-current="true">{{ $name }}</span>
+                @else
+                    <a href="{{ Locale::switchUrl($locale) }}" hreflang="{{ $locale }}" lang="{{ $locale }}" class="px-2 py-0.5 rounded-full bg-white border border-slate-200 text-slate-600 hover:border-cyan-600 hover:text-cyan-700">{{ $name }}</a>
+                @endif
+            @endforeach
+        </nav>
     </header>
     @yield('content')
 </div>
@@ -43,6 +62,8 @@
     // Draws the outages of each table on a shared timeline: "now" is at the same x in every row,
     // and bar length is proportional to the outage duration.
     (function () {
+        const t = @json($scriptTranslations);
+        const tr = (text, vars) => text.replace(/:(\w+)/g, (match, key) => key in vars ? vars[key] : match);
         const pad = (n) => String(n).padStart(2, '0');
         const formatLeft = (ms) => {
             const minutes = Math.ceil(ms / 60000);
@@ -86,10 +107,10 @@
                     marker.classList.toggle('hidden', nowAt < 0 || nowAt > 1);
                     bar.querySelector('.animate-ping').classList.toggle('hidden', !running);
                     bar.title = now < start
-                        ? 'Начнётся через ' + formatLeft(start - now)
+                        ? tr(t.starts_in, {time: formatLeft(start - now)})
                         : running
-                            ? Math.floor((now - start) / (finish - start) * 100) + '% · осталось ' + formatLeft(finish - now)
-                            : 'Завершено';
+                            ? tr(t.progress_left, {percent: Math.floor((now - start) / (finish - start) * 100), time: formatLeft(finish - now)})
+                            : t.finished;
                 });
             });
 
@@ -103,10 +124,10 @@
                 }
                 const left = (cell.dataset.countdown === 'start' ? start : +row.dataset.finish) - now;
                 if (left > 0 && left <= 60000) {
-                    cell.textContent = 'через ' + Math.ceil(left / 1000) + ' сек';
+                    cell.textContent = tr(t.in_seconds, {seconds: Math.ceil(left / 1000)});
                     cell.dataset.counting = '';
                 } else if (left <= 0 && 'counting' in cell.dataset) {
-                    cell.textContent = 'только что';
+                    cell.textContent = t.just_now;
                     delete cell.dataset.counting;
                 }
             });
@@ -233,7 +254,7 @@
             row.classList.add('bg-amber-50/60');
             const start = row.querySelector('[data-countdown="start"]');
             start.classList.add('text-amber-700');
-            start.textContent = 'только что';
+            start.textContent = @json(__('web.just_now'));
             delete start.dataset.counting;
             const finish = row.querySelector('[data-countdown="finish"]');
             if (finish.dataset.activeText) {

@@ -2,25 +2,25 @@
     <table class="w-full text-sm text-left">
         <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
             <tr>
-                <th class="px-3 py-2 font-medium">Адрес</th>
+                <th class="px-3 py-2 font-medium">{{ __('web.col_address') }}</th>
                 @if ($withSC)
-                    <th class="px-3 py-2 font-medium">Сервис центр</th>
+                    <th class="px-3 py-2 font-medium">{{ __('web.col_service_center') }}</th>
                 @endif
-                <th class="px-3 py-2 font-medium text-right">Отключений</th>
+                <th class="px-3 py-2 font-medium text-right">{{ __('web.col_outages') }}</th>
             </tr>
         </thead>
         <tbody>
             @foreach($addresses as $address)
                 <tr class="border-t border-slate-100 hover:bg-slate-50">
                     <td class="px-3 py-2">
-                        <a class="text-cyan-700 hover:underline" href="{{ route('address', ['address' => $address->id]) }}">
-                            {{ $address->translit }}
+                        <a class="text-cyan-700 hover:underline" href="{{ \App\Support\Locale::route('address', ['address' => $address->id]) }}">
+                            {{ $address->localizedName(app()->getLocale()) }}
                         </a>
                     </td>
                     @if ($withSC)
                         <td class="px-3 py-2">
-                            <a class="text-cyan-700 hover:underline" href="{{ route('index', ['service_center_id' => $address->serviceCenter->id]) }}">
-                                {{ $address->serviceCenter->name_ru }}
+                            <a class="text-cyan-700 hover:underline" href="{{ \App\Support\Locale::route('index', ['service_center_id' => $address->serviceCenter->id]) }}">
+                                {{ $address->serviceCenter->localizedName(app()->getLocale()) }}
                             </a>
                         </td>
                     @endif

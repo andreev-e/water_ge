@@ -12,11 +12,11 @@
             @php($stale = \App\Support\SourceStatus::isStale($updatedAt))
             <span
                 class="px-3 py-1 rounded-full bg-white border border-slate-200"
-                title="{{ $updatedAt ? 'Последнее успешное обновление: ' . $updatedAt->format('d.m.Y H:i') : 'Ещё не обновлялся' }}"
+                title="{{ $updatedAt ? __('web.source_updated', ['time' => $updatedAt->format('d.m.Y H:i')]) : __('web.source_never_updated') }}"
             >
                 <span class="inline-block w-2 h-2 rounded-full align-middle {{ $stale ? 'bg-red-500' : 'bg-green-500' }}"></span>
-                {{ \App\Support\SourceStatus::LABELS[$source] }}:
-                <span class="{{ $stale ? 'text-red-600' : '' }}">{{ $updatedAt?->locale('ru')->diffForHumans() ?? 'нет данных' }}</span>
+                {{ __('web.sources.' . $source) }}:
+                <span class="{{ $stale ? 'text-red-600' : '' }}">{{ $updatedAt?->diffForHumans() ?? __('web.source_no_data') }}</span>
             </span>
         @endforeach
     </div>

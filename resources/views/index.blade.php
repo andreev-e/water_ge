@@ -1,9 +1,3 @@
-@php
-    use \Carbon\Carbon;
-
-    Carbon::setLocale('ru');
-@endphp
-
 @extends('layout')
 @section('title', $title)
 
@@ -20,7 +14,7 @@
     @endif
 
     @if ($addresses)
-        @include('partial.section_title', ['title' => 'Часто отключаемые адреса'])
+        @include('partial.section_title', ['title' => __('web.frequent_addresses')])
         @include('partial.addresses_list', ['addresses' => $addresses, 'withSC' => false])
     @endif
 

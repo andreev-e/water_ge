@@ -2,6 +2,7 @@
     use App\Enums\EventTypes;
     use \Carbon\Carbon;
     use \Carbon\CarbonInterface;
+    use App\Support\Locale;
 
     $active = $event->start < Carbon::now();
 @endphp
@@ -12,19 +13,19 @@
     data-finish="{{ $event->finish->valueOf() }}"
 >
     <td class="px-3 py-2 w-px whitespace-nowrap">
-        <a href="/?type={{ $event->type->value }}" title="Только этот тип">
+        <a href="{{ Locale::route('index', ['type' => $event->type->value]) }}" title="{{ __('web.only_this_type') }}">
             {!! $event->type->getIcon() !!}
         </a>
     </td>
     <td class="px-3 py-2">
-        <a class="text-cyan-700 hover:underline" href="/?service_center_id={{ $event->serviceCenter->id }}">
-            {{ $event->serviceCenter->name_ru }}
+        <a class="text-cyan-700 hover:underline" href="{{ Locale::route('index', ['service_center_id' => $event->serviceCenter->id]) }}">
+            {{ $event->serviceCenter->localizedName(app()->getLocale()) }}
         </a>
         @if ($event->planned === false)
             <span
                 class="ml-1 inline-flex items-center justify-center w-5 h-5 align-middle rounded-full bg-red-50 text-red-600 cursor-help"
-                title="Аварийное отключение"
-                aria-label="Аварийное отключение"
+                title="{{ __('web.emergency_outage') }}"
+                aria-label="{{ __('web.emergency_outage') }}"
             >
                 <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path fill-rule="evenodd" d="M8.49 2.87c.67-1.16 2.35-1.16 3.02 0l6.28 10.88c.67 1.16-.17 2.62-1.51 2.62H3.72c-1.34 0-2.18-1.46-1.51-2.62L8.49 2.87ZM10 6.5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 6.5Zm0 7.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd"/>
@@ -33,10 +34,10 @@
         @endif
         @if($withLink)
             <a
-                href="{{ route('event', ['event' => $event->id]) }}"
+                href="{{ Locale::route('event', ['event' => $event->id]) }}"
                 class="ml-1 inline-flex items-center justify-center w-5 h-5 align-middle rounded-full bg-slate-100 text-slate-500 hover:bg-cyan-50 hover:text-cyan-700"
-                title="Подробнее"
-                aria-label="Подробнее"
+                title="{{ __('web.details') }}"
+                aria-label="{{ __('web.details') }}"
             >
                 <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path fill-rule="evenodd" d="M7.2 14.8a.75.75 0 0 1 0-1.06L10.94 10 7.2 6.26a.75.75 0 1 1 1.06-1.06l4.27 4.27a.75.75 0 0 1 0 1.06L8.26 14.8a.75.75 0 0 1-1.06 0Z" clip-rule="evenodd"/>
@@ -46,7 +47,7 @@
     </td>
     <td class="px-3 py-2 whitespace-nowrap text-slate-600">
         @if ($event->finish->isPast())
-            <span class="text-slate-500">{{ $event->from_to }}</span>
+            <span class="text-slate-500">{{ $event->fromToIn(app()->getLocale()) }}</span>
         @else
             {{-- Shared timeline: "now" sits at the same x in every row, bar length is proportional to duration. --}}
             <div
@@ -59,7 +60,7 @@
                 <div class="event-progress-marker absolute inset-y-0 w-0.5 -ml-px bg-amber-600 transition-[left] duration-1000 ease-linear">
                     <span class="absolute inset-0 bg-amber-500 animate-ping"></span>
                 </div>
-                <span class="relative z-10">{{ $event->from_to }}</span>
+                <span class="relative z-10">{{ $event->fromToIn(app()->getLocale()) }}</span>
             </div>
         @endif
     </td>

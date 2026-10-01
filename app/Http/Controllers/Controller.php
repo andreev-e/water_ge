@@ -8,6 +8,7 @@ use App\Models\Address;
 use App\Models\Event;
 use App\Models\ServiceCenter;
 use App\Models\UserStat;
+use App\Support\Locale;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Http\Request;
@@ -37,16 +38,16 @@ class Controller extends BaseController
             return view('partial.current_events', compact('currentEvents'));
         }
 
-        $title = 'Отключения воды, электричества и газа в Грузии';
+        $title = __('web.title_all');
 
         if ($request->has('service_center_id')) {
             $serviceCenter = ServiceCenter::query()
                 ->findOrFail($request->get('service_center_id'));
-            $title = $serviceCenter->name_ru . ' - отключения воды, электричества и газа';
+            $title = __('web.title_center', ['center' => $serviceCenter->localizedName(app()->getLocale())]);
         }
 
         if ($request->has('type')) {
-            $title = 'Отключения ' . EventTypes::tryFrom($request->get('type'))?->getIcon() . ' в Грузии';
+            $title = __('web.title_type', ['icon' => EventTypes::tryFrom($request->get('type'))?->getIcon()]);
         }
 
 
@@ -125,17 +126,7 @@ class Controller extends BaseController
         'gas' => '#1baf7a',
     ];
 
-    private const SERIES_LABELS = [
-        'water' => 'Вода',
-        'energy' => 'Электричество',
-        'gas' => 'Газ',
-    ];
-
-    private const KIND_LABELS = [
-        'all' => 'Все',
-        'planned' => 'Плановые',
-        'emergency' => 'Аварийные',
-    ];
+    private const KINDS = ['all', 'planned', 'emergency'];
 
     /**
      * Share of the service center's addresses cut off on each day, split by
@@ -147,7 +138,7 @@ class Controller extends BaseController
      */
     private function getEventsGraphData(ServiceCenter $serviceCenter, Address $address = null): array
     {
-        return Cache::remember('eventsGraphKinds_' . $serviceCenter->id . '-' . $address?->id, 60 * 60,
+        return Cache::remember('eventsGraphKinds_' . $serviceCenter->id . '-' . $address?->id . '_' . app()->getLocale(), 60 * 60,
             function() use ($serviceCenter, $address) {
                 $types = [EventTypes::water, EventTypes::energy];
                 $firstDay = now()->subMonths(6)->startOfDay();
@@ -165,14 +156,14 @@ class Controller extends BaseController
                 $affected = [];
                 for ($day = $firstDay->copy(); $day->lte($lastDay); $day->addDay()) {
                     $labels[] = $day->format('d.m.Y');
-                    foreach (array_keys(self::KIND_LABELS) as $kind) {
+                    foreach (self::KINDS as $kind) {
                         foreach ($types as $type) {
                             $affected[$kind][$type->value][$day->format('d.m.Y')] = [];
                         }
                     }
                 }
 
-                $addressDays = array_fill_keys(array_keys(self::KIND_LABELS), []);
+                $addressDays = array_fill_keys(self::KINDS, []);
                 $kindCounts = ['planned' => 0, 'emergency' => 0];
                 foreach ($events as $event) {
                     $kinds = ['all'];
@@ -189,7 +180,7 @@ class Controller extends BaseController
                         foreach ($kinds as $kind) {
                             $affected[$kind][$event->type->value][$date] += array_fill_keys($ids, true);
                             if ($hitsAddress) {
-                                $addressDays[$kind][$date][] = self::SERIES_LABELS[$event->type->value];
+                                $addressDays[$kind][$date][] = __('web.series.' . $event->type->value);
                             }
                         }
                     }
@@ -197,9 +188,9 @@ class Controller extends BaseController
 
                 $total = max($serviceCenter->total_addresses, 1);
                 $variants = [];
-                foreach (self::KIND_LABELS as $kind => $kindLabel) {
+                foreach (self::KINDS as $kind) {
                     $variants[$kind] = [
-                        'label' => $kindLabel,
+                        'label' => __('web.kinds.' . $kind),
                         'datasets' => $this->buildOutageDatasets($types, $labels, $affected[$kind], $total, $address, $addressDays[$kind]),
                     ];
                 }
@@ -216,25 +207,25 @@ class Controller extends BaseController
                 $worst = $pastDays ? array_keys($pastDays, max($pastDays))[0] : null;
 
                 $summary = [
-                    'Дней с отключениями' => $daysWithOutages . ' из ' . count($labels),
-                    'Худший день' => $worst && $pastDays[$worst]
+                    __('web.days_with_outages') => __('web.days_of', ['days' => $daysWithOutages, 'total' => count($labels)]),
+                    __('web.worst_day') => $worst && $pastDays[$worst]
                         ? substr($worst, 0, 5) . ' — ' . min(round($pastDays[$worst] / $total * 100), 100) . '%'
                         : '—',
-                    'Плановых / аварийных' => $kindCounts['planned'] . ' / ' . $kindCounts['emergency'],
-                    'Адресов в центре' => $serviceCenter->total_addresses,
+                    __('web.planned_emergency') => $kindCounts['planned'] . ' / ' . $kindCounts['emergency'],
+                    __('web.center_addresses') => $serviceCenter->total_addresses,
                 ];
                 if ($address) {
-                    $summary['Отключений по адресу'] = count($addressDays['all']) . ' дн.';
+                    $summary[__('web.address_outages')] = __('web.days_short', ['count' => count($addressDays['all'])]);
                 }
 
                 return [
                     'type' => 'bar',
-                    'title' => 'Статистика отключений за полгода (вода и электричество)',
+                    'title' => __('web.events_chart_title'),
                     'labels' => $labels,
                     'datasets' => $variants['all']['datasets'],
                     'variants' => $variants,
                     'summary' => $summary,
-                    'yTitle' => '% адресов без услуги',
+                    'yTitle' => __('web.events_chart_y'),
                     'yUnit' => '%',
                     'todayIndex' => count($labels) - 6,
                 ];
@@ -253,7 +244,7 @@ class Controller extends BaseController
             $counts = array_map('count', array_values($affected[$type->value]));
             $datasets[] = [
                 'type' => 'bar',
-                'label' => self::SERIES_LABELS[$type->value],
+                'label' => __('web.series.' . $type->value),
                 'backgroundColor' => self::SERIES_COLORS[$type->value],
                 'data' => array_map(fn($count) => min(round($count / $total * 100, 1), 100), $counts),
                 'counts' => $counts,
@@ -266,7 +257,7 @@ class Controller extends BaseController
             $datasets[] = [
                 'type' => 'line',
                 'showLine' => false,
-                'label' => 'Отключение по адресу ' . $address->translit,
+                'label' => __('web.address_series', ['address' => $address->localizedName(app()->getLocale())]),
                 'backgroundColor' => '#1e293b',
                 'borderColor' => '#ffffff',
                 'borderWidth' => 2,
@@ -296,7 +287,7 @@ class Controller extends BaseController
      */
     private function getOverviewGraphData(): array
     {
-        return Cache::remember('overviewGraph', 60 * 60, function() {
+        return Cache::remember('overviewGraph_' . app()->getLocale(), 60 * 60, function() {
             $types = [EventTypes::water, EventTypes::energy, EventTypes::gas];
             $firstDay = now()->subDays(90)->startOfDay();
             $lastDay = now()->addDays(5)->startOfDay();
@@ -314,7 +305,7 @@ class Controller extends BaseController
             }
             $empty = array_fill_keys($labels, 0);
             $counts = [];
-            foreach (array_keys(self::KIND_LABELS) as $kind) {
+            foreach (self::KINDS as $kind) {
                 foreach ($types as $type) {
                     $counts[$kind][$type->value] = $empty;
                 }
@@ -330,12 +321,12 @@ class Controller extends BaseController
             }
 
             $variants = [];
-            foreach (self::KIND_LABELS as $kind => $kindLabel) {
+            foreach (self::KINDS as $kind) {
                 $variants[$kind] = [
-                    'label' => $kindLabel,
+                    'label' => __('web.kinds.' . $kind),
                     'datasets' => array_map(fn(EventTypes $type) => [
                         'type' => 'bar',
-                        'label' => self::SERIES_LABELS[$type->value],
+                        'label' => __('web.series.' . $type->value),
                         'backgroundColor' => self::SERIES_COLORS[$type->value],
                         'data' => array_values($counts[$kind][$type->value]),
                         'stack' => 'outages',
@@ -362,24 +353,24 @@ class Controller extends BaseController
             return [
                 'id' => 'overviewChart',
                 'type' => 'bar',
-                'title' => 'Отключения по Грузии за 90 дней',
+                'title' => __('web.overview_title'),
                 'labels' => $labels,
                 'datasets' => $variants['all']['datasets'],
                 'variants' => $variants,
                 'summary' => [
-                    'За 30 дней' => $lastMonth->count()
+                    __('web.last_30_days') => $lastMonth->count()
                         . ($change !== null ? ' (' . ($change > 0 ? '+' : '') . $change . '%)' : ''),
-                    'Аварийных' => $known->isNotEmpty()
-                        ? round($emergency / $known->count() * 100) . '% из ' . $known->count()
+                    __('web.emergency_share') => $known->isNotEmpty()
+                        ? __('web.percent_of', ['percent' => round($emergency / $known->count() * 100), 'total' => $known->count()])
                         : '—',
-                    'Длятся (медиана)' => $hours->isNotEmpty()
-                        ? round($hours[intdiv($hours->count(), 2)], 1) . ' ч'
+                    __('web.median_duration') => $hours->isNotEmpty()
+                        ? __('web.hours_short', ['hours' => round($hours[intdiv($hours->count(), 2)], 1)])
                         : '—',
-                    'Чаще всего' => $topCenterName
-                        ? ($topCenterName->name_ru ?: $topCenterName->name) . ' — ' . $topCenter->first()
+                    __('web.most_often') => $topCenterName
+                        ? $topCenterName->localizedName(app()->getLocale()) . ' — ' . $topCenter->first()
                         : '—',
                 ],
-                'yTitle' => 'Отключений в день',
+                'yTitle' => __('web.overview_y'),
                 'todayIndex' => count($labels) - 6,
             ];
         });
@@ -391,7 +382,7 @@ class Controller extends BaseController
      */
     private function getSubscribesGraphData(): array
     {
-        return Cache::remember('graphData_users_v5', 60 * 60,
+        return Cache::remember('graphData_users_v5_' . app()->getLocale(), 60 * 60,
             function() {
                 $fromDate = now()->subDays(30)->startOfDay();
 
@@ -406,9 +397,9 @@ class Controller extends BaseController
                 }
 
                 $series = [
-                    'users' => ['Пользователи', '#2a78d6'],
-                    'subscriptions' => ['Подписки', '#eb6834'],
-                    'filtered' => ['С фильтром по улицам', '#1baa7a'],
+                    'users' => [__('web.users'), '#2a78d6'],
+                    'subscriptions' => [__('web.subscriptions'), '#eb6834'],
+                    'filtered' => [__('web.filtered'), '#1baa7a'],
                 ];
 
                 $datasets = [];
@@ -425,9 +416,9 @@ class Controller extends BaseController
                 return [
                     'labels' => $labels,
                     'datasets' => $datasets,
-                    'title' => 'Число пользователей бота',
-                    'xTitle' => 'Даты',
-                    'yTitle' => 'Пользователи',
+                    'title' => __('web.users_title'),
+                    'xTitle' => __('web.users_x'),
+                    'yTitle' => __('web.users_y'),
                     'partialIndex' => count($labels) - 1,
                 ];
             });
@@ -435,12 +426,12 @@ class Controller extends BaseController
 
     private function getStatData(): array
     {
-        return Cache::remember('statData', 60 * 60, function() {
+        return Cache::remember('statData_' . app()->getLocale(), 60 * 60, function() {
             return [
-                'Сервисных центров' => '<a href="' . route('service-centers') . '" class="text-cyan-700 hover:underline">' . ServiceCenter::query()->count() . '</a>',
-                'Адресов в базе' => '<a href="' . route('addresses') . '" class="text-cyan-700 hover:underline">' . Address::query()->count() . '</a>',
-                'Событий всего' => Event::query()->count(),
-                'Разослано сегодня' => Cache::get('notified_today', 0),
+                __('web.stat_service_centers') => '<a href="' . Locale::route('service-centers') . '" class="text-cyan-700 hover:underline">' . ServiceCenter::query()->count() . '</a>',
+                __('web.stat_addresses') => '<a href="' . Locale::route('addresses') . '" class="text-cyan-700 hover:underline">' . Address::query()->count() . '</a>',
+                __('web.stat_events') => Event::query()->count(),
+                __('web.stat_notified_today') => Cache::get('notified_today', 0),
             ];
         });
     }

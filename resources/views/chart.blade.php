@@ -10,7 +10,7 @@
     </div>
 @endisset
 @isset($graphData['variants'])
-    <div id="{{ $graphData['id'] ?? 'eventsChart' }}Kinds" class="flex gap-1 mb-3 text-sm" role="group" aria-label="Вид отключений">
+    <div id="{{ $graphData['id'] ?? 'eventsChart' }}Kinds" class="flex gap-1 mb-3 text-sm" role="group" aria-label="{{ __('web.outage_kind') }}">
         @foreach($graphData['variants'] as $kind => $variant)
             <button
                 type="button"
@@ -75,7 +75,7 @@
                 c.fillStyle = ink;
                 c.font = '12px system-ui, sans-serif';
                 c.textAlign = 'right';
-                c.fillText('сегодня', x - 4, top + 12);
+                c.fillText(@json(__('web.chart_today')), x - 4, top + 12);
                 c.restore();
             },
         };
@@ -102,10 +102,10 @@
                             label(item) {
                                 const dataset = item.dataset;
                                 if (dataset.kinds) {
-                                    return ' Ваш адрес: ' + dataset.kinds[item.dataIndex];
+                                    return ' ' + @json(__('web.chart_your_address')) + ': ' + dataset.kinds[item.dataIndex];
                                 }
                                 if (dataset.counts) {
-                                    return ` ${dataset.label}: ${item.parsed.y}${unit} (${dataset.counts[item.dataIndex]} адр.)`;
+                                    return ` ${dataset.label}: ${item.parsed.y}${unit} (${dataset.counts[item.dataIndex]} ${@json(__('web.chart_addresses_short'))})`;
                                 }
                                 return ` ${dataset.label}: ${item.parsed.y}${unit}`;
                             },

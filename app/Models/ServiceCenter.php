@@ -18,7 +18,11 @@ class ServiceCenter extends Model
 
     public function localizedName(?string $languageCode): string
     {
-        return Locale::isGeorgian($languageCode) ? $this->name : ($this->name_ru ?: $this->name);
+        return match ($languageCode) {
+            Locale::GEORGIAN => $this->name,
+            Locale::ENGLISH => $this->name_en ?: $this->name,
+            default => $this->name_ru ?: $this->name,
+        };
     }
 
     public function addresses(): HasMany

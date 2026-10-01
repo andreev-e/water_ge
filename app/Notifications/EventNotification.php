@@ -43,8 +43,8 @@ class EventNotification extends Notification implements ShouldQueue
     {
         $this->hydrateEventRelations();
 
-        $url = url('https://water.andreev-e.ru/event/' . $this->event->id);
         $locale = Locale::notification($this->languageCode);
+        $url = url('https://water.andreev-e.ru' . Locale::webPrefix($locale) . '/event/' . $this->event->id);
         $kind = $this->event->kindIn($locale);
 
         $message = TelegramMessage::create()

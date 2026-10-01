@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\SetLocale;
+use App\Support\Locale;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,8 +16,15 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', [Controller::class, 'index'])->name('index');
-Route::get('/service-centers', [Controller::class, 'serviceCenters'])->name('service-centers');
-Route::get('/addresses', [Controller::class, 'addresses'])->name('addresses');
-Route::get('/addresses/{address}', [Controller::class, 'address'])->name('address');
-Route::get('/event/{event}', [Controller::class, 'event'])->name('event');
+foreach (Locale::WEB as $locale) {
+    Route::middleware(SetLocale::class . ':' . $locale)
+        ->prefix(Locale::webPrefix($locale))
+        ->name($locale === Locale::WEB_DEFAULT ? '' : $locale . '.')
+        ->group(function () {
+            Route::get('/', [Controller::class, 'index'])->name('index');
+            Route::get('/service-centers', [Controller::class, 'serviceCenters'])->name('service-centers');
+            Route::get('/addresses', [Controller::class, 'addresses'])->name('addresses');
+            Route::get('/addresses/{address}', [Controller::class, 'address'])->name('address');
+            Route::get('/event/{event}', [Controller::class, 'event'])->name('event');
+        });
+}

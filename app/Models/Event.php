@@ -204,9 +204,11 @@ class Event extends Model
 
     public function localizedName(?string $languageCode): ?string
     {
-        return Locale::isGeorgian($languageCode)
-            ? ($this->name ?: $this->name_en)
-            : ($this->name_ru ?? $this->name_en);
+        return match ($languageCode) {
+            Locale::GEORGIAN => $this->name ?: $this->name_en,
+            Locale::ENGLISH => $this->name_en ?: $this->name_ru ?? $this->name,
+            default => $this->name_ru ?? $this->name_en,
+        };
     }
 
     public function getKindAttribute(): ?string

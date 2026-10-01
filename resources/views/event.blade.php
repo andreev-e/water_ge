@@ -1,12 +1,9 @@
 @php
     use App\Enums\EventTypes;
-    use \Carbon\Carbon;
-
-    Carbon::setLocale('ru');
 @endphp
 
 @extends('layout')
-@section('title', 'Отключение ' . $event->type->getIcon() . ' в ' . $event->serviceCenter->name_ru . ' ' . mb_strtolower($event->from_to))
+@section('title', __('web.title_event', ['icon' => $event->type->getIcon(), 'center' => $event->serviceCenter->localizedName(app()->getLocale()), 'period' => mb_strtolower($event->fromToIn(app()->getLocale()))]))
 
 @section('content')
     @include('partial.stats', ['stat' => $stat])
@@ -18,10 +15,11 @@
             </tbody>
         </table>
     </div>
-    @include('partial.section_title', ['title' => 'Затронуто'])
+    @include('partial.section_title', ['title' => __('web.affected')])
     @if ($event->type === EventTypes::gas)
         <div class="bg-white rounded-xl border border-slate-200 px-4 py-3 space-y-2 text-sm">
-            @foreach(array_filter([$event->name_ru, $event->name, $event->name_en]) as $text)
+            {{-- The visitor's language first, the other versions after it. --}}
+            @foreach(array_unique(array_filter([$event->localizedName(app()->getLocale()), $event->name_ru, $event->name, $event->name_en])) as $text)
                 <p>{{ $text }}</p>
             @endforeach
         </div>
