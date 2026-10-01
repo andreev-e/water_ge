@@ -27,8 +27,7 @@ jobs:
             git config --global --add safe.directory '${{ vars.PROD_PATH }}' &&
             git checkout master &&
             git reset --hard &&
-            git pull &&
-            rm -f composer.lock
+            git pull
             "
             
             cp deploy/queue-worker.conf /etc/supervisor/conf.d/${{ secrets.USER_NAME }}.conf
