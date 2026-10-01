@@ -21,9 +21,9 @@ class Locale
     public const WEB_DEFAULT = 'ru';
 
     public const WEB_NAMES = [
+        self::GEORGIAN => 'ქართული',
         'ru' => 'Русский',
         self::ENGLISH => 'English',
-        self::GEORGIAN => 'ქართული',
     ];
 
     public static function isGeorgian(?string $languageCode): bool
