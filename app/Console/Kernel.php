@@ -9,6 +9,7 @@ use App\Console\Commands\LoadGas;
 use App\Console\Commands\LoadGwp;
 use App\Console\Commands\LoadWater;
 use App\Console\Commands\MakeMailNotSubscribed;
+use App\Console\Commands\NotifyFinished;
 use App\Console\Commands\PublishPendingToFacebook;
 use App\Console\Commands\SendMail;
 use App\Console\Commands\SnapshotUserStats;
@@ -30,6 +31,7 @@ class Kernel extends ConsoleKernel
         $schedule->command(SnapshotUserStats::class)->hourly();
         $schedule->command(CheckFailedJobs::class)->hourly();
         $schedule->command(MakeMailNotSubscribed::class)->dailyAt('11:00');
+        $schedule->command(NotifyFinished::class)->everyMinute()->withoutOverlapping(10);
         $schedule->command(SendMail::class)->everyMinute()->withoutOverlapping(10);
     }
 

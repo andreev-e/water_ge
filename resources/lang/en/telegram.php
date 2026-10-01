@@ -27,5 +27,7 @@ return [
     'filter_no_matches' => 'No addresses with such a street in past outages of this city — check the spelling. You will still be notified if the street shows up.',
     'mail_not_subscribed' => 'You are not subscribed to any city. Please press /subscribe and select cities you want to receive notifications about upcoming shutdowns.',
     'news_filter' => "🆕 You can now get notifications only for your own streets!\n\nPress /filter, pick a city and send street names separated by commas — in Latin letters as in notifications (e.g. nikea) or in Georgian. The bot will show which addresses from past outages match the filter.\n\nTo get every outage in the city again, send «-» in /filter.",
+    'finished' => 'The outage is over as scheduled',
+    'details' => 'Details',
     'promo' => '',
 ];
