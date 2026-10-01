@@ -60,7 +60,11 @@ class EventFinishedNotification extends Notification implements ShouldQueue
             }
         }
 
-        return $message->button(__('telegram.details', [], 'ru'), url('https://water.andreev-e.ru/event/' . $this->event->id));
+        return $message
+            ->line('')
+            ->line(__('telegram.donate_ask', [], 'ru'))
+            ->button(__('telegram.details', [], 'ru'), url('https://water.andreev-e.ru/event/' . $this->event->id))
+            ->buttonWithCallback(__('telegram.donate_button', [], 'ru'), 'command=donate');
     }
 
     public function failed(Throwable $exception): void

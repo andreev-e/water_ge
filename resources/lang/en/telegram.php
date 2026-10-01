@@ -30,4 +30,10 @@ return [
     'finished' => 'The outage is over as scheduled',
     'details' => 'Details',
     'promo' => '',
+    'donate_ask' => 'The bot is free and ad-free. If it helps you, support it with Stars ⭐',
+    'donate_button' => '⭐ Support',
+    'donate_choose' => 'How many Stars would you like to send?',
+    'donate_title' => 'Support the bot',
+    'donate_description' => 'A voluntary donation for hosting and development of the outage notification bot. Thank you!',
+    'donate_thanks' => 'Thank you for your support! ❤️',
 ];
