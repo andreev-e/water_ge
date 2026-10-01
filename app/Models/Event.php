@@ -6,6 +6,7 @@ use App\Enums\EventTypes;
 use App\Notifications\EventFinishedNotification;
 use App\Notifications\EventNotification;
 use App\Services\Translation\TranslationInterface;
+use App\Support\Locale;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -111,6 +112,7 @@ class Event extends Model
                     $this,
                     $subscription->bot_user_id,
                     $subscription->street_filter,
+                    $subscription->botUser->language_code,
                 ));
         }
 
@@ -200,26 +202,44 @@ class Event extends Model
         $this->forceFill(['facebook_pending' => true])->save();
     }
 
+    public function localizedName(?string $languageCode): ?string
+    {
+        return Locale::isGeorgian($languageCode)
+            ? ($this->name ?: $this->name_en)
+            : ($this->name_ru ?? $this->name_en);
+    }
+
     public function getKindAttribute(): ?string
     {
+        return $this->kindIn('ru');
+    }
+
+    public function kindIn(string $locale): ?string
+    {
         return match ($this->planned) {
-            true => 'Плановое',
-            false => 'Аварийное',
+            true => __('telegram.planned', locale: $locale),
+            false => __('telegram.emergency', locale: $locale),
             null => null,
         };
     }
 
     public function getFromToAttribute(): string
     {
+        return $this->fromToIn('ru');
+    }
+
+    public function fromToIn(string $locale): string
+    {
         if ($this->start->format('d.m.Y') === $this->finish->format('d.m.Y')) {
+            $hours = $this->start->format('H:i') . ' - ' . $this->finish->format('H:i');
             if (now()->format('d.m') === $this->start->format('d.m')) {
-                return 'Сегодня ' . $this->start->format('H:i') . ' - ' . $this->finish->format('H:i');
+                return __('telegram.today', locale: $locale) . ' ' . $hours;
             }
             if (now()->addDay()->format('d.m') === $this->start->format('d.m')) {
-                return 'Завтра ' . $this->start->format('H:i') . ' - ' . $this->finish->format('H:i');
+                return __('telegram.tomorrow', locale: $locale) . ' ' . $hours;
             }
             if (now()->addDays(2)->format('d.m') === $this->start->format('d.m')) {
-                return 'Послезавтра ' . $this->start->format('H:i') . ' - ' . $this->finish->format('H:i');
+                return __('telegram.day_after_tomorrow', locale: $locale) . ' ' . $hours;
             }
             return $this->start->format('d.m H:i') . ' - ' . $this->finish->format('H:i');
         }

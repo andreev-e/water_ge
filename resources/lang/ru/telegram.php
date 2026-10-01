@@ -38,4 +38,11 @@ return [
     'donate_title' => 'Поддержка бота',
     'donate_description' => 'Добровольный донат на сервер и развитие бота уведомлений об отключениях. Спасибо!',
     'donate_thanks' => 'Спасибо за поддержку! ❤️',
+    'planned' => 'Плановое',
+    'emergency' => 'Аварийное',
+    'today' => 'Сегодня',
+    'tomorrow' => 'Завтра',
+    'day_after_tomorrow' => 'Послезавтра',
+    'addresses_off' => ':percent% адресов отключено:',
+    'all_addresses' => 'Смотреть все адреса (:count)',
 ];

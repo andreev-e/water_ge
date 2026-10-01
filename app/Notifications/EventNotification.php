@@ -6,6 +6,7 @@ use App\Enums\EventTypes;
 use App\Models\Address;
 use App\Models\Event;
 use App\Models\Subscriptions;
+use App\Support\Locale;
 use App\Support\TelegramFailure;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -43,17 +44,19 @@ class EventNotification extends Notification implements ShouldQueue
         $this->hydrateEventRelations();
 
         $url = url('https://water.andreev-e.ru/event/' . $this->event->id);
+        $locale = Locale::notification($this->languageCode);
+        $kind = $this->event->kindIn($locale);
 
         $message = TelegramMessage::create()
             ->options([
                 'parse_mode' => 'html',
                 'disable_web_page_preview' => true,
             ])
-            ->content('🚫<b>' . $this->event->type->getIcon() . $this->event->serviceCenter->name_ru . '</b>: ')
-            ->line('<b>' . $this->event->from_to . '</b>' . ($this->event->kind ? ' (' . mb_strtolower($this->event->kind) . ')' : ''));
+            ->content('🚫<b>' . $this->event->type->getIcon() . $this->event->serviceCenter->localizedName($locale) . '</b>: ')
+            ->line('<b>' . $this->event->fromToIn($locale) . '</b>' . ($kind ? ' (' . mb_strtolower($kind) . ')' : ''));
 
         if ($this->event->type === EventTypes::gas) {
-            $message->line(($this->event->name_ru ?? $this->event->name_en));
+            $message->line($this->event->localizedName($locale));
         } else {
             if ($this->event->serviceCenter->total_addresses) {
                 $percent = round($this->event->addresses->count() / $this->event->serviceCenter->total_addresses * 100);
@@ -62,22 +65,22 @@ class EventNotification extends Notification implements ShouldQueue
                 } else {
                     $percent = '~' . $percent;
                 }
-                $message->line($percent . '% адресов отключено:');
+                $message->line(__('telegram.addresses_off', ['percent' => $percent], $locale));
             }
         }
 
         foreach ($this->addressesToShow()->slice(0, self::SHOW_IN_MESSAGE) as $address) {
-            $message->line($address->translit);
+            $message->line($address->localizedName($locale));
         }
 
         if (count($this->event->addresses) > self::SHOW_IN_MESSAGE) {
             $message->line('...');
             $message->line('');
-            $message->line(__('telegram.promo', [], 'ru'));
-            $message->button('Смотреть все адреса (' . count($this->event->addresses) . ')', $url);
+            $message->line(__('telegram.promo', [], $locale));
+            $message->button(__('telegram.all_addresses', ['count' => count($this->event->addresses)], $locale), $url);
         } else {
             $message->line('');
-            $message->line(__('telegram.promo', [], 'ru'));
+            $message->line(__('telegram.promo', [], $locale));
         }
 
         return $message;

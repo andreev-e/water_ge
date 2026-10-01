@@ -34,13 +34,13 @@ class GenericmessageCommand extends SystemCommand
             ->with('serviceCenter')
             ->where('bot_user_id', $chatId)
             ->get()
-            ->sortBy('serviceCenter.name_ru')
+            ->sortBy(fn(Subscriptions $subscription) => $subscription->serviceCenter->localizedName($languageCode))
             ->map(fn(Subscriptions $subscription) => $subscription->street_filter
                 ? __('telegram.city_with_filter', [
-                    'city' => $subscription->serviceCenter->name_ru,
+                    'city' => $subscription->serviceCenter->localizedName($languageCode),
                     'streets' => $subscription->street_filter,
                 ], $languageCode)
-                : $subscription->serviceCenter->name_ru)
+                : $subscription->serviceCenter->localizedName($languageCode))
             ->join(', ');
 
         $totalEvents = 0;

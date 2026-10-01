@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Locale;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,6 +15,12 @@ class ServiceCenter extends Model
         'name_en',
         'name_ru',
     ];
+
+    public function localizedName(?string $languageCode): string
+    {
+        return Locale::isGeorgian($languageCode) ? $this->name : ($this->name_ru ?: $this->name);
+    }
+
     public function addresses(): HasMany
     {
         return $this->hasMany(Address::class)

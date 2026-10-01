@@ -22,7 +22,7 @@ class SubscribeCommand extends UserCommand
     {
         $languageCode = $this->getMessage()->getFrom()->getLanguageCode();
 
-        $keyboard = self::makeKeyboard($this);
+        $keyboard = self::makeKeyboard($this, $languageCode);
 
         return $this->replyToChat(
             __('telegram.select_city', locale: $languageCode),
@@ -34,7 +34,7 @@ class SubscribeCommand extends UserCommand
 
     public static function handleCallbackQuery(CallbackQuery $callback_query, array $callback_data): ServerResponse
     {
-        $languageCode = $callback_query->getMessage()->getFrom()->getLanguageCode();
+        $languageCode = $callback_query->getFrom()->getLanguageCode();
 
         $chatId = $callback_query->getMessage()->getChat()->getId();
 
@@ -51,7 +51,7 @@ class SubscribeCommand extends UserCommand
             if ($subscription) {
                 $subscription->delete();
 
-                $keyboard = self::makeKeyboard($callback_query);
+                $keyboard = self::makeKeyboard($callback_query, $languageCode);
 
                 return Request::editMessageText([
                     'chat_id' => $chatId,
@@ -66,7 +66,7 @@ class SubscribeCommand extends UserCommand
                 'service_center_id' => $callback_data['serviceCenter'],
             ]);
 
-            $keyboard = self::makeKeyboard($callback_query);
+            $keyboard = self::makeKeyboard($callback_query, $languageCode);
 
             return Request::editMessageText([
                 'chat_id' => $chatId,
@@ -82,7 +82,7 @@ class SubscribeCommand extends UserCommand
     }
 
 
-    public static function makeKeyboard($command): InlineKeyboard
+    public static function makeKeyboard($command, ?string $languageCode): InlineKeyboard
     {
         $chatId = $command->getMessage()->getChat()->getId();
 
@@ -90,10 +90,12 @@ class SubscribeCommand extends UserCommand
             ->get()->pluck('service_center_id');
 
         $buttons = [];
-        foreach (ServiceCenter::query()->orderBy('name_ru')->get() as $serviceCenter) {
+        $serviceCenters = ServiceCenter::query()->get()
+            ->sortBy(fn(ServiceCenter $serviceCenter) => $serviceCenter->localizedName($languageCode));
+        foreach ($serviceCenters as $serviceCenter) {
             $buttons[] = [
                 [
-                    'text' => $serviceCenter->name_ru
+                    'text' => $serviceCenter->localizedName($languageCode)
                         . (in_array($serviceCenter->id, $subscribed->toArray(), true) ? ' ✅' : ''),
                     'callback_data' => 'command=subscribe&serviceCenter=' . $serviceCenter->id,
                 ],

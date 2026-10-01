@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Locale;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -21,6 +22,11 @@ class Address extends Model
     public function serviceCenter(): BelongsTo
     {
         return $this->belongsTo(ServiceCenter::class);
+    }
+
+    public function localizedName(?string $languageCode): string
+    {
+        return Locale::isGeorgian($languageCode) ? $this->name : $this->translit;
     }
 
     public function getTranslitAttribute(): string

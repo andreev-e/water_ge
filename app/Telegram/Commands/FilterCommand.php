@@ -35,7 +35,7 @@ class FilterCommand extends UserCommand
             ->with('serviceCenter')
             ->where('bot_user_id', $chatId)
             ->get()
-            ->sortBy('serviceCenter.name_ru');
+            ->sortBy(fn(Subscriptions $subscription) => $subscription->serviceCenter->localizedName($languageCode));
 
         if ($subscriptions->isEmpty()) {
             return $this->replyToChat(__('telegram.filter_no_subscriptions', locale: $languageCode));
@@ -45,7 +45,7 @@ class FilterCommand extends UserCommand
         foreach ($subscriptions as $subscription) {
             $buttons[] = [
                 [
-                    'text' => $subscription->serviceCenter->name_ru
+                    'text' => $subscription->serviceCenter->localizedName($languageCode)
                         . ($subscription->street_filter ? ': ' . $subscription->street_filter : ''),
                     'callback_data' => 'command=filter&serviceCenter=' . $subscription->service_center_id,
                 ],
@@ -83,7 +83,7 @@ class FilterCommand extends UserCommand
         return Request::sendMessage([
             'chat_id' => $chatId,
             'text' => __('telegram.filter_enter_streets', [
-                'city' => $subscription->serviceCenter->name_ru,
+                'city' => $subscription->serviceCenter->localizedName($languageCode),
                 'current' => $subscription->street_filter ?: __('telegram.filter_none', locale: $languageCode),
                 'clear' => self::CLEAR,
             ], $languageCode),
@@ -119,10 +119,10 @@ class FilterCommand extends UserCommand
         $subscription->update(['street_filter' => $terms ? mb_substr(implode(', ', $terms), 0, 255) : null]);
 
         if (!$terms) {
-            return __('telegram.filter_cleared', ['city' => $subscription->serviceCenter->name_ru], $languageCode);
+            return __('telegram.filter_cleared', ['city' => $subscription->serviceCenter->localizedName($languageCode)], $languageCode);
         }
 
-        return __('telegram.filter_saved', ['city' => $subscription->serviceCenter->name_ru, 'streets' => $subscription->street_filter], $languageCode)
+        return __('telegram.filter_saved', ['city' => $subscription->serviceCenter->localizedName($languageCode), 'streets' => $subscription->street_filter], $languageCode)
             . "\n\n" . self::describeMatches($subscription, $terms, $languageCode);
     }
 
@@ -135,7 +135,7 @@ class FilterCommand extends UserCommand
         $matches = $subscription->serviceCenter->addresses()
             ->get(['id', 'name'])
             ->filter(fn(Address $address) => Subscriptions::containsAny($address->name . ' ' . $address->translit, $terms))
-            ->map(fn(Address $address) => $address->translit)
+            ->map(fn(Address $address) => $address->localizedName($languageCode))
             ->unique()
             ->sort()
             ->values();

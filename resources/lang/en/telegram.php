@@ -36,4 +36,11 @@ return [
     'donate_title' => 'Support the bot',
     'donate_description' => 'A voluntary donation for hosting and development of the outage notification bot. Thank you!',
     'donate_thanks' => 'Thank you for your support! ❤️',
+    'planned' => 'Planned',
+    'emergency' => 'Emergency',
+    'today' => 'Today',
+    'tomorrow' => 'Tomorrow',
+    'day_after_tomorrow' => 'Day after tomorrow',
+    'addresses_off' => ':percent% of addresses affected:',
+    'all_addresses' => 'See all addresses (:count)',
 ];

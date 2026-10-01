@@ -5,6 +5,7 @@ namespace App\Notifications;
 use App\Models\Address;
 use App\Models\Event;
 use App\Models\Subscriptions;
+use App\Support\Locale;
 use App\Support\TelegramFailure;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -23,6 +24,7 @@ class EventFinishedNotification extends Notification implements ShouldQueue
         public Event $event,
         public int $botUserId,
         public ?string $streetFilter = null,
+        public ?string $languageCode = null,
     ) {
     }
 
@@ -37,15 +39,18 @@ class EventFinishedNotification extends Notification implements ShouldQueue
     public function toTelegram($notifiable): TelegramMessage
     {
         $this->event->loadMissing(['serviceCenter', 'addresses']);
+        // ?? keeps notifications queued before languageCode existed working.
+        $locale = Locale::notification($this->languageCode ?? null);
+        $kind = $this->event->kindIn($locale);
 
         $message = TelegramMessage::create()
             ->options([
                 'parse_mode' => 'html',
                 'disable_web_page_preview' => true,
             ])
-            ->content('✅<b>' . $this->event->type->getIcon() . $this->event->serviceCenter->name_ru . '</b>: ')
-            ->line(__('telegram.finished', [], 'ru'))
-            ->line('<b>' . $this->event->absolute_from_to . '</b>' . ($this->event->kind ? ' (' . mb_strtolower($this->event->kind) . ')' : ''));
+            ->content('✅<b>' . $this->event->type->getIcon() . $this->event->serviceCenter->localizedName($locale) . '</b>: ')
+            ->line(__('telegram.finished', [], $locale))
+            ->line('<b>' . $this->event->absolute_from_to . '</b>' . ($kind ? ' (' . mb_strtolower($kind) . ')' : ''));
 
         // The whole list was in the first message; repeat only the subscriber's own streets.
         $terms = Subscriptions::parseStreetFilter($this->streetFilter);
@@ -53,7 +58,7 @@ class EventFinishedNotification extends Notification implements ShouldQueue
             $addresses = $this->event->addresses
                 ->filter(fn(Address $address) => Subscriptions::containsAny($address->name . ' ' . $address->translit, $terms));
             foreach ($addresses->slice(0, self::SHOW_IN_MESSAGE) as $address) {
-                $message->line($address->translit);
+                $message->line($address->localizedName($locale));
             }
             if ($addresses->count() > self::SHOW_IN_MESSAGE) {
                 $message->line('...');
@@ -62,9 +67,9 @@ class EventFinishedNotification extends Notification implements ShouldQueue
 
         return $message
             ->line('')
-            ->line(__('telegram.donate_ask', [], 'ru'))
-            ->button(__('telegram.details', [], 'ru'), url('https://water.andreev-e.ru/event/' . $this->event->id))
-            ->buttonWithCallback(__('telegram.donate_button', [], 'ru'), 'command=donate');
+            ->line(__('telegram.donate_ask', [], $locale))
+            ->button(__('telegram.details', [], $locale), url('https://water.andreev-e.ru/event/' . $this->event->id))
+            ->buttonWithCallback(__('telegram.donate_button', [], $locale), 'command=donate');
     }
 
     public function failed(Throwable $exception): void
