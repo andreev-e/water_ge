@@ -50,8 +50,8 @@ class LoadEnergy extends Command
 
                 $event = Event::query()
                     ->where('service_center_id', $serviceCenter->id)
-                    ->where('start', Carbon::createFromFormat('Y-m-d H:i', $rawEvent->disconnectionDate))
-                    ->where('finish', Carbon::createFromFormat('Y-m-d H:i', $rawEvent->reconnectionDate))
+                    ->where('start', $this->parseDate($rawEvent->disconnectionDate))
+                    ->where('finish', $this->parseDate($rawEvent->reconnectionDate))
                     ->where('type', EventTypes::energy)
                     ->first();
 
@@ -59,8 +59,8 @@ class LoadEnergy extends Command
                     /* @var $event Event */
                     $event = Event::query()->create([
                         'service_center_id' => $serviceCenter->id,
-                        'start' => Carbon::createFromFormat('Y-m-d H:i', $rawEvent->disconnectionDate),
-                        'finish' => Carbon::createFromFormat('Y-m-d H:i', $rawEvent->reconnectionDate),
+                        'start' => $this->parseDate($rawEvent->disconnectionDate),
+                        'finish' => $this->parseDate($rawEvent->reconnectionDate),
                         'total_addresses' => count($addresses),
                         'type' => EventTypes::energy,
                         'effected_customers' => $rawEvent->scEffectedCustomers,
@@ -84,5 +84,11 @@ class LoadEnergy extends Command
 
             SourceStatus::markUpdated(SourceStatus::ENERGY);
         }
+    }
+
+    // The API sometimes appends seconds and fractions ("2026-10-02 15:31:03.0000000"); keep minute precision.
+    private function parseDate(string $value): Carbon
+    {
+        return Carbon::createFromFormat('Y-m-d H:i', mb_substr($value, 0, 16));
     }
 }
