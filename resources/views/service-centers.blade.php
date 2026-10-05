@@ -16,7 +16,7 @@
                 @foreach($serviceCenters as $serviceCenter)
                     <tr class="border-t border-slate-100 hover:bg-slate-50">
                         <td class="px-3 py-2">
-                            <a class="text-cyan-700 hover:underline" href="{{ \App\Support\Locale::route('index', ['service_center_id' => $serviceCenter->id]) }}">
+                            <a class="text-cyan-700 hover:underline" href="{{ \App\Support\Locale::route('service-center', ['serviceCenter' => $serviceCenter]) }}">
                                 {{ $serviceCenter->localizedName(app()->getLocale()) }}
                             </a>
                         </td>

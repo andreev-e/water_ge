@@ -23,6 +23,7 @@ foreach (Locale::WEB as $locale) {
         ->group(function () {
             Route::get('/', [Controller::class, 'index'])->name('index');
             Route::get('/service-centers', [Controller::class, 'serviceCenters'])->name('service-centers');
+            Route::get('/service-centers/{serviceCenter}', [Controller::class, 'serviceCenter'])->name('service-center');
             Route::get('/addresses', [Controller::class, 'addresses'])->name('addresses');
             Route::get('/addresses/{address}', [Controller::class, 'address'])->name('address');
             Route::get('/event/{event}', [Controller::class, 'event'])->name('event');

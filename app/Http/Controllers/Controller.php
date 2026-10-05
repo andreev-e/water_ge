@@ -11,6 +11,7 @@ use App\Models\UserStat;
 use App\Support\Locale;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Cache;
@@ -20,13 +21,34 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, ValidatesRequests;
 
-    public function index(EventRequest $request): View
+    public function index(EventRequest $request): View|RedirectResponse
+    {
+        // Center pages used to be the home page filtered by ?service_center_id=.
+        if ($request->has('service_center_id')) {
+            $serviceCenter = ServiceCenter::query()->findOrFail($request->get('service_center_id'));
+
+            return redirect(Locale::route('service-center', ['serviceCenter' => $serviceCenter] + $request->except('service_center_id')), 301);
+        }
+
+        return $this->events($request);
+    }
+
+    public function serviceCenter(EventRequest $request, ServiceCenter $serviceCenter): View|RedirectResponse
+    {
+        if ($request->route()->originalParameter('serviceCenter') !== $serviceCenter->getRouteKey()) {
+            return redirect(Locale::route('service-center', ['serviceCenter' => $serviceCenter] + $request->query()), 301);
+        }
+
+        return $this->events($request, $serviceCenter);
+    }
+
+    private function events(EventRequest $request, ?ServiceCenter $serviceCenter = null): View
     {
         $currentEvents = Event::query()
             ->current()
             ->with('serviceCenter.subscriptions')
-            ->when($request->has('service_center_id'), function($query) use ($request) {
-                $query->where('service_center_id', $request->get('service_center_id'));
+            ->when($serviceCenter, function($query) use ($serviceCenter) {
+                $query->where('service_center_id', $serviceCenter->id);
             })
             ->when($request->has('type'), function($query) use ($request) {
                 $query->where('type', $request->get('type'));
@@ -40,9 +62,7 @@ class Controller extends BaseController
 
         $title = __('web.title_all');
 
-        if ($request->has('service_center_id')) {
-            $serviceCenter = ServiceCenter::query()
-                ->findOrFail($request->get('service_center_id'));
+        if ($serviceCenter) {
             $title = __('web.title_center', ['center' => $serviceCenter->localizedName(app()->getLocale())]);
         }
 
@@ -51,12 +71,11 @@ class Controller extends BaseController
         }
 
 
-        if ($request->has('service_center_id')) {
-            $serviceCenter = ServiceCenter::query()->find($request->get('service_center_id'));
-            $graphData = $serviceCenter ? $this->getEventsGraphData($serviceCenter) : [];
+        if ($serviceCenter) {
+            $graphData = $this->getEventsGraphData($serviceCenter);
             $addresses = Address::query()
                 ->with('serviceCenter')
-                ->where('service_center_id', $request->get('service_center_id'))
+                ->where('service_center_id', $serviceCenter->id)
                 ->orderBy('total_events', 'DESC')
                 ->limit(100)
                 ->get();

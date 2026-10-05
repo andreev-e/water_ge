@@ -18,7 +18,7 @@
         </a>
     </td>
     <td class="px-3 py-2">
-        <a class="text-cyan-700 hover:underline" href="{{ Locale::route('index', ['service_center_id' => $event->serviceCenter->id]) }}">
+        <a class="text-cyan-700 hover:underline" href="{{ Locale::route('service-center', ['serviceCenter' => $event->serviceCenter]) }}">
             {{ $event->serviceCenter->localizedName(app()->getLocale()) }}
         </a>
         @if ($event->planned === false)

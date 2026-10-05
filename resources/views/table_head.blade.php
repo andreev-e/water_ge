@@ -8,8 +8,8 @@
         </th>
         <th class="px-3 py-2 font-medium whitespace-nowrap">
             {{ __('web.col_where') }}
-            @if(request()->has('service_center_id'))
-                <a class="ml-1 normal-case text-cyan-700 hover:underline" href="{{ request()->fullUrlWithoutQuery('service_center_id') }}" title="{{ __('web.reset_filter') }}">✕</a>
+            @if(request()->route('serviceCenter'))
+                <a class="ml-1 normal-case text-cyan-700 hover:underline" href="{{ \App\Support\Locale::route('index', request()->except('live')) }}" title="{{ __('web.reset_filter') }}">✕</a>
             @endif
         </th>
         <th class="px-3 py-2 font-medium whitespace-nowrap">{{ __('web.col_period') }}</th>

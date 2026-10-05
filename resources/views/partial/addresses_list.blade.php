@@ -19,7 +19,7 @@
                     </td>
                     @if ($withSC)
                         <td class="px-3 py-2">
-                            <a class="text-cyan-700 hover:underline" href="{{ \App\Support\Locale::route('index', ['service_center_id' => $address->serviceCenter->id]) }}">
+                            <a class="text-cyan-700 hover:underline" href="{{ \App\Support\Locale::route('service-center', ['serviceCenter' => $address->serviceCenter]) }}">
                                 {{ $address->serviceCenter->localizedName(app()->getLocale()) }}
                             </a>
                         </td>
