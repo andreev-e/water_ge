@@ -53,6 +53,11 @@ class Controller extends BaseController
             ->when($request->has('type'), function($query) use ($request) {
                 $query->where('type', $request->get('type'));
             })
+            // Widest outages first; gas events come without addresses, so customers break ties.
+            ->reorder()
+            ->orderByRaw('COALESCE(total_addresses, 0) DESC')
+            ->orderByDesc('effected_customers')
+            ->orderBy('start')
             ->get();
 
         // Live refresh on the page only needs the current events block.

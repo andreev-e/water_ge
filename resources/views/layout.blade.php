@@ -264,8 +264,16 @@
         }
 
         // Keeps the server's order by start; rows fading out don't count.
-        function insertByStart(body, row) {
-            const next = [...body.rows].find((other) => !('leaving' in other.dataset) && +other.dataset.start > +row.dataset.start);
+        // Same order as the server: widest outages first, then by customers and start.
+        const scale = (row) => [-row.dataset.addresses, -row.dataset.customers, +row.dataset.start];
+        const comesBefore = (a, b) => {
+            const [x, y] = [scale(a), scale(b)];
+            const i = x.findIndex((value, index) => value !== y[index]);
+            return i !== -1 && x[i] < y[i];
+        };
+
+        function insertByScale(body, row) {
+            const next = [...body.rows].find((other) => !('leaving' in other.dataset) && comesBefore(row, other));
             body.insertBefore(row, next ?? null);
         }
 
@@ -302,7 +310,7 @@
                 makeActive(moved);
                 // The fading copy gives up its id so it isn't matched by the next refresh.
                 row.removeAttribute('id');
-                insertByStart(body, moved);
+                insertByScale(body, moved);
                 animateIn(moved);
                 return animateOut(row);
             });
@@ -379,7 +387,7 @@
                 if (freshUpcoming && freshActive) {
                     startedRows(freshUpcoming).forEach((row) => {
                         makeActive(row);
-                        insertByStart(freshActive.querySelector('[data-live-rows]'), row);
+                        insertByScale(freshActive.querySelector('[data-live-rows]'), row);
                     });
                 }
                 root.querySelectorAll('[data-live-section]').forEach((section) => {

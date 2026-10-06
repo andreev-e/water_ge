@@ -11,6 +11,8 @@
     class="border-t border-slate-100 hover:bg-slate-50 {{ $active ? 'bg-amber-50/60' : '' }}"
     data-start="{{ $event->start->valueOf() }}"
     data-finish="{{ $event->finish->valueOf() }}"
+    data-addresses="{{ (int) $event->total_addresses }}"
+    data-customers="{{ (int) $event->effected_customers }}"
 >
     <td class="px-3 py-2 w-px whitespace-nowrap">
         <a href="{{ Locale::route('index', ['type' => $event->type->value]) }}" title="{{ __('web.only_this_type') }}">
