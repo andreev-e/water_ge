@@ -1,2 +1,4 @@
 User-agent: *
 Disallow:
+
+Sitemap: https://water.andreev-e.ru/sitemap.xml
