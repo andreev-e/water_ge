@@ -131,7 +131,8 @@ class Controller extends BaseController
     public function address(Address $address): View
     {
         $stat = $this->getStatData();
-        $address->load('serviceCenter', 'events');
+        // Every event row links to its service center: without eager loading that was a query per event.
+        $address->load('serviceCenter', 'events.serviceCenter');
         $graphData = $this->getEventsGraphData($address->serviceCenter, $address);
 
         return view('address', compact('address', 'stat', 'graphData'));
