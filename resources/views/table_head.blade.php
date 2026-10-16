@@ -1,15 +1,16 @@
+{{-- Reset links keep only the path and type: this head is part of the cached current events block (Controller::currentEventsHtml). --}}
 <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
     <tr>
         <th class="px-3 py-2 font-medium whitespace-nowrap">
             {{ __('web.col_what') }}
             @if(request()->has('type'))
-                <a class="ml-1 normal-case text-cyan-700 hover:underline" href="{{ request()->fullUrlWithoutQuery('type') }}" title="{{ __('web.reset_filter') }}">✕</a>
+                <a class="ml-1 normal-case text-cyan-700 hover:underline" href="{{ url()->current() }}" title="{{ __('web.reset_filter') }}">✕</a>
             @endif
         </th>
         <th class="px-3 py-2 font-medium whitespace-nowrap">
             {{ __('web.col_where') }}
             @if(request()->route('serviceCenter'))
-                <a class="ml-1 normal-case text-cyan-700 hover:underline" href="{{ \App\Support\Locale::route('index', request()->except('live')) }}" title="{{ __('web.reset_filter') }}">✕</a>
+                <a class="ml-1 normal-case text-cyan-700 hover:underline" href="{{ \App\Support\Locale::route('index', request()->only('type')) }}" title="{{ __('web.reset_filter') }}">✕</a>
             @endif
         </th>
         <th class="px-3 py-2 font-medium whitespace-nowrap">{{ __('web.col_period') }}</th>

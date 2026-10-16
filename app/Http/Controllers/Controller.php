@@ -44,25 +44,11 @@ class Controller extends BaseController
 
     private function events(EventRequest $request, ?ServiceCenter $serviceCenter = null): View
     {
-        $currentEvents = Event::query()
-            ->current()
-            ->with('serviceCenter.subscriptions')
-            ->when($serviceCenter, function($query) use ($serviceCenter) {
-                $query->where('service_center_id', $serviceCenter->id);
-            })
-            ->when($request->has('type'), function($query) use ($request) {
-                $query->where('type', $request->get('type'));
-            })
-            // Widest outages first; gas events come without addresses, so customers break ties.
-            ->reorder()
-            ->orderByRaw('COALESCE(total_addresses, 0) DESC')
-            ->orderByDesc('effected_customers')
-            ->orderBy('start')
-            ->get();
+        $eventsHtml = $this->currentEventsHtml($serviceCenter, $request->get('type'));
 
         // Live refresh on the page only needs the current events block.
         if ($request->boolean('live')) {
-            return view('partial.current_events', compact('currentEvents'));
+            return view('partial.current_events', compact('eventsHtml'));
         }
 
         $title = __('web.title_all');
@@ -94,7 +80,7 @@ class Controller extends BaseController
 
         return view('index', compact([
             'title',
-            'currentEvents',
+            'eventsHtml',
             'graphData',
             'stat',
             'addresses',
@@ -152,6 +138,9 @@ class Controller extends BaseController
     ];
 
     private const KINDS = ['all', 'planned', 'emergency'];
+
+    /** Seconds the rendered current events block is reused; the page refreshes it live. */
+    private const CURRENT_EVENTS_TTL = 60;
 
     /**
      * Share of the service center's addresses cut off on each day, split by
@@ -447,6 +436,35 @@ class Controller extends BaseController
                     'partialIndex' => count($labels) - 1,
                 ];
             });
+    }
+
+    /**
+     * Rendered current events block, cached for a minute: rendering ~200 rows took about a second
+     * and every visitor (plus the live refresh) asked for the same HTML.
+     */
+    private function currentEventsHtml(?ServiceCenter $serviceCenter, ?string $type): string
+    {
+        $key = 'currentEventsHtml_' . app()->getLocale() . '_' . $serviceCenter?->id . '_' . $type;
+
+        return Cache::remember($key, self::CURRENT_EVENTS_TTL, function() use ($serviceCenter, $type) {
+            $currentEvents = Event::query()
+                ->current()
+                ->with('serviceCenter.subscriptions')
+                ->when($serviceCenter, function($query) use ($serviceCenter) {
+                    $query->where('service_center_id', $serviceCenter->id);
+                })
+                ->when($type, function($query) use ($type) {
+                    $query->where('type', $type);
+                })
+                // Widest outages first; gas events come without addresses, so customers break ties.
+                ->reorder()
+                ->orderByRaw('COALESCE(total_addresses, 0) DESC')
+                ->orderByDesc('effected_customers')
+                ->orderBy('start')
+                ->get();
+
+            return view('partial.current_events_sections', compact('currentEvents'))->render();
+        });
     }
 
     private function getStatData(): array

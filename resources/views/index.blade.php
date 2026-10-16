@@ -3,7 +3,7 @@
 
 @section('content')
     @include('partial.stats', ['stat' => $stat])
-    @include('partial.current_events', ['currentEvents' => $currentEvents])
+    @include('partial.current_events', ['eventsHtml' => $eventsHtml])
 
     @if ($overview)
         @include('chart', ['graphData' => $overview])
