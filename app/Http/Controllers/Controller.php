@@ -15,6 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\View\View;
 
 class Controller extends BaseController
@@ -469,7 +470,7 @@ class Controller extends BaseController
 
     private function getStatData(): array
     {
-        return Cache::remember('statData_' . app()->getLocale(), 60 * 60, function() {
+        $stat = Cache::remember('statData_' . app()->getLocale(), 60 * 60, function() {
             return [
                 __('web.stat_service_centers') => '<a href="' . Locale::route('service-centers') . '" class="text-cyan-700 hover:underline">' . ServiceCenter::query()->count() . '</a>',
                 __('web.stat_addresses') => '<a href="' . Locale::route('addresses') . '" class="text-cyan-700 hover:underline">' . Address::query()->count() . '</a>',
@@ -477,5 +478,11 @@ class Controller extends BaseController
                 __('web.stat_notified_today') => Cache::get('notified_today', 0),
             ];
         });
+
+        // Outside the hourly cache: the queue drains within minutes.
+        $stat[__('web.stat_notified_today')] .= ' <span class="text-base font-normal text-slate-400" title="'
+            . e(__('web.stat_queue')) . '">(' . Queue::size() . ')</span>';
+
+        return $stat;
     }
 }

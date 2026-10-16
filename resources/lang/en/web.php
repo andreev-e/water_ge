@@ -17,6 +17,7 @@ return [
     'stat_addresses' => 'Addresses in database',
     'stat_events' => 'Outages total',
     'stat_notified_today' => 'Notifications today',
+    'stat_queue' => 'Notification queue',
     'sources' => [
         'water' => '💧 water.gov.ge',
         'gwp' => '💧 GWP (Tbilisi)',

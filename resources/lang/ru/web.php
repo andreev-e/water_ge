@@ -17,6 +17,7 @@ return [
     'stat_addresses' => 'Адресов в базе',
     'stat_events' => 'Событий всего',
     'stat_notified_today' => 'Разослано сегодня',
+    'stat_queue' => 'Очередь рассылки',
     'sources' => [
         'water' => '💧 water.gov.ge',
         'gwp' => '💧 GWP (Тбилиси)',

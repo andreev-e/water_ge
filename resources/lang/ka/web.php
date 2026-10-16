@@ -17,6 +17,7 @@ return [
     'stat_addresses' => 'მისამართები ბაზაში',
     'stat_events' => 'სულ გათიშვები',
     'stat_notified_today' => 'დღეს გაგზავნილი',
+    'stat_queue' => 'გაგზავნის რიგი',
     'sources' => [
         'water' => '💧 water.gov.ge',
         'gwp' => '💧 GWP (თბილისი)',
