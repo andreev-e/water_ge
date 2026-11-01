@@ -26,6 +26,8 @@ foreach (Locale::WEB as $locale) {
             Route::get('/service-centers/{serviceCenter}', [Controller::class, 'serviceCenter'])->name('service-center');
             Route::get('/addresses', [Controller::class, 'addresses'])->name('addresses');
             Route::get('/addresses/{address}', [Controller::class, 'address'])->name('address');
+            Route::get('/publications', [Controller::class, 'publications'])->name('publications');
+            Route::get('/publications/{publication}', [Controller::class, 'publication'])->name('publication');
             Route::get('/event/{event}', [Controller::class, 'event'])->name('event');
         });
 }

@@ -4,6 +4,7 @@ namespace App\Console;
 
 use App\Console\Commands\CheckFailedJobs;
 use App\Console\Commands\CountStats;
+use App\Console\Commands\GeneratePublication;
 use App\Console\Commands\LoadEnergy;
 use App\Console\Commands\LoadGas;
 use App\Console\Commands\LoadGwp;
@@ -31,6 +32,10 @@ class Kernel extends ConsoleKernel
         $schedule->command(SnapshotUserStats::class)->hourly();
         $schedule->command(CheckFailedJobs::class)->hourly();
         $schedule->command(MakeMailNotSubscribed::class)->dailyAt('11:00');
+        // Сводки выходят утром: недельная — в понедельник за прошлую неделю,
+        // месячная — первого числа за прошлый месяц.
+        $schedule->command(GeneratePublication::class, ['--type' => 'week'])->weeklyOn(1, '09:00');
+        $schedule->command(GeneratePublication::class, ['--type' => 'month'])->monthlyOn(1, '09:15');
         $schedule->command(NotifyFinished::class)->everyMinute()->withoutOverlapping(10);
         $schedule->command(SendMail::class)->everyMinute()->withoutOverlapping(10);
     }

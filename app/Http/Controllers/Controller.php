@@ -6,6 +6,7 @@ use App\Enums\EventTypes;
 use App\Http\Requests\EventRequest;
 use App\Models\Address;
 use App\Models\Event;
+use App\Models\Publication;
 use App\Models\ServiceCenter;
 use App\Models\UserStat;
 use App\Support\Locale;
@@ -130,6 +131,42 @@ class Controller extends BaseController
         $stat = $this->getStatData();
 
         return view('event', compact('event', 'stat'));
+    }
+
+    /** Список опубликованных сводок: недельные и месячные. */
+    public function publications(): View
+    {
+        $locale = app()->getLocale();
+
+        // Сводка без текста на языке страницы не показывается вовсе: пустая
+        // карточка в списке выглядит как ошибка, а не как отсутствие сводок.
+        $publications = Publication::query()
+            ->published()
+            ->with('translations')
+            ->orderByDesc('period_start')
+            ->limit(60)
+            ->get()
+            ->filter(fn (Publication $publication) => $publication->translation($locale) !== null)
+            ->values();
+
+        $stat = $this->getStatData();
+
+        return view('publications', compact('publications', 'stat'));
+    }
+
+    /** Страница сводки; черновик читателям не виден. */
+    public function publication(Publication $publication): View
+    {
+        abort_unless($publication->isPublished(), 404);
+
+        $publication->load('translations');
+        $translation = $publication->translation(app()->getLocale());
+
+        abort_if($translation === null, 404);
+
+        $stat = $this->getStatData();
+
+        return view('publication', compact('publication', 'translation', 'stat'));
     }
 
     private const SERIES_COLORS = [

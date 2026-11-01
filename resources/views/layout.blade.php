@@ -45,6 +45,7 @@
             <a href="{{ Locale::route('index') }}" class="px-3 py-1 rounded-full bg-white border border-slate-200 hover:border-cyan-600 hover:text-cyan-700">{{ __('web.nav_all') }}</a>
             <a href="{{ Locale::route('service-centers') }}" class="px-3 py-1 rounded-full bg-white border border-slate-200 hover:border-cyan-600 hover:text-cyan-700">{{ __('web.nav_centers') }}</a>
             <a href="{{ Locale::route('addresses') }}" class="px-3 py-1 rounded-full bg-white border border-slate-200 hover:border-cyan-600 hover:text-cyan-700">{{ __('web.nav_addresses') }}</a>
+            <a href="{{ Locale::route('publications') }}" class="px-3 py-1 rounded-full bg-white border border-slate-200 hover:border-cyan-600 hover:text-cyan-700">{{ __('web.nav_publications') }}</a>
             <a target="_blank" href="https://t.me/WaterGeorgia_bot" class="px-3 py-1 rounded-full bg-cyan-700 text-white hover:bg-cyan-800">
                 {{ __('web.nav_bot') }}
             </a>

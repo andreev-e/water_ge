@@ -31,6 +31,12 @@ class Address extends Model
 
     public function getTranslitAttribute(): string
     {
+        return self::transliterate($this->name);
+    }
+
+    /** Грузинское название латиницей — так адрес выглядит на русском и английском. */
+    public static function transliterate(string $name): string
+    {
         $kartuliLetters = array(
             'ა' => 'a', 'ბ' => 'b', 'გ' => 'g', 'დ' => 'd', 'ე' => 'e', 'ვ' => 'v', 'ზ' => 'z', 'თ' => 't',
             'ი' => 'i', 'კ' => 'k', 'ლ' => 'l', 'მ' => 'm', 'ნ' => 'n', 'ო' => 'o', 'პ' => 'p', 'ჟ' => 'zh',
@@ -40,10 +46,10 @@ class Address extends Model
         );
 
         $transliteratedText = '';
-        $length = mb_strlen($this->name, 'UTF-8');
+        $length = mb_strlen($name, 'UTF-8');
 
         for ($i = 0; $i < $length; $i++) {
-            $character = mb_substr($this->name, $i, 1, 'UTF-8');
+            $character = mb_substr($name, $i, 1, 'UTF-8');
             $transliteratedText .= isset($kartuliLetters[$character]) ? $kartuliLetters[$character] : $character;
         }
 
