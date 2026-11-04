@@ -38,6 +38,15 @@ class Subscriptions extends Model
     }
 
     /**
+     * Whether the subscriber limited the city to certain streets. A filter of
+     * blanks or commas counts as none, same as a missing one.
+     */
+    public function hasStreetFilter(): bool
+    {
+        return self::parseStreetFilter($this->street_filter) !== [];
+    }
+
+    /**
      * Addresses are stored in Georgian and shown transliterated, so a term
      * matches either spelling. Gas events come without addresses: their title
      * lists the streets instead.

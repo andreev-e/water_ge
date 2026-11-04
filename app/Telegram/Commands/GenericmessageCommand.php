@@ -45,7 +45,8 @@ class GenericmessageCommand extends SystemCommand
 
         $totalEvents = 0;
         foreach ($events as $event) {
-            $totalEvents += $event->notifySubscribed($chatId);
+            // The subscriber is asking right now, so the reminder window is irrelevant.
+            $totalEvents += $event->notifySubscribed($chatId, false);
         }
 
         if ($totalEvents) {

@@ -51,6 +51,13 @@ class StreetFilterTest extends TestCase
         $this->assertSame(['nikea', 'rustaveli'], Subscriptions::parseStreetFilter(' Nikea ,rustaveli,, NIKEA'));
     }
 
+    public function test_has_street_filter_ignores_blank_values(): void
+    {
+        $this->assertTrue($this->subscription('nikea')->hasStreetFilter());
+        $this->assertFalse($this->subscription(null)->hasStreetFilter());
+        $this->assertFalse($this->subscription(' , ')->hasStreetFilter());
+    }
+
     private function subscription(?string $filter): Subscriptions
     {
         return new Subscriptions(['street_filter' => $filter]);

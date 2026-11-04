@@ -28,6 +28,7 @@ class EventNotification extends Notification implements ShouldQueue
         public ?string $languageCode,
         public int $botUserId,
         public ?string $streetFilter = null,
+        public bool $upcoming = false,
     ) {
     }
 
@@ -54,6 +55,10 @@ class EventNotification extends Notification implements ShouldQueue
             ])
             ->content('🚫<b>' . $this->event->type->getIcon() . $this->event->serviceCenter->localizedName($locale) . '</b>: ')
             ->line('<b>' . $this->event->fromToIn($locale) . '</b>' . ($kind ? ' (' . mb_strtolower($kind) . ')' : ''));
+
+        if ($this->upcoming) {
+            $message->line(__('telegram.upcoming', [], $locale));
+        }
 
         if ($this->event->type === EventTypes::gas) {
             $message->line($this->event->localizedName($locale));

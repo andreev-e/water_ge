@@ -40,6 +40,7 @@ return [
     'donate_thanks' => 'Спасибо за поддержку! ❤️',
     'planned' => 'Плановое',
     'emergency' => 'Аварийное',
+    'upcoming' => '⏳ Отключение начнётся совсем скоро.',
     'today' => 'Сегодня',
     'tomorrow' => 'Завтра',
     'day_after_tomorrow' => 'Послезавтра',

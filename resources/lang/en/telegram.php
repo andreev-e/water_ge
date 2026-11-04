@@ -38,6 +38,7 @@ return [
     'donate_thanks' => 'Thank you for your support! ❤️',
     'planned' => 'Planned',
     'emergency' => 'Emergency',
+    'upcoming' => '⏳ The outage starts very soon.',
     'today' => 'Today',
     'tomorrow' => 'Tomorrow',
     'day_after_tomorrow' => 'Day after tomorrow',

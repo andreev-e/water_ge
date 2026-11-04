@@ -11,6 +11,7 @@ use App\Console\Commands\LoadGwp;
 use App\Console\Commands\LoadWater;
 use App\Console\Commands\MakeMailNotSubscribed;
 use App\Console\Commands\NotifyFinished;
+use App\Console\Commands\NotifyUpcoming;
 use App\Console\Commands\PublishPendingToFacebook;
 use App\Console\Commands\SendMail;
 use App\Console\Commands\SnapshotUserStats;
@@ -37,6 +38,9 @@ class Kernel extends ConsoleKernel
         $schedule->command(GeneratePublication::class, ['--type' => 'week'])->weeklyOn(1, '09:00');
         $schedule->command(GeneratePublication::class, ['--type' => 'month'])->monthlyOn(1, '09:15');
         $schedule->command(NotifyFinished::class)->everyMinute()->withoutOverlapping(10);
+        // Плановые отключения приходят подписчикам с фильтром по улицам за
+        // 10 минут до начала, а не в момент загрузки (см. Event::notifySubscribed).
+        $schedule->command(NotifyUpcoming::class)->everyMinute()->withoutOverlapping(10);
         $schedule->command(SendMail::class)->everyMinute()->withoutOverlapping(10);
     }
 

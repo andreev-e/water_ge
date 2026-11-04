@@ -40,6 +40,7 @@ return [
     'donate_thanks' => 'მადლობა მხარდაჭერისთვის! ❤️',
     'planned' => 'დაგეგმილი',
     'emergency' => 'ავარიული',
+    'upcoming' => '⏳ გათიშვა ძალიან მალე დაიწყება.',
     'today' => 'დღეს',
     'tomorrow' => 'ხვალ',
     'day_after_tomorrow' => 'ზეგ',

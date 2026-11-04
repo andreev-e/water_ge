@@ -33,6 +33,7 @@ class Event extends Model
         'external_id',
         'planned',
         'finish_notified',
+        'upcoming_notified',
     ];
 
     protected $casts = [
@@ -41,6 +42,7 @@ class Event extends Model
         'type' => EventTypes::class,
         'planned' => 'boolean',
         'finish_notified' => 'boolean',
+        'upcoming_notified' => 'boolean',
     ];
 
     public function addresses(): BelongsToMany
@@ -72,10 +74,59 @@ class Event extends Model
             ->get();
     }
 
-    public function notifySubscribed(int $botUserId = null): int
+    /**
+     * Planned outages are announced to street-filtered subscribers shortly
+     * before they start, not when the source publishes them: such subscribers
+     * get the reminder from NotifyUpcoming instead.
+     */
+    public const UPCOMING_MINUTES = 10;
+
+    /**
+     * @param  bool  $deferPlanned  Whether street-filtered subscribers wait for
+     *                              the reminder instead of getting the outage right away.
+     */
+    public function notifySubscribed(?int $botUserId = null, bool $deferPlanned = true): int
     {
         $subscriptions = $this->subscriptionsToNotify($botUserId);
+        $streetFiltered = fn(Subscriptions $subscription) => $subscription->hasStreetFilter();
 
+        if ($deferPlanned && $this->defersStreetFiltered()) {
+            $subscriptions = $subscriptions->reject($streetFiltered);
+        } elseif ($deferPlanned && $this->planned === true && $subscriptions->contains($streetFiltered)) {
+            // The start is too close to wait: this very message is the reminder,
+            // and the flag keeps NotifyUpcoming from sending it once more.
+            $this->forceFill(['upcoming_notified' => true])->save();
+        }
+
+        return $this->send($subscriptions);
+    }
+
+    /**
+     * The reminder itself: planned outages reach street-filtered subscribers
+     * right before they start, since at load time they were skipped.
+     */
+    public function notifyUpcomingStreetFiltered(): int
+    {
+        return $this->send(
+            $this->subscriptionsToNotify()
+                ->filter(fn(Subscriptions $subscription) => $subscription->hasStreetFilter()),
+            true,
+        );
+    }
+
+    /**
+     * Only street-filtered subscribers are promised a last-minute reminder, so
+     * only a planned outage that starts later than that window is deferred.
+     */
+    private function defersStreetFiltered(): bool
+    {
+        return $this->planned === true
+            && $this->start
+            && $this->start->gt(now()->addMinutes(self::UPCOMING_MINUTES));
+    }
+
+    private function send(Collection $subscriptions, bool $upcoming = false): int
+    {
         $notifiedToday = Cache::get('notified_today', 0);
         foreach ($subscriptions as $subscription) {
             Notification::route('telegram', $subscription->bot_user_id)
@@ -84,13 +135,14 @@ class Event extends Model
                     $subscription->botUser->language_code,
                     $subscription->bot_user_id,
                     $subscription->street_filter,
+                    $upcoming,
                 ));
             $notifiedToday++;
         }
 
         Cache::put('notified_today', $notifiedToday, now()->setTimezone('Asia/Tbilisi')->endOfDay());
 
-        return count($subscriptions);
+        return $subscriptions->count();
     }
 
     /**
