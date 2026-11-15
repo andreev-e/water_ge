@@ -71,6 +71,8 @@ return [
             'level' => env('LOG_LEVEL', 'debug'),
             'days' => 7,
             'replace_placeholders' => true,
+            // Hides the Telegram bot token that Guzzle puts into exception messages.
+            'tap' => [App\Logging\RedactSecrets::class],
         ],
 
         'slack' => [
