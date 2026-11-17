@@ -70,8 +70,9 @@
 </div>
 <script>
     // Draws the outages of each table on a shared timeline: "now" is at the same x in every row,
-    // and bar length is proportional to the outage duration.
+    // and the timeline is logarithmic (by distance from "now", in minutes) so short outages stay visible.
     (function () {
+        const SCALE_UNIT_MS = 60000;
         const t = @json($scriptTranslations);
         const tr = (text, vars) => text.replace(/:(\w+)/g, (match, key) => key in vars ? vars[key] : match);
         const pad = (n) => String(n).padStart(2, '0');
@@ -95,11 +96,19 @@
             });
 
             tables.forEach((bars) => {
+                // Symmetric log scale around "now": a long outage no longer squeezes the short ones.
+                // Near "now" the scale is detailed, far past/future is compressed; order is preserved.
+                const warp = (t) => {
+                    const d = (t - now) / SCALE_UNIT_MS;
+                    return Math.sign(d) * Math.log1p(Math.abs(d));
+                };
                 // The window spans from the earliest start to the latest finish: nothing is cut off.
                 const from = Math.min(...bars.map((b) => b.start));
-                const span = Math.max(...bars.map((b) => b.finish)) - from || 1;
-                const x = (t) => Math.min(1, Math.max(0, (t - from) / span));
-                const nowAt = (now - from) / span;
+                const to = Math.max(...bars.map((b) => b.finish));
+                const lo = warp(from);
+                const span = (warp(to) - lo) || 1;
+                const x = (t) => Math.min(1, Math.max(0, (warp(t) - lo) / span));
+                const nowAt = (warp(now) - lo) / span;
 
                 bars.forEach(({bar, start, finish}) => {
                     const running = now >= start && now < finish;
