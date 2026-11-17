@@ -72,7 +72,7 @@
     // Draws the outages of each table on a shared timeline: "now" is at the same x in every row,
     // and the timeline is linear within ten days around "now"; longer parts are cut off with a break.
     (function () {
-        const SCALE_WINDOW_MS = 10 * 24 * 3600 * 1000;
+        const SCALE_WINDOW_MS = 2 * 24 * 3600 * 1000;
         const t = @json($scriptTranslations);
         const tr = (text, vars) => text.replace(/:(\w+)/g, (match, key) => key in vars ? vars[key] : match);
         const pad = (n) => String(n).padStart(2, '0');
