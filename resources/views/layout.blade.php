@@ -119,8 +119,8 @@
                     marker.style.left = percent(nowAt);
                     marker.classList.toggle('hidden', nowAt < 0 || nowAt > 1);
                     // Breaks mark the parts cut off by the window edges.
-                    bar.querySelector('.event-progress-break-left').classList.toggle('hidden', start < from);
-                    bar.querySelector('.event-progress-break-right').classList.toggle('hidden', finish > to);
+                    bar.querySelector('.event-progress-break-left').classList.toggle('hidden', start >= from);
+                    bar.querySelector('.event-progress-break-right').classList.toggle('hidden', finish <= to);
                     bar.querySelector('.animate-ping').classList.toggle('hidden', !running);
                     bar.title = now < start
                         ? tr(t.starts_in, {time: formatLeft(start - now)})
