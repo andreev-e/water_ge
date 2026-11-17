@@ -96,19 +96,18 @@
             });
 
             tables.forEach((bars) => {
-                // Symmetric log scale around "now": a long outage no longer squeezes the short ones.
-                // Near "now" the scale is detailed, far past/future is compressed; order is preserved.
+                // Symmetric log scale centred on "now": the past and the future get the same
+                // log-distance scale, so a long outage no longer squeezes the short ones.
                 const warp = (t) => {
                     const d = (t - now) / SCALE_UNIT_MS;
                     return Math.sign(d) * Math.log1p(Math.abs(d));
                 };
-                // The window spans from the earliest start to the latest finish: nothing is cut off.
+                // Half-width covers the farthest outage on either side: nothing is cut off.
                 const from = Math.min(...bars.map((b) => b.start));
                 const to = Math.max(...bars.map((b) => b.finish));
-                const lo = warp(from);
-                const span = (warp(to) - lo) || 1;
-                const x = (t) => Math.min(1, Math.max(0, (warp(t) - lo) / span));
-                const nowAt = (warp(now) - lo) / span;
+                const half = Math.max(-warp(from), warp(to)) || 1;
+                const x = (t) => Math.min(1, Math.max(0, 0.5 + warp(t) / (2 * half)));
+                const nowAt = 0.5;
 
                 bars.forEach(({bar, start, finish}) => {
                     const running = now >= start && now < finish;
