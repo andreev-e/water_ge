@@ -70,9 +70,9 @@
 </div>
 <script>
     // Draws the outages of each table on a shared timeline: "now" is at the same x in every row,
-    // and the timeline is logarithmic (by distance from "now", in minutes) so short outages stay visible.
+    // and the timeline is linear within ten days around "now"; longer parts are cut off with a break.
     (function () {
-        const SCALE_UNIT_MS = 60000;
+        const SCALE_WINDOW_MS = 10 * 24 * 3600 * 1000;
         const t = @json($scriptTranslations);
         const tr = (text, vars) => text.replace(/:(\w+)/g, (match, key) => key in vars ? vars[key] : match);
         const pad = (n) => String(n).padStart(2, '0');
@@ -96,18 +96,13 @@
             });
 
             tables.forEach((bars) => {
-                // Symmetric log scale centred on "now": the past and the future get the same
-                // log-distance scale, so a long outage no longer squeezes the short ones.
-                const warp = (t) => {
-                    const d = (t - now) / SCALE_UNIT_MS;
-                    return Math.sign(d) * Math.log1p(Math.abs(d));
-                };
-                // Half-width covers the farthest outage on either side: nothing is cut off.
-                const from = Math.min(...bars.map((b) => b.start));
-                const to = Math.max(...bars.map((b) => b.finish));
-                const half = Math.max(-warp(from), warp(to)) || 1;
-                const x = (t) => Math.min(1, Math.max(0, 0.5 + warp(t) / (2 * half)));
-                const nowAt = 0.5;
+                // Linear scale limited to ten days around "now": a longer part is cut off at the edge
+                // and marked with a break, so one long outage doesn't squeeze the short ones.
+                const from = Math.max(Math.min(...bars.map((b) => b.start)), now - SCALE_WINDOW_MS);
+                const to = Math.max(from + 1, Math.min(Math.max(...bars.map((b) => b.finish)), now + SCALE_WINDOW_MS));
+                const span = to - from;
+                const x = (t) => Math.min(1, Math.max(0, (t - from) / span));
+                const nowAt = (now - from) / span;
 
                 bars.forEach(({bar, start, finish}) => {
                     const running = now >= start && now < finish;
@@ -123,6 +118,9 @@
                     // Upcoming outages may all be ahead of "now": then the marker is off the timeline.
                     marker.style.left = percent(nowAt);
                     marker.classList.toggle('hidden', nowAt < 0 || nowAt > 1);
+                    // Breaks mark the parts cut off by the window edges.
+                    bar.querySelector('.event-progress-break-left').classList.toggle('hidden', start < from);
+                    bar.querySelector('.event-progress-break-right').classList.toggle('hidden', finish > to);
                     bar.querySelector('.animate-ping').classList.toggle('hidden', !running);
                     bar.title = now < start
                         ? tr(t.starts_in, {time: formatLeft(start - now)})

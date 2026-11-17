@@ -51,7 +51,7 @@
         @if ($event->finish->isPast())
             <span class="text-slate-500">{{ $event->fromToIn(app()->getLocale()) }}</span>
         @else
-            {{-- Shared timeline: "now" sits at the same x in every row, bar length is proportional to duration. --}}
+            {{-- Shared linear timeline: "now" sits at the same x in every row. Parts beyond ten days from now are cut off and marked with a break. --}}
             <div
                 class="event-progress relative flex items-center justify-center h-6 min-w-[20rem] px-2 overflow-hidden rounded border border-slate-300 bg-slate-100 text-xs"
                 data-start="{{ $event->start->valueOf() }}"
@@ -62,6 +62,8 @@
                 <div class="event-progress-marker absolute inset-y-0 w-0.5 -ml-px bg-amber-600 transition-[left] duration-1000 ease-linear">
                     <span class="absolute inset-0 bg-amber-500 animate-ping"></span>
                 </div>
+                <div class="event-progress-break-left hidden absolute inset-y-0 left-0 w-3 z-20" style="background: repeating-linear-gradient(-45deg, #f1f5f9 0 2px, #64748b 2px 3px, #f1f5f9 3px 5px)"></div>
+                <div class="event-progress-break-right hidden absolute inset-y-0 right-0 w-3 z-20" style="background: repeating-linear-gradient(-45deg, #f1f5f9 0 2px, #64748b 2px 3px, #f1f5f9 3px 5px)"></div>
                 <span class="relative z-10">{{ $event->fromToIn(app()->getLocale()) }}</span>
             </div>
         @endif
