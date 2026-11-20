@@ -253,7 +253,7 @@ class LoadWater extends Command
             $name = self::BAKURIANI;
         }
 
-        $exact = ServiceCenter::query()->where('name', $name)->first();
+        $exact = ServiceCenter::query()->whereRaw('LOWER(name) = LOWER(?)', [$name])->first();
 
         if ($exact) {
             return $exact;
@@ -262,8 +262,8 @@ class LoadWater extends Command
         $stem = mb_substr($name, 0, -1);
 
         $fuzzy = ServiceCenter::query()
-            ->where('name', 'LIKE', $name . '%')
-            ->orWhere('name', 'LIKE', $stem . '%')
+            ->where('name', 'ILIKE', $name . '%')
+            ->orWhere('name', 'ILIKE', $stem . '%')
             ->orderByRaw('LENGTH(name) ASC')
             ->first();
 

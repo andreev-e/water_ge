@@ -32,7 +32,10 @@ return [
     ],
 
     'telegram-bot-api' => [
-        'token' => env('TELEGRAM_API_TOKEN')
+        'token' => env('TELEGRAM_API_TOKEN'),
+        'username' => env('TELEGRAM_BOT_USERNAME', ''),
+        'api_url' => env('TELEGRAM_API_URL', 'https://api.telegram.org'),
+        'admins' => env('TELEGRAM_ADMINS', ''),
     ],
 
     'facebook' => [

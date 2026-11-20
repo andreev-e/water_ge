@@ -137,7 +137,7 @@ class LoadGwp extends Command
     private function resolveServiceCenter(string $district): ServiceCenter
     {
         $serviceCenter = $district !== ''
-            ? ServiceCenter::query()->where('name', $district)->first()
+            ? ServiceCenter::query()->whereRaw('LOWER(name) = LOWER(?)', [$district])->first()
             : null;
 
         return $serviceCenter ?? ServiceCenter::query()->firstOrCreate(['name' => self::DEFAULT_SERVICE_CENTER]);

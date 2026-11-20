@@ -37,7 +37,7 @@ class LoadEnergy extends Command
             foreach ($data->data as $rawEvent) {
 
                 $serviceCenter = ServiceCenter::query()
-                    ->where('name', 'LIKE', '%' . mb_substr($rawEvent->scName, 0, -1) . '%')
+                    ->where('name', 'ILIKE', '%' . mb_substr($rawEvent->scName, 0, -1) . '%')
                     ->first();
 
                 if (!$serviceCenter) {

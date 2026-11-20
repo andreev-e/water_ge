@@ -208,7 +208,7 @@ class Event extends Model
             ->when(
                 $addressIds,
                 fn(Builder $query) => $query->whereHas('addresses', fn(Builder $query) => $query->whereKey($addressIds)),
-                fn(Builder $query) => $query->where('name', $this->name),
+                fn(Builder $query) => $query->whereRaw('LOWER(name) = LOWER(?)', [$this->name]),
             )
             ->get();
     }
