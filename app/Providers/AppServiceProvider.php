@@ -7,6 +7,9 @@ use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use App\Telegram\Commands\CallbackqueryCommand;
+use App\Telegram\Commands\GenericmessageCommand;
+use App\Telegram\Commands\MessageCommand;
 use Longman\TelegramBot\Commands\Command as BotCommand;
 use Longman\TelegramBot\Request as BotRequest;
 use Longman\TelegramBot\Telegram as BotTelegram;
@@ -34,12 +37,21 @@ class AppServiceProvider extends ServiceProvider
                 (string) config('services.telegram-bot-api.username'),
             );
 
+            // MessageCommand наследует имя 'genericmessage' и перезаписал бы обработчик обычных сообщений
+            // (бот повторял текст пользователя), поэтому не обнаруживаем его автоматически.
             foreach (glob(app_path('Telegram/Commands/*.php')) ?: [] as $file) {
                 $class = 'App\\Telegram\\Commands\\' . basename($file, '.php');
+                if ($class === MessageCommand::class) {
+                    continue;
+                }
                 if (is_subclass_of($class, BotCommand::class) && ! (new \ReflectionClass($class))->isAbstract()) {
                     $bot->addCommandClass($class);
                 }
             }
+
+            // Системные обработчики добавляем последними, чтобы они не перекрывались.
+            $bot->addCommandClass(CallbackqueryCommand::class);
+            $bot->addCommandClass(GenericmessageCommand::class);
 
             $admins = array_values(array_filter(array_map('trim', explode(',', (string) config('services.telegram-bot-api.admins', '')))));
             if ($admins !== []) {
