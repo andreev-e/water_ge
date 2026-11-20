@@ -17,3 +17,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+// Webhook бота (Longman без внешней MySQL): путь тот же, что был у php-telegram-bot/laravel.
+Route::post('telegram/webhook/{token}', \App\Http\Controllers\TelegramWebhookController::class)
+    ->middleware(\PhpTelegramBot\Laravel\Http\Middleware\TrustTelegramNetwork::class)
+    ->name('telegram.webhook');
