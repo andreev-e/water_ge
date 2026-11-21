@@ -29,7 +29,9 @@ class Kernel extends ConsoleKernel
         $schedule->command(LoadGas::class)->everyFiveMinutes();
         $schedule->command(PublishPendingToFacebook::class)->everyMinute()->withoutOverlapping(10);
 //        $schedule->command(Translate::class)->everyMinute();
-        $schedule->command(CountStats::class)->hourly();
+        // Без наложения: счётчики считаются группировкой за секунды, но если база
+        // подвиснет, следующий часовой запуск не должен стартовать поверх старого.
+        $schedule->command(CountStats::class)->hourly()->withoutOverlapping(10);
         $schedule->command(SnapshotUserStats::class)->hourly();
         $schedule->command(CheckFailedJobs::class)->hourly();
         $schedule->command(MakeMailNotSubscribed::class)->dailyAt('11:00');
