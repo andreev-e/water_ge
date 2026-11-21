@@ -13,7 +13,9 @@ class SecretRedactor
     public const MASK = '[redacted]';
 
     // Telegram bot token: "<bot id>:<secret>", the secret part is [A-Za-z0-9_-].
-    private const TELEGRAM_TOKEN = '/\b\d{5,}:[A-Za-z0-9_-]{20,}/';
+    // No leading \b: in the request URL the token follows "bot", and "t" + digit are both word characters,
+    // so there is no word boundary there and the token stayed in the logs.
+    private const TELEGRAM_TOKEN = '/\d{5,}:[A-Za-z0-9_-]{20,}/';
 
     public static function redact(string $text): string
     {
