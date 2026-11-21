@@ -42,20 +42,25 @@ class CountStatsCommandTest extends TestCase
         $withoutAddresses = $this->outage($tbilisi, '2026-10-29 09:00:00');
         DB::table('events')->whereIn('id', [$uncounted, $withoutAddresses])->update(['total_addresses' => null]);
 
+        // А этот счётчик пришёл из фида и больше числа связей — его команда не трогает.
+        $fromFeed = $this->outage($tbilisi, '2026-10-30 09:00:00', addressIds: [$first]);
+        DB::table('events')->where('id', $fromFeed)->update(['total_addresses' => 40]);
+
         $this->artisan('app:count-stats')->assertSuccessful();
 
         $this->assertSame(3, $this->value('service_centers', $tbilisi, 'total_addresses'));
-        $this->assertSame(3, $this->value('service_centers', $tbilisi, 'total_events'));
+        $this->assertSame(4, $this->value('service_centers', $tbilisi, 'total_events'));
         $this->assertSame(1, $this->value('service_centers', $batumi, 'total_addresses'));
         $this->assertSame(1, $this->value('service_centers', $batumi, 'total_events'));
 
-        $this->assertSame(2, $this->value('addresses', $first, 'total_events'));
+        $this->assertSame(3, $this->value('addresses', $first, 'total_events'));
         $this->assertSame(1, $this->value('addresses', $second, 'total_events'));
         $this->assertSame(1, $this->value('addresses', $third, 'total_events'));
         $this->assertSame(0, $this->value('addresses', $idle, 'total_events'));
 
         $this->assertSame(1, $this->value('events', $uncounted, 'total_addresses'));
         $this->assertSame(0, $this->value('events', $withoutAddresses, 'total_addresses'));
+        $this->assertSame(40, $this->value('events', $fromFeed, 'total_addresses'));
     }
 
     private function value(string $table, int $id, string $column): int
