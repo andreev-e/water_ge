@@ -95,6 +95,7 @@ return [
     'users' => 'Users',
     'subscriptions' => 'Subscriptions',
     'filtered' => 'With street filter',
+    'unsubscribes' => 'Unsubscribes',
 
     'publications' => [
         'title' => 'Outage digests',

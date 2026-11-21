@@ -95,6 +95,7 @@ return [
     'users' => 'Пользователи',
     'subscriptions' => 'Подписки',
     'filtered' => 'С фильтром по улицам',
+    'unsubscribes' => 'Отписки',
 
     'publications' => [
         'title' => 'Сводки отключений',

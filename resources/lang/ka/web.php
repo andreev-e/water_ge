@@ -95,6 +95,7 @@ return [
     'users' => 'მომხმარებლები',
     'subscriptions' => 'გამოწერები',
     'filtered' => 'ქუჩების ფილტრით',
+    'unsubscribes' => 'გამოწერის გაუქმება',
 
     'publications' => [
         'title' => 'გათიშვების მიმოხილვები',

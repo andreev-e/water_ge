@@ -434,7 +434,7 @@ class Controller extends BaseController
      */
     private function getSubscribesGraphData(): array
     {
-        return Cache::remember('graphData_users_v5_' . app()->getLocale(), 60 * 60,
+        return Cache::remember('graphData_users_v6_' . app()->getLocale(), 60 * 60,
             function() {
                 $fromDate = now()->subDays(30)->startOfDay();
 
@@ -464,6 +464,25 @@ class Controller extends BaseController
                         'data' => array_map(fn($date) => $stats->get($date)?->$column, $labels),
                     ];
                 }
+
+                $previousSubscriptions = null;
+                $unsubscribes = [];
+                foreach ($labels as $date) {
+                    $current = $stats->get($date)?->subscriptions;
+                    $unsubscribes[] = $current !== null && $previousSubscriptions !== null
+                        ? max($previousSubscriptions - $current, 0)
+                        : null;
+                    if ($current !== null) {
+                        $previousSubscriptions = $current;
+                    }
+                }
+                $datasets[] = [
+                    'label' => __('web.unsubscribes'),
+                    'backgroundColor' => '#dc2626',
+                    'borderColor' => '#dc2626',
+                    'fill' => false,
+                    'data' => $unsubscribes,
+                ];
 
                 return [
                     'labels' => $labels,
